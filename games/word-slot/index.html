@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ワードスロット - Party Games</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css">
+  <style>
+    .game-rules {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 1.2rem 1.5rem;
+      margin-bottom: 1.5rem;
+      font-size: .85rem;
+      color: var(--text-muted);
+      line-height: 1.8;
+    }
+    .game-rules summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--text);
+      font-size: .95rem;
+    }
+    .game-rules ul { margin: .5rem 0 0 1.2rem; }
+
+    .slot-area { flex-direction: column; }
+    .slot-row { display: flex; gap: 1.5rem; justify-content: center; }
+    .slot-hint {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      margin-top: .5rem;
+      min-height: 1.5em;
+    }
+    .slot-hint strong { color: var(--primary); }
+
+    .controls { text-align: center; margin: 1.5rem 0; }
+    .controls .btn { min-width: 200px; }
+
+    .answer-section {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .answer-section h3 { margin-bottom: .8rem; }
+    .answer-form {
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+    }
+    .answer-form select, .answer-form input[type="text"] { flex: 1; min-width: 120px; }
+    .answer-form .btn { flex-shrink: 0; }
+
+    .validation-result {
+      margin-top: .8rem;
+      padding: .6rem 1rem;
+      border-radius: var(--radius);
+      font-size: .9rem;
+      display: none;
+    }
+    .validation-result.show { display: block; }
+    .validation-result.ok { background: rgba(76,175,80,.15); border: 1px solid #4caf50; }
+    .validation-result.ng { background: rgba(233,69,96,.15); border: 1px solid var(--primary); }
+
+    .round-info {
+      text-align: center;
+      font-size: .9rem;
+      color: var(--text-muted);
+      margin-bottom: .5rem;
+    }
+
+    .timer-bar {
+      height: 4px;
+      background: var(--surface2);
+      border-radius: 2px;
+      margin-top: .5rem;
+      overflow: hidden;
+    }
+    .timer-bar .fill {
+      height: 100%;
+      background: var(--primary);
+      transition: width .1s linear;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a href="../../index.html"><h1>Party Games</h1></a>
+    <p class="subtitle">ワードスロット</p>
+  </header>
+
+  <div class="game-container">
+
+    <details class="game-rules">
+      <summary>遊び方</summary>
+      <ul>
+        <li>「スロット回す！」を押すと、<strong>文字数</strong>と<strong>頭文字</strong>がランダムに決まります</li>
+        <li>条件に合う単語を最速で叫んだ人が勝ち！</li>
+        <li>回答者を選んで単語を入力すると、記録＆辞書チェックされます</li>
+        <li>文字数「11+」は11文字以上ならOK</li>
+        <li>辞書の単語、人名、作品名、ことわざなどOK。文章はNG</li>
+      </ul>
+    </details>
+
+    <!-- Player Setup -->
+    <div class="player-setup" id="playerSetup">
+      <h3>プレイヤー登録</h3>
+      <div style="display:flex; gap:.5rem; margin-top:.5rem;">
+        <input type="text" id="playerNameInput" placeholder="名前を入力" maxlength="10"
+               onkeydown="if(event.key==='Enter')addPlayer()">
+        <button class="btn btn-primary btn-small" onclick="addPlayer()">追加</button>
+      </div>
+      <div class="player-list" id="playerList"></div>
+    </div>
+
+    <!-- Slot Machine -->
+    <div class="round-info" id="roundInfo"></div>
+    <div class="slot-area">
+      <div class="slot-row">
+        <div class="slot-box" id="slotNumber">
+          <span class="slot-label">文字数</span>
+          <span class="slot-value" id="slotNumVal">?</span>
+        </div>
+        <div class="slot-box" id="slotChar">
+          <span class="slot-label">頭文字</span>
+          <span class="slot-value" id="slotCharVal">?</span>
+        </div>
+      </div>
+      <div class="slot-hint" id="slotHint"></div>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-primary btn-large" id="spinBtn" onclick="spin()">
+        スロット回す！
+      </button>
+    </div>
+
+    <!-- Answer Section -->
+    <div class="answer-section" id="answerSection" style="display:none;">
+      <h3>回答入力</h3>
+      <div class="answer-form">
+        <select id="answerPlayer"></select>
+        <input type="text" id="answerWord" placeholder="単語を入力"
+               onkeydown="if(event.key==='Enter')submitAnswer()">
+        <button class="btn btn-primary" onclick="submitAnswer()">回答！</button>
+      </div>
+      <div class="validation-result" id="validationResult"></div>
+    </div>
+
+    <!-- Scoreboard -->
+    <div class="scoreboard" id="scoreboard" style="display:none;">
+      <h3>スコアボード</h3>
+      <div id="scoreRows"></div>
+    </div>
+
+    <!-- Answer Log -->
+    <div class="answer-log" id="answerLog" style="display:none;">
+      <h3>回答ログ</h3>
+      <div id="logEntries"></div>
+    </div>
+
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

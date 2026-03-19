@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ジェスチャーバトル - Party Games</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css">
+  <style>
+    .topic-display {
+      background: var(--surface);
+      border: 3px solid var(--primary);
+      border-radius: var(--radius);
+      padding: 2.5rem;
+      text-align: center;
+      margin: 2rem 0;
+      min-height: 160px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .topic-display .category {
+      font-size: .85rem;
+      color: var(--text-muted);
+      margin-bottom: .5rem;
+    }
+    .topic-display .word {
+      font-size: 2.5rem;
+      font-weight: 900;
+    }
+    .topic-display .hidden-word {
+      font-size: 1.5rem;
+      color: var(--text-muted);
+      letter-spacing: .3em;
+    }
+
+    .timer-display {
+      text-align: center;
+      font-size: 3rem;
+      font-weight: 900;
+      margin: 1rem 0;
+      font-variant-numeric: tabular-nums;
+    }
+    .timer-display.warning { color: var(--primary); }
+    .timer-bar { height: 6px; margin: 0 0 1.5rem; }
+
+    .controls { text-align: center; display: flex; gap: .8rem; justify-content: center; flex-wrap: wrap; margin: 1rem 0; }
+
+    .team-setup {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .team-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
+    .team-col h4 { margin-bottom: .5rem; color: var(--primary); }
+    .team-col.b h4 { color: #4caf50; }
+    .member-input { display: flex; gap: .3rem; margin-bottom: .5rem; }
+
+    .result-banner {
+      text-align: center;
+      padding: 1.5rem;
+      border-radius: var(--radius);
+      font-size: 1.5rem;
+      font-weight: 900;
+      margin: 1rem 0;
+      display: none;
+    }
+    .result-banner.show { display: block; }
+    .result-banner.correct { background: rgba(76,175,80,.2); border: 2px solid #4caf50; }
+    .result-banner.skip { background: rgba(255,152,0,.2); border: 2px solid #ff9800; }
+    .result-banner.timeup { background: rgba(233,69,96,.2); border: 2px solid var(--primary); }
+
+    .difficulty-select { text-align: center; margin: 1rem 0; }
+    .difficulty-select label { margin: 0 .5rem; cursor: pointer; }
+    .difficulty-select input { margin-right: .2rem; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a href="../../index.html"><h1>Party Games</h1></a>
+    <p class="subtitle">ジェスチャーバトル</p>
+  </header>
+
+  <div class="game-container">
+
+    <details class="game-rules" open>
+      <summary>遊び方</summary>
+      <ul>
+        <li>2チームに分かれます</li>
+        <li>出題者はお題を見て<strong>声を出さずにジェスチャー</strong>で伝えます</li>
+        <li>チームメンバーが正解したら「正解！」を押してポイント獲得</li>
+        <li>分からなければ「スキップ」で次のお題へ（ペナルティなし）</li>
+        <li>制限時間60秒で何問正解できるかを競います</li>
+      </ul>
+    </details>
+
+    <!-- Team Setup -->
+    <div class="team-setup" id="teamSetup">
+      <h3>チーム設定</h3>
+      <div style="margin:.8rem 0;">
+        <label>制限時間:
+          <select id="timeLimit">
+            <option value="30">30秒</option>
+            <option value="60" selected>60秒</option>
+            <option value="90">90秒</option>
+            <option value="120">120秒</option>
+          </select>
+        </label>
+      </div>
+      <div class="difficulty-select">
+        <strong>難易度:</strong>
+        <label><input type="radio" name="diff" value="easy" checked> かんたん</label>
+        <label><input type="radio" name="diff" value="normal"> ふつう</label>
+        <label><input type="radio" name="diff" value="hard"> むずかしい</label>
+      </div>
+      <div class="team-columns">
+        <div class="team-col a">
+          <h4>チームA</h4>
+          <div id="teamAList"></div>
+          <div class="member-input">
+            <input type="text" id="teamAInput" placeholder="名前" maxlength="10"
+                   onkeydown="if(event.key==='Enter')addMember('A')">
+            <button class="btn btn-primary btn-small" onclick="addMember('A')">+</button>
+          </div>
+        </div>
+        <div class="team-col b">
+          <h4>チームB</h4>
+          <div id="teamBList"></div>
+          <div class="member-input">
+            <input type="text" id="teamBInput" placeholder="名前" maxlength="10"
+                   onkeydown="if(event.key==='Enter')addMember('B')">
+            <button class="btn btn-primary btn-small" onclick="addMember('B')">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Display -->
+    <div class="timer-display" id="timer" style="display:none;">60</div>
+    <div class="timer-bar" id="timerBar" style="display:none;"><div class="fill" id="timerFill"></div></div>
+
+    <div class="topic-display" id="topicDisplay" style="display:none;">
+      <div class="category" id="topicCategory"></div>
+      <div class="word" id="topicWord"></div>
+    </div>
+
+    <div class="result-banner" id="resultBanner"></div>
+
+    <div class="controls">
+      <button class="btn btn-primary btn-large" id="startBtn" onclick="startRound()">ゲーム開始！</button>
+      <button class="btn btn-primary" id="correctBtn" onclick="markCorrect()" style="display:none;">⭕ 正解！</button>
+      <button class="btn btn-secondary" id="skipBtn" onclick="skipTopic()" style="display:none;">⏭ スキップ</button>
+    </div>
+
+    <div id="currentTeamInfo" style="text-align:center;margin:.5rem 0;font-size:1.1rem;display:none;"></div>
+
+    <!-- Scoreboard -->
+    <div class="scoreboard" id="scoreboard" style="display:none;">
+      <h3>スコアボード</h3>
+      <div id="scoreRows"></div>
+    </div>
+
+  </div>
+
+  <script>
+    // --- Topics by difficulty ---
+    const TOPICS = {
+      easy: [
+        {cat:'動物', words:['犬','猫','ゾウ','サル','ウサギ','ペンギン','キリン','カエル','ヘビ','鳥','魚','ライオン','クマ','パンダ','コアラ']},
+        {cat:'スポーツ', words:['サッカー','野球','テニス','水泳','バスケ','ゴルフ','スキー','ボクシング','相撲','卓球','バレー','マラソン']},
+        {cat:'食べ物', words:['ラーメン','寿司','ピザ','カレー','ハンバーガー','おにぎり','アイス','ケーキ','りんご','バナナ','たこ焼き']},
+        {cat:'乗り物', words:['自転車','飛行機','電車','バス','バイク','船','ヘリコプター','ロケット','パトカー','救急車']},
+        {cat:'楽器', words:['ピアノ','ギター','ドラム','バイオリン','トランペット','フルート','ハーモニカ','太鼓']},
+      ],
+      normal: [
+        {cat:'職業', words:['消防士','警察官','医者','先生','コック','パイロット','宇宙飛行士','カメラマン','美容師','大工','漁師','DJ']},
+        {cat:'有名人の動き', words:['ものまね','プロレスラー','指揮者','バレリーナ','忍者','侍','マジシャン','審判','泥棒','赤ちゃん']},
+        {cat:'日常動作', words:['歯磨き','料理','洗濯','掃除機','アイロン','釣り','縄跳び','逆立ち','腕立て伏せ','くしゃみ','あくび','居眠り']},
+        {cat:'映画・アニメ', words:['スパイダーマン','ドラえもん','ピカチュウ','マリオ','ルフィ','悟空','アンパンマン','トトロ','ジャイアン']},
+      ],
+      hard: [
+        {cat:'抽象・感情', words:['恋愛','嫉妬','感動','緊張','デジャブ','カリスマ','プレッシャー','ノスタルジー','もどかしい','切ない']},
+        {cat:'ことわざ', words:['猿も木から落ちる','猫に小判','馬の耳に念仏','花より団子','七転び八起き','目から鱗','棚からぼた餅','石の上にも三年']},
+        {cat:'シチュエーション', words:['満員電車','お化け屋敷','ジェットコースター','合コン','面接','卒業式','初デート','二日酔い','オーディション']},
+      ],
+    };
+
+    let teamA = [], teamB = [];
+    let scoreA = 0, scoreB = 0;
+    let currentTeam = 'A';
+    let timerInterval = null;
+    let timeLeft = 60;
+    let playing = false;
+    let roundTopics = [];
+    let topicIndex = 0;
+    let correctCount = 0;
+
+    function addMember(team) {
+      const input = document.getElementById(`team${team}Input`);
+      const name = input.value.trim();
+      if (!name) return;
+      if (team === 'A') teamA.push(name); else teamB.push(name);
+      input.value = '';
+      renderTeams();
+    }
+
+    function removeMember(team, idx) {
+      if (team === 'A') teamA.splice(idx, 1); else teamB.splice(idx, 1);
+      renderTeams();
+    }
+
+    function renderTeams() {
+      ['A', 'B'].forEach(t => {
+        const list = t === 'A' ? teamA : teamB;
+        document.getElementById(`team${t}List`).innerHTML = list.map((m, i) =>
+          `<span class="player-tag">${esc(m)} <span class="remove" onclick="removeMember('${t}',${i})">&times;</span></span>`
+        ).join('');
+      });
+    }
+
+    function getDifficulty() {
+      return document.querySelector('input[name="diff"]:checked').value;
+    }
+
+    function shuffleTopics() {
+      const diff = getDifficulty();
+      const pool = TOPICS[diff];
+      roundTopics = [];
+      pool.forEach(cat => {
+        cat.words.forEach(w => roundTopics.push({ cat: cat.cat, word: w }));
+      });
+      // Shuffle
+      for (let i = roundTopics.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [roundTopics[i], roundTopics[j]] = [roundTopics[j], roundTopics[i]];
+      }
+      topicIndex = 0;
+    }
+
+    function startRound() {
+      if (teamA.length === 0 && teamB.length === 0) {
+        alert('チームメンバーを登録してください');
+        return;
+      }
+
+      timeLeft = parseInt(document.getElementById('timeLimit').value);
+      const totalTime = timeLeft;
+      correctCount = 0;
+      playing = true;
+      shuffleTopics();
+
+      document.getElementById('startBtn').style.display = 'none';
+      document.getElementById('correctBtn').style.display = '';
+      document.getElementById('skipBtn').style.display = '';
+      document.getElementById('timer').style.display = '';
+      document.getElementById('timerBar').style.display = '';
+      document.getElementById('topicDisplay').style.display = '';
+      document.getElementById('resultBanner').classList.remove('show');
+      document.getElementById('currentTeamInfo').style.display = 'block';
+      document.getElementById('currentTeamInfo').innerHTML =
+        `<strong>チーム${currentTeam}</strong> のターン！`;
+
+      showNextTopic();
+
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer').textContent = timeLeft;
+        document.getElementById('timerFill').style.width = `${(timeLeft / totalTime) * 100}%`;
+        if (timeLeft <= 10) document.getElementById('timer').classList.add('warning');
+        if (timeLeft <= 0) endRound();
+      }, 1000);
+
+      document.getElementById('timer').textContent = timeLeft;
+      document.getElementById('timer').classList.remove('warning');
+      document.getElementById('timerFill').style.width = '100%';
+    }
+
+    function showNextTopic() {
+      if (topicIndex >= roundTopics.length) shuffleTopics();
+      const t = roundTopics[topicIndex++];
+      document.getElementById('topicCategory').textContent = t.cat;
+      document.getElementById('topicWord').textContent = t.word;
+    }
+
+    function markCorrect() {
+      if (!playing) return;
+      correctCount++;
+      if (currentTeam === 'A') scoreA++; else scoreB++;
+      flash('correct', '⭕ 正解！');
+      showNextTopic();
+      renderScoreboard();
+    }
+
+    function skipTopic() {
+      if (!playing) return;
+      flash('skip', '⏭ スキップ');
+      showNextTopic();
+    }
+
+    function flash(type, text) {
+      const b = document.getElementById('resultBanner');
+      b.className = 'result-banner show ' + type;
+      b.textContent = text;
+      setTimeout(() => b.classList.remove('show'), 800);
+    }
+
+    function endRound() {
+      clearInterval(timerInterval);
+      playing = false;
+
+      flash('timeup', `⏰ 終了！ ${correctCount}問正解！`);
+      document.getElementById('topicDisplay').style.display = 'none';
+      document.getElementById('timer').style.display = 'none';
+      document.getElementById('timerBar').style.display = 'none';
+      document.getElementById('correctBtn').style.display = 'none';
+      document.getElementById('skipBtn').style.display = 'none';
+      document.getElementById('startBtn').style.display = '';
+      document.getElementById('startBtn').textContent = '次のチームのターン！';
+      document.getElementById('resultBanner').classList.add('show');
+
+      currentTeam = currentTeam === 'A' ? 'B' : 'A';
+      renderScoreboard();
+    }
+
+    function renderScoreboard() {
+      document.getElementById('scoreboard').style.display = 'block';
+      const leading = scoreA > scoreB ? 'A' : scoreB > scoreA ? 'B' : '';
+      document.getElementById('scoreRows').innerHTML = `
+        <div class="score-row">
+          <span class="name">${leading === 'A' ? '👑 ' : ''}チームA</span>
+          <span class="pts">${scoreA} pt</span>
+        </div>
+        <div class="score-row">
+          <span class="name">${leading === 'B' ? '👑 ' : ''}チームB</span>
+          <span class="pts">${scoreB} pt</span>
+        </div>
+      `;
+    }
+
+    function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  </script>
+</body>
+</html>
