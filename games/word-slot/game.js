@@ -20,7 +20,7 @@ const CHARS = [
   'ぱ','ぴ','ぷ','ぺ','ぽ',
 ];
 
-// Katakana ↔ Hiragana offset
+// --- Kana Utilities ---
 const HIRA_START = 0x3041;
 const KATA_START = 0x30A1;
 
@@ -36,17 +36,33 @@ function toKatakana(str) {
   );
 }
 
-// Count "logical" Japanese characters (treating small kana like ゃ as part of previous char for display, but counting independently)
+function isKana(ch) {
+  const c = ch.charCodeAt(0);
+  return (c >= 0x3041 && c <= 0x3096) || (c >= 0x30A1 && c <= 0x30F6) || ch === 'ー';
+}
+
+function isAllKana(str) {
+  return [...str].every(ch => isKana(ch));
+}
+
+// Count characters: each char (kanji/hiragana/katakana/ー) = 1. Strip whitespace only.
 function countChars(word) {
-  // Remove spaces/punctuation, count remaining chars
-  const clean = word.replace(/[\s・\-ー]/g, '');
+  const clean = word.replace(/\s/g, '');
   return [...clean].length;
 }
 
-// Get first logical character in hiragana
-function getFirstChar(word) {
+// Get first character converted to hiragana (returns null for kanji)
+function getFirstCharHiragana(word) {
   const first = [...word][0];
-  return toHiragana(first);
+  if (!first) return null;
+  const code = first.charCodeAt(0);
+  // Hiragana
+  if (code >= 0x3041 && code <= 0x3096) return first;
+  // Katakana → hiragana
+  if (code >= 0x30A1 && code <= 0x30F6)
+    return String.fromCharCode(code - KATA_START + HIRA_START);
+  // Kanji or other → can't determine reading locally
+  return null;
 }
 
 // --- State ---
@@ -57,6 +73,7 @@ let currentNumber = null;
 let currentChar = null;
 let round = 0;
 let spinning = false;
+let submitting = false;
 
 // --- DOM refs ---
 const $numVal = document.getElementById('slotNumVal');
@@ -97,7 +114,6 @@ function renderPlayers() {
   $playerList.innerHTML = players.map(p =>
     `<span class="player-tag">${esc(p)} <span class="remove" onclick="removePlayer('${esc(p)}')">&times;</span></span>`
   ).join('');
-  // Update answer dropdown
   $answerPlayer.innerHTML = players.map(p =>
     `<option value="${esc(p)}">${esc(p)}</option>`
   ).join('');
@@ -121,27 +137,17 @@ function spin() {
   slotNum.classList.add('spinning');
   slotChr.classList.add('spinning');
 
-  // Animate for ~2 seconds
-  let tick = 0;
   const interval = setInterval(() => {
     $numVal.textContent = NUMBERS[Math.floor(Math.random() * NUMBERS.length)];
-    const rc = CHARS[Math.floor(Math.random() * CHARS.length)];
-    $charVal.textContent = rc;
-    tick++;
+    $charVal.textContent = CHARS[Math.floor(Math.random() * CHARS.length)];
   }, 60);
 
-  // Slow down and stop
   setTimeout(() => {
     clearInterval(interval);
-
-    // Pick final values
     currentNumber = NUMBERS[Math.floor(Math.random() * NUMBERS.length)];
     currentChar = CHARS[Math.floor(Math.random() * CHARS.length)];
-
-    // Display with "11+" notation
     $numVal.textContent = currentNumber === 11 ? '11+' : currentNumber;
     $charVal.textContent = currentChar;
-
     slotNum.classList.remove('spinning');
     slotChr.classList.remove('spinning');
 
@@ -150,7 +156,6 @@ function spin() {
 
     round++;
     $roundInfo.textContent = `ラウンド ${round}`;
-
     $answerSection.style.display = 'block';
     $answerWord.value = '';
     $answerWord.focus();
@@ -163,162 +168,242 @@ function spin() {
 
 // --- Answer Submission ---
 async function submitAnswer() {
+  if (submitting) return;
   const player = $answerPlayer.value;
-  const word = $answerWord.value.trim();
+  const word = $answerWord.value.trim().replace(/\s/g, '');
   if (!word) return;
 
-  const result = validateLocal(word);
+  submitting = true;
+  showLoading(word);
 
-  // Try dictionary API check
-  let apiResult = null;
-  try {
-    apiResult = await checkDictionary(word);
-  } catch (e) {
-    // API unavailable, rely on local validation only
+  // Step 1: Local length check
+  const lenCheck = validateLength(word);
+  if (!lenCheck.valid) {
+    finishSubmit(player, word, false, lenCheck.reason, null);
+    return;
   }
 
-  let valid = result.valid;
-  let reason = result.reason;
+  // Step 2: Sentence check
+  if (looksLikeSentence(word)) {
+    finishSubmit(player, word, false, '文章のようです。単語・固有名詞・ことわざを入力してください', null);
+    return;
+  }
 
-  if (valid && apiResult !== null) {
-    if (!apiResult.found) {
-      // API says not found — mark as warning but still accept with note
-      reason = '辞書に見つかりませんでした（人名・作品名の可能性あり）';
+  // Step 3: Local first-char check (kana input only; kanji deferred to dictionary)
+  const firstHira = getFirstCharHiragana(word);
+  if (firstHira !== null && firstHira !== currentChar) {
+    finishSubmit(player, word, false,
+      `頭文字が「${currentChar}」ではありません（「${firstHira}」で始まっています）`, null);
+    return;
+  }
+
+  // Step 4: Dictionary check (REQUIRED)
+  let dictResult;
+  try {
+    dictResult = await checkDictionary(word, currentChar);
+  } catch (e) {
+    dictResult = { found: false, reason: '辞書の検索に失敗しました。もう一度お試しください' };
+  }
+
+  if (!dictResult.found) {
+    const reason = dictResult.reason || '辞書に見つかりませんでした。実在する単語・人名・作品名を入力してください';
+    finishSubmit(player, word, false, reason, null);
+    return;
+  }
+
+  // Step 5: Verify reading from dictionary matches required first char (for kanji input)
+  if (firstHira === null && dictResult.reading) {
+    const dictFirst = getFirstCharHiragana(dictResult.reading);
+    if (dictFirst && dictFirst !== currentChar) {
+      finishSubmit(player, word, false,
+        `「${word}」の読みは「${dictResult.reading}」— 頭文字が「${currentChar}」ではありません`, null);
+      return;
     }
   }
 
-  // Display result
-  showValidation(valid, word, reason, apiResult);
+  finishSubmit(player, word, true, '', dictResult);
+}
 
-  // Record
+function finishSubmit(player, word, valid, reason, dictResult) {
+  showValidation(valid, word, reason, dictResult);
   if (valid) {
     scores[player] = (scores[player] || 0) + 1;
   }
-
   logs.unshift({
-    round,
-    player,
-    word,
-    number: currentNumber,
-    char: currentChar,
-    valid,
-    reason: valid ? (reason || null) : reason,
+    round, player, word,
+    number: currentNumber, char: currentChar,
+    valid, reason: reason || null,
+    dictInfo: dictResult ? dictResult.description : null,
   });
-
   renderScoreboard();
   renderLog();
   $answerWord.value = '';
   $answerWord.focus();
+  submitting = false;
 }
 
 // --- Local Validation ---
-function validateLocal(word) {
-  const clean = word.replace(/[\s]/g, '');
-  if (!clean) return { valid: false, reason: '単語が空です' };
-
-  // Check first character
-  const firstHira = getFirstChar(clean);
-  if (firstHira !== currentChar) {
-    return { valid: false, reason: `頭文字が「${currentChar}」ではありません（「${firstHira}」で始まっています）` };
-  }
-
-  // Check length
-  const len = countChars(clean);
+function validateLength(word) {
+  const len = countChars(word);
+  if (len === 0) return { valid: false, reason: '単語が空です' };
   if (currentNumber === 11) {
-    if (len < 11) {
-      return { valid: false, reason: `${len}文字です。11文字以上必要です` };
-    }
+    if (len < 11) return { valid: false, reason: `${len}文字です。11文字以上必要です` };
   } else {
-    if (len !== currentNumber) {
-      return { valid: false, reason: `${len}文字です。${currentNumber}文字の単語が必要です` };
-    }
+    if (len !== currentNumber) return { valid: false, reason: `${len}文字です。${currentNumber}文字の単語が必要です` };
   }
-
-  // Check if it's likely a sentence (has particles in suspicious positions)
-  if (looksLikeSentence(clean)) {
-    return { valid: false, reason: '文章のようです。単語・固有名詞・ことわざを入力してください' };
-  }
-
-  return { valid: true, reason: '' };
+  return { valid: true };
 }
 
 function looksLikeSentence(word) {
-  // Simple heuristic: if word contains common sentence-ending patterns
-  // or has too many particles in a row, flag it
-  const sentenceEndings = /[。？！\?\!]$/;
-  if (sentenceEndings.test(word)) return true;
-
-  // Check for verb/adjective endings that suggest a full sentence
-  // e.g., "わたしのりんご" — has の acting as possessive in a phrase
-  // But "もののけ" is fine, so we need to be conservative
-  // Only flag if it looks very sentence-like (multiple particles)
-  const particles = word.match(/[はがをにへでもの]{1}/g);
+  if (/[。？！?!]$/.test(word)) return true;
   const len = [...word].length;
-  if (particles && particles.length >= 3 && len <= 8) return true;
-
-  // Very long strings with common sentence patterns
-  if (len > 6) {
-    const sentencePatterns = /(です|ます|ました|でした|ている|ません|だった|である)$/;
-    if (sentencePatterns.test(word)) return true;
-  }
-
+  if (len > 6 && /(です|ます|ました|でした|ている|ません|だった|である)$/.test(word)) return true;
   return false;
 }
 
-// --- Dictionary API Check (using free Wiktionary API) ---
-async function checkDictionary(word) {
-  // Use Wikipedia API to check if the word exists as an article
-  // This covers proper nouns, titles, etc.
-  const endpoints = [
-    // Japanese Wikipedia
-    `https://ja.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(word)}`,
-  ];
+// --- Dictionary Check ---
+// Searches Wikipedia (REST + MediaWiki search) and Wiktionary.
+// For kana input, searches by reading. For kanji, direct lookup.
+// Returns { found, source, description, reading }
+async function checkDictionary(word, requiredChar) {
+  const kanaInput = isAllKana(word);
+  const hiraWord = toHiragana(word);
+  const kataWord = toKatakana(word);
 
-  for (const url of endpoints) {
-    try {
-      const res = await fetch(url);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.title && data.extract) {
-          return { found: true, source: 'Wikipedia', description: data.extract.slice(0, 100) };
-        }
-      }
-    } catch (e) {
-      // continue
-    }
+  // Build search variants
+  const directTerms = [word];
+  if (kanaInput) {
+    // Also try katakana/hiragana variants
+    if (word !== hiraWord) directTerms.push(hiraWord);
+    if (word !== kataWord) directTerms.push(kataWord);
   }
 
-  // Try Wiktionary
-  try {
-    const wiktUrl = `https://ja.wiktionary.org/api/rest_v1/page/summary/${encodeURIComponent(word)}`;
-    const res = await fetch(wiktUrl);
-    if (res.ok) {
-      const data = await res.json();
-      if (data.title && data.extract) {
-        return { found: true, source: 'Wiktionary', description: data.extract.slice(0, 100) };
-      }
-    }
-  } catch (e) {
-    // continue
+  // 1. Wikipedia REST API (direct page lookup)
+  for (const term of directTerms) {
+    const result = await wikiRestLookup('ja.wikipedia.org', term);
+    if (result) return result;
+  }
+
+  // 2. Wiktionary REST API (direct page lookup)
+  for (const term of directTerms) {
+    const result = await wikiRestLookup('ja.wiktionary.org', term);
+    if (result) return result;
+  }
+
+  // 3. Wikipedia MediaWiki search API (finds articles by content/title)
+  {
+    const result = await wikiSearchLookup('ja.wikipedia.org', word);
+    if (result) return result;
+  }
+
+  // 4. For kana input, try MediaWiki search with katakana
+  if (kanaInput && word !== kataWord) {
+    const result = await wikiSearchLookup('ja.wikipedia.org', kataWord);
+    if (result) return result;
+  }
+
+  // 5. English Wikipedia (for international proper nouns / titles)
+  {
+    const result = await wikiSearchLookup('en.wikipedia.org', word);
+    if (result) return result;
   }
 
   return { found: false };
 }
 
+// Wikipedia/Wiktionary REST API direct page lookup
+async function wikiRestLookup(host, term) {
+  try {
+    const url = `https://${host}/api/rest_v1/page/summary/${encodeURIComponent(term)}`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.type === 'disambiguation' || (data.title && data.extract)) {
+      const source = host.includes('wiktionary') ? 'Wiktionary' : 'Wikipedia';
+      return {
+        found: true,
+        source,
+        description: (data.extract || '(曖昧さ回避ページ)').slice(0, 120),
+        reading: null, // REST API doesn't reliably provide reading
+        matchedTitle: data.title,
+      };
+    }
+  } catch (e) { /* ignore */ }
+  return null;
+}
+
+// Wikipedia MediaWiki search API — finds pages matching the query
+async function wikiSearchLookup(host, query) {
+  try {
+    const url = `https://${host}/w/api.php?action=query&list=search` +
+      `&srsearch=${encodeURIComponent(query)}&srlimit=3&format=json&origin=*`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const results = data?.query?.search;
+    if (!results || results.length === 0) return null;
+
+    // Check if any result title exactly matches the query (case-insensitive)
+    const queryNorm = query.toLowerCase();
+    const exactMatch = results.find(r => {
+      const titleNorm = r.title.toLowerCase();
+      const titleHira = toHiragana(titleNorm);
+      const queryHira = toHiragana(queryNorm);
+      return titleNorm === queryNorm || titleHira === queryHira;
+    });
+
+    if (exactMatch) {
+      // Fetch summary for the matched article
+      const summary = await wikiRestLookup(host, exactMatch.title);
+      if (summary) return summary;
+      // Fallback: use search snippet
+      const snippet = exactMatch.snippet.replace(/<[^>]+>/g, '').slice(0, 120);
+      const source = host.includes('en.') ? 'Wikipedia(EN)' : 'Wikipedia';
+      return { found: true, source, description: snippet, reading: null, matchedTitle: exactMatch.title };
+    }
+
+    // No exact match — check if the first result's title contains the query
+    const first = results[0];
+    const firstTitle = first.title;
+    const firstHira = toHiragana(firstTitle.toLowerCase());
+    const queryHira = toHiragana(queryNorm);
+    if (firstHira.includes(queryHira) || queryHira.includes(firstHira)) {
+      const summary = await wikiRestLookup(host, firstTitle);
+      if (summary) return summary;
+    }
+
+    return null;
+  } catch (e) { /* ignore */ }
+  return null;
+}
+
 // --- Display ---
-function showValidation(valid, word, reason, apiResult) {
+function showLoading(word) {
   const $v = $validationResult;
   $v.classList.remove('ok', 'ng');
+  $v.classList.add('show');
+  $v.style.background = 'var(--surface2)';
+  $v.style.borderColor = '#666';
+  $v.innerHTML = `🔍 <strong>「${esc(word)}」</strong> を辞書で確認中...`;
+}
+
+function showValidation(valid, word, reason, dictResult) {
+  const $v = $validationResult;
+  $v.classList.remove('ok', 'ng');
+  $v.style.background = '';
+  $v.style.borderColor = '';
   $v.classList.add('show', valid ? 'ok' : 'ng');
 
   if (!valid) {
     $v.innerHTML = `❌ <strong>「${esc(word)}」</strong> — ${esc(reason)}`;
   } else {
     let html = `✅ <strong>「${esc(word)}」</strong> — 正解！`;
-    if (apiResult && apiResult.found) {
-      html += `<br><span style="font-size:.8rem;color:var(--text-muted)">📖 ${esc(apiResult.source)}: ${esc(apiResult.description)}</span>`;
-    } else if (reason) {
-      html += `<br><span style="font-size:.8rem;color:#ff9800">⚠️ ${esc(reason)}</span>`;
+    if (dictResult && dictResult.found) {
+      html += `<br><span style="font-size:.8rem;color:var(--text-muted)">📖 ${esc(dictResult.source)}`;
+      if (dictResult.matchedTitle && dictResult.matchedTitle !== word) {
+        html += ` (${esc(dictResult.matchedTitle)})`;
+      }
+      html += `: ${esc(dictResult.description)}</span>`;
     }
     $v.innerHTML = html;
   }
@@ -327,7 +412,6 @@ function showValidation(valid, word, reason, apiResult) {
 function renderScoreboard() {
   if (players.length === 0) { $scoreboard.style.display = 'none'; return; }
   $scoreboard.style.display = 'block';
-
   const sorted = [...players].sort((a, b) => (scores[b] || 0) - (scores[a] || 0));
   $scoreRows.innerHTML = sorted.map((p, i) => {
     const medal = i === 0 && scores[p] > 0 ? '👑 ' : '';
@@ -341,7 +425,6 @@ function renderScoreboard() {
 function renderLog() {
   if (logs.length === 0) { $answerLog.style.display = 'none'; return; }
   $answerLog.style.display = 'block';
-
   $logEntries.innerHTML = logs.slice(0, 50).map(l => {
     const numLabel = l.number === 11 ? '11+' : l.number;
     const status = l.valid
@@ -362,7 +445,7 @@ function esc(str) {
   return d.innerHTML;
 }
 
-// --- Keyboard shortcut: Space to spin when not in input ---
+// Space to spin when not in input
 document.addEventListener('keydown', (e) => {
   if (e.code === 'Space' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'SELECT') {
     e.preventDefault();
