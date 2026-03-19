@@ -23,14 +23,16 @@
     .player-input-row {
       display: flex;
       align-items: center;
-      gap: .8rem;
+      gap: .5rem;
       padding: .6rem 0;
       border-bottom: 1px solid #333;
+      flex-wrap: wrap;
     }
     .player-input-row:last-child { border-bottom: none; }
-    .player-input-row .name { min-width: 80px; font-weight: 600; }
-    .player-input-row input { width: 80px; text-align: center; }
-    .player-input-row .status { font-size: .85rem; color: var(--text-muted); min-width: 60px; }
+    .player-input-row .name { min-width: 60px; font-weight: 600; flex-shrink: 0; }
+    .player-input-row input { width: 70px; text-align: center; min-width: 0; flex-shrink: 1; }
+    .player-input-row .btn { flex-shrink: 0; }
+    .player-input-row .status { font-size: .85rem; color: var(--text-muted); flex-shrink: 0; }
     .player-input-row.submitted .status { color: #4caf50; }
 
     .reveal-area {
@@ -93,7 +95,7 @@
     <!-- Player Setup -->
     <div class="player-setup" id="setupPhase">
       <h3>プレイヤー登録</h3>
-      <div style="display:flex; gap:.5rem; margin-top:.5rem;">
+      <div class="input-row">
         <input type="text" id="playerNameInput" placeholder="名前" maxlength="10"
                onkeydown="if(event.key==='Enter')addPlayer()">
         <button class="btn btn-primary btn-small" onclick="addPlayer()">追加</button>

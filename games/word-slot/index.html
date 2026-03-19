@@ -50,8 +50,13 @@
       gap: .5rem;
       flex-wrap: wrap;
     }
-    .answer-form select, .answer-form input[type="text"] { flex: 1; min-width: 120px; }
+    .answer-form select { flex: 0 1 auto; min-width: 0; max-width: 100%; }
+    .answer-form input[type="text"] { flex: 1 1 120px; min-width: 0; }
     .answer-form .btn { flex-shrink: 0; }
+    @media (max-width: 480px) {
+      .answer-form { flex-direction: column; }
+      .answer-form select, .answer-form input[type="text"] { width: 100%; }
+    }
 
     .validation-result {
       margin-top: .8rem;
@@ -108,7 +113,7 @@
     <!-- Player Setup -->
     <div class="player-setup" id="playerSetup">
       <h3>プレイヤー登録</h3>
-      <div style="display:flex; gap:.5rem; margin-top:.5rem;">
+      <div class="input-row">
         <input type="text" id="playerNameInput" placeholder="名前を入力" maxlength="10"
                onkeydown="if(event.key==='Enter')addPlayer()">
         <button class="btn btn-primary btn-small" onclick="addPlayer()">追加</button>

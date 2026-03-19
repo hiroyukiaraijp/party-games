@@ -21,7 +21,7 @@
       justify-content: center;
     }
     .theme-display .label { font-size: .85rem; color: var(--text-muted); margin-bottom: .5rem; }
-    .theme-display .theme-text { font-size: 1.8rem; font-weight: 900; line-height: 1.4; }
+    .theme-display .theme-text { font-size: 1.8rem; font-weight: 900; line-height: 1.4; word-break: keep-all; overflow-wrap: break-word; }
 
     .speaker-display {
       text-align: center;
@@ -76,6 +76,14 @@
       font-size: .9rem;
       margin: .5rem 0;
     }
+    @media (max-width: 480px) {
+      .theme-display { padding: 1.5rem 1rem; }
+      .theme-display .theme-text { font-size: 1.3rem; }
+      .timer-display { font-size: 3rem; }
+      .speaker-display { font-size: 1.1rem; }
+      .speaker-display .name { font-size: 1.2rem; }
+      .vote-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+    }
   </style>
 </head>
 <body>
@@ -99,7 +107,7 @@
     <!-- Player Setup -->
     <div class="player-setup" id="setupPhase">
       <h3>プレイヤー登録</h3>
-      <div style="display:flex; gap:.5rem; margin-top:.5rem;">
+      <div class="input-row">
         <input type="text" id="playerNameInput" placeholder="名前" maxlength="10"
                onkeydown="if(event.key==='Enter')addPlayer()">
         <button class="btn btn-primary btn-small" onclick="addPlayer()">追加</button>

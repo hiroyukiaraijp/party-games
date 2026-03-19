@@ -58,6 +58,13 @@
     .team-col h4 { margin-bottom: .5rem; color: var(--primary); }
     .team-col.b h4 { color: #4caf50; }
     .member-input { display: flex; gap: .3rem; margin-bottom: .5rem; }
+    .member-input input { flex: 1; min-width: 0; }
+    @media (max-width: 480px) {
+      .team-columns { grid-template-columns: 1fr; }
+      .topic-display { padding: 1.5rem 1rem; }
+      .topic-display .word { font-size: 1.8rem; }
+      .difficulty-select label { margin: .2rem .3rem; font-size: .9rem; }
+    }
 
     .result-banner {
       text-align: center;
