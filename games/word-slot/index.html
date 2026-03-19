@@ -53,6 +53,16 @@
     .answer-form select { flex: 0 1 auto; min-width: 0; max-width: 100%; }
     .answer-form input[type="text"] { flex: 1 1 120px; min-width: 0; }
     .answer-form .btn { flex-shrink: 0; }
+    .furigana-row {
+      display: flex;
+      gap: .5rem;
+      align-items: center;
+      margin-top: .5rem;
+      font-size: .85rem;
+    }
+    .furigana-row label { flex-shrink: 0; color: var(--text-muted); }
+    .furigana-row input { flex: 1; min-width: 0; font-size: .9rem; }
+    .furigana-row .char-count { flex-shrink: 0; color: var(--primary); font-weight: 700; min-width: 3em; text-align: right; }
     @media (max-width: 480px) {
       .answer-form { flex-direction: column; }
       .answer-form select, .answer-form input[type="text"] { width: 100%; }
@@ -111,30 +121,41 @@
 
     /* Log edit form */
     .log-edit-form {
-      display: flex;
-      gap: .3rem;
-      flex-wrap: wrap;
-      align-items: center;
-      padding: .5rem 0;
+      padding: .6rem 0;
       border-bottom: 1px solid #333;
       font-size: .85rem;
     }
+    .log-edit-row {
+      display: flex;
+      gap: .3rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .log-edit-row + .log-edit-row { margin-top: .3rem; }
     .log-edit-form select, .log-edit-form input {
       padding: .3rem .5rem;
       font-size: .85rem;
       border-radius: 6px;
+      min-width: 0;
     }
     .log-edit-form input { flex: 1; min-width: 80px; }
-    .log-edit-form button {
-      padding: .3rem .6rem;
+    .log-edit-form select { flex: 0 1 auto; }
+    .log-edit-buttons {
+      display: flex;
+      gap: .3rem;
+      margin-top: .4rem;
+    }
+    .log-edit-buttons button {
+      padding: .35rem .8rem;
       font-size: .8rem;
       border-radius: 6px;
       border: none;
       cursor: pointer;
       font-family: inherit;
+      font-weight: 600;
     }
-    .log-edit-form .save-btn { background: #4caf50; color: #fff; }
-    .log-edit-form .cancel-btn { background: #555; color: #fff; }
+    .log-edit-buttons .save-btn { background: #4caf50; color: #fff; }
+    .log-edit-buttons .cancel-btn { background: #555; color: #fff; }
 
     /* Clear all button */
     .log-header {
@@ -213,10 +234,18 @@
     <div class="answer-section" id="answerSection" style="display:none;">
       <h3>回答入力</h3>
       <div class="answer-form">
-        <select id="answerPlayer"></select>
+        <select id="answerPlayer">
+          <option value="" disabled selected>回答者を選択</option>
+        </select>
         <input type="text" id="answerWord" placeholder="単語を入力"
-               onkeydown="if(event.key==='Enter')submitAnswer()">
+               oninput="onWordInput()" onkeydown="if(event.key==='Enter')submitAnswer()">
         <button class="btn btn-primary" onclick="submitAnswer()">回答！</button>
+      </div>
+      <div class="furigana-row" id="furiganaRow" style="display:none;">
+        <label>ふりがな:</label>
+        <input type="text" id="answerReading" placeholder="ひらがなで入力"
+               oninput="onReadingInput()" onkeydown="if(event.key==='Enter')submitAnswer()">
+        <span class="char-count" id="charCount"></span>
       </div>
       <div class="validation-result" id="validationResult"></div>
     </div>

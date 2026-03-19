@@ -29,7 +29,7 @@ const KATA_START = 0x30A1;
 function toHiragana(str) {
   return str.replace(/[\u30A1-\u30F6]/g, ch =>
     String.fromCharCode(ch.charCodeAt(0) - KATA_START + HIRA_START)
-  );
+  ).replace(/ー/g, 'ー'); // keep prolonged mark
 }
 
 function toKatakana(str) {
@@ -47,12 +47,17 @@ function isAllKana(str) {
   return [...str].every(ch => isKana(ch));
 }
 
-function countChars(word) {
-  return [...word.replace(/\s/g, '')].length;
+function hasKanji(str) {
+  return /[\u4E00-\u9FFF\u3400-\u4DBF]/.test(str);
 }
 
-function getFirstCharHiragana(word) {
-  const first = [...word][0];
+// Count kana characters (ー counts as 1)
+function countKana(reading) {
+  return [...reading.replace(/\s/g, '')].length;
+}
+
+function getFirstCharHiragana(str) {
+  const first = [...str][0];
   if (!first) return null;
   const code = first.charCodeAt(0);
   if (code >= 0x3041 && code <= 0x3096) return first;
@@ -70,7 +75,7 @@ let currentChar = null;
 let round = 0;
 let spinning = false;
 let submitting = false;
-let editingIndex = -1; // which log entry is being edited
+let editingIndex = -1;
 
 // --- DOM refs ---
 const $numVal = document.getElementById('slotNumVal');
@@ -80,6 +85,9 @@ const $spinBtn = document.getElementById('spinBtn');
 const $answerSection = document.getElementById('answerSection');
 const $answerPlayer = document.getElementById('answerPlayer');
 const $answerWord = document.getElementById('answerWord');
+const $answerReading = document.getElementById('answerReading');
+const $furiganaRow = document.getElementById('furiganaRow');
+const $charCount = document.getElementById('charCount');
 const $validationResult = document.getElementById('validationResult');
 const $scoreboard = document.getElementById('scoreboard');
 const $scoreRows = document.getElementById('scoreRows');
@@ -88,24 +96,23 @@ const $logEntries = document.getElementById('logEntries');
 const $roundInfo = document.getElementById('roundInfo');
 const $playerList = document.getElementById('playerList');
 
-// --- Persistence (localStorage) ---
+// --- Persistence ---
 function saveState() {
   try {
-    const state = { players, scores, logs, round };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch (e) { /* storage full or unavailable */ }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ players, scores, logs, round }));
+  } catch (e) { /* ignore */ }
 }
 
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return;
-    const state = JSON.parse(raw);
-    if (state.players) players = state.players;
-    if (state.scores) scores = state.scores;
-    if (state.logs) logs = state.logs;
-    if (state.round) round = state.round;
-  } catch (e) { /* corrupt data, start fresh */ }
+    const s = JSON.parse(raw);
+    if (s.players) players = s.players;
+    if (s.scores) scores = s.scores;
+    if (s.logs) logs = s.logs;
+    if (s.round) round = s.round;
+  } catch (e) { /* ignore */ }
 }
 
 // --- Player Management ---
@@ -133,9 +140,61 @@ function renderPlayers() {
   $playerList.innerHTML = players.map(p =>
     `<span class="player-tag">${esc(p)} <span class="remove" onclick="removePlayer('${esc(p)}')">&times;</span></span>`
   ).join('');
-  $answerPlayer.innerHTML = players.map(p =>
-    `<option value="${esc(p)}">${esc(p)}</option>`
-  ).join('');
+  // Keep empty default + player options
+  const current = $answerPlayer.value;
+  $answerPlayer.innerHTML =
+    `<option value="" disabled selected>回答者を選択</option>` +
+    players.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+  // Restore selection if it was a valid player
+  if (current && players.includes(current)) {
+    $answerPlayer.value = current;
+  }
+}
+
+// --- Furigana / Word Input Handling ---
+function onWordInput() {
+  const word = $answerWord.value.trim();
+  if (hasKanji(word)) {
+    // Show furigana field for kanji input
+    $furiganaRow.style.display = 'flex';
+    updateCharCount();
+  } else {
+    // All kana or empty — hide furigana, auto-set reading
+    $furiganaRow.style.display = 'none';
+    $answerReading.value = '';
+    updateCharCount();
+  }
+}
+
+function onReadingInput() {
+  // Force hiragana
+  $answerReading.value = toHiragana($answerReading.value);
+  updateCharCount();
+}
+
+function updateCharCount() {
+  const word = $answerWord.value.trim().replace(/\s/g, '');
+  let reading;
+  if (hasKanji(word)) {
+    reading = $answerReading.value.trim().replace(/\s/g, '');
+  } else {
+    reading = toHiragana(word);
+  }
+  if (reading) {
+    const count = countKana(reading);
+    $charCount.textContent = `${count}文字`;
+  } else {
+    $charCount.textContent = '';
+  }
+}
+
+// Get the effective reading for a word
+function getReading(word) {
+  if (hasKanji(word)) {
+    const r = $answerReading.value.trim().replace(/\s/g, '');
+    return toHiragana(r);
+  }
+  return toHiragana(word);
 }
 
 // --- Slot Machine ---
@@ -177,6 +236,11 @@ function spin() {
     $roundInfo.textContent = `ラウンド ${round}`;
     $answerSection.style.display = 'block';
     $answerWord.value = '';
+    $answerReading.value = '';
+    $furiganaRow.style.display = 'none';
+    $charCount.textContent = '';
+    // Reset player selection to empty
+    $answerPlayer.value = '';
     $answerWord.focus();
 
     spinning = false;
@@ -190,30 +254,55 @@ function spin() {
 async function submitAnswer() {
   if (submitting) return;
   const player = $answerPlayer.value;
+  if (!player) { alert('回答者を選択してください'); return; }
   const word = $answerWord.value.trim().replace(/\s/g, '');
   if (!word) return;
+
+  // Get reading
+  const reading = getReading(word);
+  if (hasKanji(word) && !reading) {
+    alert('漢字を含む単語はふりがなを入力してください');
+    $answerReading.focus();
+    return;
+  }
+
+  // Validate reading is all kana
+  if (reading && !isAllKana(reading)) {
+    alert('ふりがなはひらがな・カタカナで入力してください');
+    $answerReading.focus();
+    return;
+  }
 
   submitting = true;
   showLoading(word);
 
-  const lenCheck = validateLength(word);
-  if (!lenCheck.valid) {
-    finishSubmit(player, word, false, lenCheck.reason, null);
+  // Length check (based on reading)
+  const len = countKana(reading);
+  if (currentNumber === 11) {
+    if (len < 11) {
+      finishSubmit(player, word, reading, false, `${len}文字です。11文字以上必要です`, null);
+      return;
+    }
+  } else if (len !== currentNumber) {
+    finishSubmit(player, word, reading, false, `${len}文字です。${currentNumber}文字の単語が必要です`, null);
     return;
   }
 
+  // Sentence check
   if (looksLikeSentence(word)) {
-    finishSubmit(player, word, false, '文章のようです。単語・固有名詞・ことわざを入力してください', null);
+    finishSubmit(player, word, reading, false, '文章のようです。単語・固有名詞・ことわざを入力してください', null);
     return;
   }
 
-  const firstHira = getFirstCharHiragana(word);
-  if (firstHira !== null && firstHira !== currentChar) {
-    finishSubmit(player, word, false,
-      `頭文字が「${currentChar}」ではありません（「${firstHira}」で始まっています）`, null);
+  // First char check (based on reading)
+  const firstHira = getFirstCharHiragana(reading);
+  if (firstHira && firstHira !== currentChar) {
+    finishSubmit(player, word, reading, false,
+      `頭文字が「${currentChar}」ではありません（読みが「${reading}」→「${firstHira}」で始まっています）`, null);
     return;
   }
 
+  // Dictionary check
   let dictResult;
   try {
     dictResult = await checkDictionary(word, currentChar);
@@ -223,29 +312,20 @@ async function submitAnswer() {
 
   if (!dictResult.found) {
     const reason = dictResult.reason || '辞書に見つかりませんでした。実在する単語・人名・作品名を入力してください';
-    finishSubmit(player, word, false, reason, null);
+    finishSubmit(player, word, reading, false, reason, null);
     return;
   }
 
-  if (firstHira === null && dictResult.reading) {
-    const dictFirst = getFirstCharHiragana(dictResult.reading);
-    if (dictFirst && dictFirst !== currentChar) {
-      finishSubmit(player, word, false,
-        `「${word}」の読みは「${dictResult.reading}」— 頭文字が「${currentChar}」ではありません`, null);
-      return;
-    }
-  }
-
-  finishSubmit(player, word, true, '', dictResult);
+  finishSubmit(player, word, reading, true, '', dictResult);
 }
 
-function finishSubmit(player, word, valid, reason, dictResult) {
+function finishSubmit(player, word, reading, valid, reason, dictResult) {
   showValidation(valid, word, reason, dictResult);
   if (valid) {
     scores[player] = (scores[player] || 0) + 1;
   }
   logs.unshift({
-    round, player, word,
+    round, player, word, reading,
     number: currentNumber, char: currentChar,
     valid, reason: reason || null,
     dictInfo: dictResult ? dictResult.description : null,
@@ -253,6 +333,10 @@ function finishSubmit(player, word, valid, reason, dictResult) {
   renderScoreboard();
   renderLog();
   $answerWord.value = '';
+  $answerReading.value = '';
+  $furiganaRow.style.display = 'none';
+  $charCount.textContent = '';
+  $answerPlayer.value = '';
   $answerWord.focus();
   submitting = false;
   saveState();
@@ -262,11 +346,11 @@ function finishSubmit(player, word, valid, reason, dictResult) {
 function deleteLog(index) {
   const entry = logs[index];
   if (!entry) return;
-  // Revert score if it was a valid answer
   if (entry.valid && scores[entry.player] !== undefined) {
     scores[entry.player] = Math.max(0, (scores[entry.player] || 0) - 1);
   }
   logs.splice(index, 1);
+  editingIndex = -1;
   renderScoreboard();
   renderLog();
   saveState();
@@ -288,14 +372,13 @@ function saveEditLog(index) {
 
   const newPlayer = document.getElementById(`edit-player-${index}`).value;
   const newWord = document.getElementById(`edit-word-${index}`).value.trim();
-  if (!newWord) return;
+  if (!newPlayer || !newWord) return;
 
   // Revert old score
   if (entry.valid && scores[entry.player] !== undefined) {
     scores[entry.player] = Math.max(0, (scores[entry.player] || 0) - 1);
   }
 
-  // Update entry
   entry.player = newPlayer;
   entry.word = newWord;
 
@@ -313,7 +396,6 @@ function saveEditLog(index) {
 function clearAllLogs() {
   if (!confirm('全ログを消去しますか？スコアもリセットされます。')) return;
   logs = [];
-  // Reset all scores
   for (const p of players) scores[p] = 0;
   editingIndex = -1;
   renderScoreboard();
@@ -321,27 +403,15 @@ function clearAllLogs() {
   saveState();
 }
 
-// --- Local Validation ---
-function validateLength(word) {
-  const len = countChars(word);
-  if (len === 0) return { valid: false, reason: '単語が空です' };
-  if (currentNumber === 11) {
-    if (len < 11) return { valid: false, reason: `${len}文字です。11文字以上必要です` };
-  } else {
-    if (len !== currentNumber) return { valid: false, reason: `${len}文字です。${currentNumber}文字の単語が必要です` };
-  }
-  return { valid: true };
-}
-
+// --- Validation ---
 function looksLikeSentence(word) {
   if (/[。？！?!]$/.test(word)) return true;
-  const len = [...word].length;
-  if (len > 6 && /(です|ます|ました|でした|ている|ません|だった|である)$/.test(word)) return true;
+  if ([...word].length > 6 && /(です|ます|ました|でした|ている|ません|だった|である)$/.test(word)) return true;
   return false;
 }
 
 // --- Dictionary Check ---
-async function checkDictionary(word, requiredChar) {
+async function checkDictionary(word) {
   const kanaInput = isAllKana(word);
   const hiraWord = toHiragana(word);
   const kataWord = toKatakana(word);
@@ -353,45 +423,33 @@ async function checkDictionary(word, requiredChar) {
   }
 
   for (const term of directTerms) {
-    const result = await wikiRestLookup('ja.wikipedia.org', term);
-    if (result) return result;
+    const r = await wikiRestLookup('ja.wikipedia.org', term);
+    if (r) return r;
   }
-
   for (const term of directTerms) {
-    const result = await wikiRestLookup('ja.wiktionary.org', term);
-    if (result) return result;
+    const r = await wikiRestLookup('ja.wiktionary.org', term);
+    if (r) return r;
   }
-
-  {
-    const result = await wikiSearchLookup('ja.wikipedia.org', word);
-    if (result) return result;
-  }
-
+  { const r = await wikiSearchLookup('ja.wikipedia.org', word); if (r) return r; }
   if (kanaInput && word !== kataWord) {
-    const result = await wikiSearchLookup('ja.wikipedia.org', kataWord);
-    if (result) return result;
+    const r = await wikiSearchLookup('ja.wikipedia.org', kataWord); if (r) return r;
   }
-
-  {
-    const result = await wikiSearchLookup('en.wikipedia.org', word);
-    if (result) return result;
-  }
+  { const r = await wikiSearchLookup('en.wikipedia.org', word); if (r) return r; }
 
   return { found: false };
 }
 
 async function wikiRestLookup(host, term) {
   try {
-    const url = `https://${host}/api/rest_v1/page/summary/${encodeURIComponent(term)}`;
-    const res = await fetch(url);
+    const res = await fetch(`https://${host}/api/rest_v1/page/summary/${encodeURIComponent(term)}`);
     if (!res.ok) return null;
     const data = await res.json();
     if (data.type === 'disambiguation' || (data.title && data.extract)) {
-      const source = host.includes('wiktionary') ? 'Wiktionary' : 'Wikipedia';
       return {
-        found: true, source,
+        found: true,
+        source: host.includes('wiktionary') ? 'Wiktionary' : 'Wikipedia',
         description: (data.extract || '(曖昧さ回避ページ)').slice(0, 120),
-        reading: null, matchedTitle: data.title,
+        matchedTitle: data.title,
       };
     }
   } catch (e) { /* ignore */ }
@@ -400,38 +458,34 @@ async function wikiRestLookup(host, term) {
 
 async function wikiSearchLookup(host, query) {
   try {
-    const url = `https://${host}/w/api.php?action=query&list=search` +
-      `&srsearch=${encodeURIComponent(query)}&srlimit=3&format=json&origin=*`;
-    const res = await fetch(url);
+    const res = await fetch(
+      `https://${host}/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=3&format=json&origin=*`
+    );
     if (!res.ok) return null;
     const data = await res.json();
     const results = data?.query?.search;
     if (!results || results.length === 0) return null;
 
-    const queryNorm = query.toLowerCase();
-    const exactMatch = results.find(r => {
-      const titleNorm = r.title.toLowerCase();
-      const titleHira = toHiragana(titleNorm);
-      const queryHira = toHiragana(queryNorm);
-      return titleNorm === queryNorm || titleHira === queryHira;
+    const qNorm = query.toLowerCase();
+    const qHira = toHiragana(qNorm);
+    const exact = results.find(r => {
+      const t = r.title.toLowerCase();
+      return t === qNorm || toHiragana(t) === qHira;
     });
 
-    if (exactMatch) {
-      const summary = await wikiRestLookup(host, exactMatch.title);
-      if (summary) return summary;
-      const snippet = exactMatch.snippet.replace(/<[^>]+>/g, '').slice(0, 120);
-      const source = host.includes('en.') ? 'Wikipedia(EN)' : 'Wikipedia';
-      return { found: true, source, description: snippet, reading: null, matchedTitle: exactMatch.title };
+    if (exact) {
+      const s = await wikiRestLookup(host, exact.title);
+      if (s) return s;
+      const snippet = exact.snippet.replace(/<[^>]+>/g, '').slice(0, 120);
+      return { found: true, source: host.includes('en.') ? 'Wikipedia(EN)' : 'Wikipedia', description: snippet, matchedTitle: exact.title };
     }
 
     const first = results[0];
-    const firstHira = toHiragana(first.title.toLowerCase());
-    const queryHira = toHiragana(queryNorm);
-    if (firstHira.includes(queryHira) || queryHira.includes(firstHira)) {
-      const summary = await wikiRestLookup(host, first.title);
-      if (summary) return summary;
+    const fHira = toHiragana(first.title.toLowerCase());
+    if (fHira.includes(qHira) || qHira.includes(fHira)) {
+      const s = await wikiRestLookup(host, first.title);
+      if (s) return s;
     }
-
     return null;
   } catch (e) { /* ignore */ }
   return null;
@@ -486,30 +540,33 @@ function renderLog() {
   if (logs.length === 0) { $answerLog.style.display = 'none'; return; }
   $answerLog.style.display = 'block';
 
-  // Build player options for edit dropdown
-  const playerOpts = players.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
-
   $logEntries.innerHTML = logs.slice(0, 50).map((l, i) => {
-    // Edit mode for this entry
+    // Edit mode
     if (i === editingIndex) {
+      const allPlayers = [...new Set([...players, l.player])];
       return `<div class="log-edit-form">
-        <select id="edit-player-${i}">${players.map(p =>
-          `<option value="${esc(p)}" ${p === l.player ? 'selected' : ''}>${esc(p)}</option>`
-        ).join('')}</select>
-        <input type="text" id="edit-word-${i}" value="${esc(l.word)}">
-        <button class="save-btn" onclick="saveEditLog(${i})">保存</button>
-        <button class="cancel-btn" onclick="cancelEditLog()">取消</button>
+        <div class="log-edit-row">
+          <select id="edit-player-${i}">
+            ${allPlayers.map(p => `<option value="${esc(p)}" ${p === l.player ? 'selected' : ''}>${esc(p)}</option>`).join('')}
+          </select>
+          <input type="text" id="edit-word-${i}" value="${esc(l.word)}"
+                 onkeydown="if(event.key==='Enter')saveEditLog(${i})">
+        </div>
+        <div class="log-edit-buttons">
+          <button class="save-btn" onclick="saveEditLog(${i})">保存</button>
+          <button class="cancel-btn" onclick="cancelEditLog()">キャンセル</button>
+        </div>
       </div>`;
     }
 
+    // Normal display
     const numLabel = l.number === 11 ? '11+' : l.number;
-    const status = l.valid
-      ? `<span class="valid">✅</span>`
-      : `<span class="invalid">❌</span>`;
+    const readingInfo = l.reading ? ` [${l.reading}]` : '';
+    const status = l.valid ? `<span class="valid">✅</span>` : `<span class="invalid">❌</span>`;
     const reasonHtml = l.reason ? `<span class="reason"> ${esc(l.reason)}</span>` : '';
     return `<div class="log-entry">
-      <span>R${l.round} ${esc(l.player)}: 「${esc(l.word)}」(${numLabel}文字・${l.char})</span>
-      <span style="display:flex;align-items:center;gap:.4rem;">
+      <span>R${l.round} ${esc(l.player)}: 「${esc(l.word)}」${esc(readingInfo)} (${numLabel}文字・${l.char})</span>
+      <span style="display:flex;align-items:center;gap:.4rem;flex-shrink:0;">
         ${status}${reasonHtml}
         <span class="log-actions">
           <button onclick="startEditLog(${i})">編集</button>
@@ -520,7 +577,6 @@ function renderLog() {
   }).join('');
 }
 
-// --- Utility ---
 function esc(str) {
   const d = document.createElement('div');
   d.textContent = str;
@@ -529,21 +585,19 @@ function esc(str) {
 
 // Space to spin when not in input
 document.addEventListener('keydown', (e) => {
-  if (e.code === 'Space' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'SELECT') {
+  if (e.code === 'Space' && !['INPUT', 'SELECT'].includes(document.activeElement.tagName)) {
     e.preventDefault();
     spin();
   }
 });
 
-// --- Init: Load saved state ---
+// --- Init ---
 (function init() {
   loadState();
   if (players.length > 0) {
     renderPlayers();
     renderScoreboard();
     renderLog();
-    if (round > 0) {
-      $roundInfo.textContent = `ラウンド ${round}`;
-    }
+    if (round > 0) $roundInfo.textContent = `ラウンド ${round}`;
   }
 })();
