@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>連想ブリッジ - Party Games</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="toast" id="toast"></div>
+  <div class="particle-container" id="particles"></div>
+
+  <div class="top-bar">
+    <div class="title"><a href="../../index.html">Party Games</a> / <span>連想ブリッジ</span></div>
+    <div class="top-bar-actions">
+      <button class="icon-btn" onclick="document.getElementById('helpModal').classList.add('show')" title="遊び方">?</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="helpModal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="document.getElementById('helpModal').classList.remove('show')">&times;</button>
+      <h3>遊び方</h3>
+      <ul>
+        <li>出題者がお題を確認し、<strong>1語ずつヒント</strong>を口頭で出します</li>
+        <li>回答者は各ヒント後に答えを推理できます</li>
+        <li><strong>少ないヒントで当てるほど高得点</strong>（5pt〜1pt）</li>
+        <li>出題者と正解者の両方に同じポイントが入ります</li>
+        <li>5ヒントでも当たらなければ0pt</li>
+      </ul>
+      <h3 style="margin-top:1rem;">鍛えられる力</h3>
+      <ul>
+        <li><strong>戦略的コミュニケーション</strong> — 最も伝わるヒントを1語で選ぶ力</li>
+        <li><strong>推論力</strong> — 断片的なヒントから答えを絞り込む力</li>
+        <li><strong>心の理論</strong> — 相手が何を知っていて何で伝わるか推測する力</li>
+        <li><strong>ワーキングメモリ</strong> — ヒントを蓄積しながら候補を絞る力</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="game-page">
+
+    <!-- Setup -->
+    <div id="setupPhase">
+      <div class="setup-section">
+        <h4>プレイヤー</h4>
+        <div class="player-bar">
+          <input type="text" id="playerNameInput" placeholder="名前" maxlength="10"
+                 onkeydown="if(event.key==='Enter')addPlayer()">
+          <button class="btn btn-primary btn-small" onclick="addPlayer()">追加</button>
+        </div>
+        <div class="player-tags" id="playerList"></div>
+        <div class="options-row">
+          <div class="option-group">
+            <label>カテゴリ</label>
+            <div class="option-pills" id="categoryPills">
+              <button class="option-pill selected" data-value="all" onclick="selectOption('category',this)">ミックス</button>
+              <button class="option-pill" data-value="things" onclick="selectOption('category',this)">モノ</button>
+              <button class="option-pill" data-value="people" onclick="selectOption('category',this)">人物</button>
+              <button class="option-pill" data-value="places" onclick="selectOption('category',this)">場所</button>
+            </div>
+          </div>
+        </div>
+        <button class="start-btn" onclick="startGame()">🔗 ゲーム開始！</button>
+      </div>
+    </div>
+
+    <!-- Presenter Phase -->
+    <div id="presenterPhase" style="display:none;">
+      <div class="phase-section">
+        <div class="round-counter" id="presRound"></div>
+        <div style="font-size:.9rem;font-weight:700;margin-bottom:.5rem;">出題者を選んでください</div>
+        <div class="presenter-select-grid" id="presenterGrid"></div>
+
+        <div id="topicArea" style="display:none;">
+          <div class="topic-card" id="topicCard" onclick="revealTopic()">
+            <span class="tap-icon">🔗</span>
+            <span class="tap-text">タップでお題を確認</span>
+          </div>
+          <div id="topicRevealed" style="display:none;">
+            <div class="topic-card revealed">
+              <div class="topic-category" id="topicCategory"></div>
+              <div class="topic-word" id="topicWord"></div>
+            </div>
+            <button class="btn btn-primary confirm-btn" onclick="startHinting()">覚えた → ヒント開始！</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hint Phase -->
+    <div id="hintPhase" style="display:none;">
+      <div class="phase-section">
+        <div class="round-counter" id="hintRound"></div>
+        <div class="presenter-info">出題者: <span class="name" id="hintPresenter"></span></div>
+
+        <div class="point-bar" id="pointBar"></div>
+        <div class="point-label" id="pointLabel"></div>
+
+        <div class="hint-list" id="hintList"></div>
+
+        <div class="hint-input-row" style="justify-content:center;">
+          <input type="text" id="hintText" placeholder="ヒントメモ（任意）"
+                 onkeydown="if(event.key==='Enter'){event.preventDefault();addHint();}">
+          <button class="btn btn-secondary" onclick="addHint()">+ヒント</button>
+        </div>
+
+        <div class="action-row">
+          <button class="btn btn-correct" onclick="markCorrect()">⭕ 正解！</button>
+          <button class="btn btn-wrong" onclick="markWrong()">❌ 不正解</button>
+        </div>
+        <div class="action-row" style="margin-top:.3rem;">
+          <button class="btn btn-giveup" onclick="giveUp()">🏳️ ギブアップ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Answerer Select -->
+    <div id="answererPhase" style="display:none;">
+      <div class="phase-section">
+        <div style="font-size:.9rem;font-weight:700;margin-bottom:.5rem;">誰が正解した？</div>
+        <div class="answerer-grid" id="answererGrid"></div>
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div id="resultPhase" style="display:none;">
+      <div class="phase-section result-section">
+        <div class="result-icon" id="resultIcon"></div>
+        <div class="result-title" id="resultTitle"></div>
+        <div class="result-answer" id="resultAnswer"></div>
+        <div class="result-details" id="resultDetails"></div>
+        <div class="result-hints" id="resultHints"></div>
+        <button class="btn btn-primary next-btn" onclick="nextRound()">次のラウンドへ →</button>
+      </div>
+    </div>
+
+    <!-- Score -->
+    <div class="score-section" id="scoreboard" style="display:none;">
+      <h4>Score</h4>
+      <div class="score-list" id="scoreRows"></div>
+    </div>
+
+    <!-- Log -->
+    <div class="log-section" id="answerLog" style="display:none;">
+      <div class="log-header">
+        <h4>Log</h4>
+        <button class="clear-log-btn" onclick="clearAllLogs()">消去</button>
+      </div>
+      <div id="logEntries"></div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
