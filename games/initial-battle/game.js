@@ -17,6 +17,7 @@ const PARTICLE_EMOJIS = ['🎉','✨','⭐','🌟','💫','⚡'];
 let players=[],scores={},logs=[],round=0;
 let currentInitial='',currentCategory='';
 let answers={},inputOrder=[],inputIndex=0;
+let inputTimer=null;
 
 const $=id=>document.getElementById(id);
 const $setupPhase=$('setupPhase'),$inputPhase=$('inputPhase'),$revealPhase=$('revealPhase');
@@ -61,16 +62,55 @@ function beginRound(){
 
 function updateInputUI(){
   const p=inputOrder[inputIndex];
-  $('inputPlayer').textContent=`${p} の番`;
-  $('answerInput').value='';
-  $('answerInput').focus();
-  $('inputDots').innerHTML=inputOrder.map((_,i)=>{
-    const cls=i<inputIndex?'done':i===inputIndex?'current':'';
-    return `<div class="confirm-dot ${cls}"></div>`;
-  }).join('');
+  clearInterval(inputTimer);
+  showBlindScreen('スマホを渡してください', p + ' の番', function() {
+    $('inputPlayer').textContent=`${p} の番`;
+    $('answerInput').value='';
+    $('answerInput').focus();
+    $('inputDots').innerHTML=inputOrder.map((_,i)=>{
+      const cls=i<inputIndex?'done':i===inputIndex?'current':'';
+      return `<div class="confirm-dot ${cls}"></div>`;
+    }).join('');
+    startInputTimer();
+  });
+}
+
+function startInputTimer(){
+  let timeLeft=30;
+  clearInterval(inputTimer);
+  let timerEl=$('inputTimer');
+  if(!timerEl){
+    timerEl=document.createElement('div');
+    timerEl.id='inputTimer';
+    timerEl.style.cssText='text-align:center;font-size:1.5rem;font-weight:bold;margin:0.5rem 0;';
+    const inputArea=$('answerInput').parentElement;
+    inputArea.insertBefore(timerEl,inputArea.firstChild);
+  }
+  timerEl.textContent='残り '+timeLeft+'秒';
+  timerEl.style.color='';
+  inputTimer=setInterval(function(){
+    timeLeft--;
+    if(timeLeft<=0){
+      clearInterval(inputTimer);
+      timerEl.textContent='時間切れ！';
+      // Auto-submit with empty answer
+      const p=inputOrder[inputIndex];
+      answers[p]='';
+      inputIndex++;
+      if(inputIndex>=inputOrder.length){
+        showReveal();
+      } else {
+        updateInputUI();
+      }
+      return;
+    }
+    timerEl.textContent='残り '+timeLeft+'秒';
+    if(timeLeft<=10) timerEl.style.color='#ef4444';
+  },1000);
 }
 
 function submitAnswer(){
+  clearInterval(inputTimer);
   const input=$('answerInput').value.trim();
   if(!input){showToast('答えを入力してください');return;}
   const p=inputOrder[inputIndex];

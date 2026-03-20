@@ -17,7 +17,6 @@ let inputIndex = 0;      // where in replay the current player is
 let phase = 'idle';      // idle | replay | add
 let playerOrder = [];
 let turnIndex = 0;
-let eliminated = new Set();
 let inputLocked = false;
 
 const $setupPhase = document.getElementById('setupPhase');
@@ -81,7 +80,6 @@ function startGame() {
   if (players.length < 1) { showToast('プレイヤーを1人以上登録してください'); return; }
   round++;
   sequence = [];
-  eliminated = new Set();
   playerOrder = [...players];
   turnIndex = 0;
   showPhase('gamePhase');
@@ -89,20 +87,9 @@ function startGame() {
 }
 
 function startTurn() {
-  // Skip eliminated
-  while (turnIndex < playerOrder.length && eliminated.has(playerOrder[turnIndex])) {
-    turnIndex++;
-  }
   // Wrap around
   if (turnIndex >= playerOrder.length) {
     turnIndex = 0;
-    while (turnIndex < playerOrder.length && eliminated.has(playerOrder[turnIndex])) turnIndex++;
-  }
-
-  const alive = playerOrder.filter(p => !eliminated.has(p));
-  if (alive.length <= 1 && sequence.length > 0) {
-    endGame(alive[0] || null);
-    return;
   }
 
   const player = playerOrder[turnIndex];
@@ -161,9 +148,8 @@ function onSimonTap(colorIndex) {
     sequence.push(colorIndex);
     inputLocked = true;
 
-    // Award points to everyone alive
-    const alive = playerOrder.filter(p => !eliminated.has(p));
-    for (const p of alive) scores[p] = (scores[p] || 0) + 1;
+    // Award points to everyone
+    for (const p of playerOrder) scores[p] = (scores[p] || 0) + 1;
     renderScoreboard();
     saveState();
 
@@ -179,19 +165,17 @@ function playerFailed() {
   const player = playerOrder[turnIndex];
   playBuzz();
   inputLocked = true;
-  eliminated.add(player);
-  showToast(`${player} アウト！`, 1500);
+  scores[player] = (scores[player] || 0) - 2;
+  showToast(`${player} -2点！`, 1500);
+  renderScoreboard();
+  saveState();
 
-  document.getElementById('phaseLabel').textContent = `${player} がミス！`;
+  document.getElementById('phaseLabel').textContent = `${player} がミス！ -2点`;
 
-  const alive = playerOrder.filter(p => !eliminated.has(p));
+  // Continue from next player, chain stays as-is
   setTimeout(() => {
-    if (alive.length <= 1) {
-      endGame(alive[0] || null);
-    } else {
-      turnIndex++;
-      startTurn();
-    }
+    turnIndex++;
+    startTurn();
   }, 1500);
 }
 

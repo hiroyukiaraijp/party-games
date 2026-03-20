@@ -27,8 +27,8 @@
         <li data-ruby>4色ボタンを使った<strong>記憶チェインゲーム</strong>です</li>
         <li data-ruby>最初のプレイヤーがボタンを1つタップ</li>
         <li data-ruby>次の人は<strong>前の人までの順番を全部再現</strong>してから、新しく1つ追加</li>
-        <li data-ruby>間違えたらアウト！チェインが長く続くほど全員に得点</li>
-        <li data-ruby>最後まで生き残った人にボーナス！</li>
+        <li data-ruby>間違えたら<strong>-2点</strong>！チェインが長く続くほど全員に得点</li>
+        <li data-ruby>チェインはそのまま続きます</li>
       </ul>
       <h3 data-ruby style="margin-top:1rem;">鍛えられる力</h3>
       <ul>
@@ -59,11 +59,12 @@
         <div class="player-turn"><span class="name" id="turnPlayer"></span> の番</div>
         <div class="phase-label" id="phaseLabel"></div>
         <div class="simon-grid" id="simonGrid">
-          <button class="simon-btn red" data-color="0" onclick="onSimonTap(0)"></button>
-          <button class="simon-btn blue" data-color="1" onclick="onSimonTap(1)"></button>
-          <button class="simon-btn green" data-color="2" onclick="onSimonTap(2)"></button>
-          <button class="simon-btn yellow" data-color="3" onclick="onSimonTap(3)"></button>
+          <button class="simon-btn red" data-color="0" onclick="onSimonTap(0)">●</button>
+          <button class="simon-btn blue" data-color="1" onclick="onSimonTap(1)">▲</button>
+          <button class="simon-btn green" data-color="2" onclick="onSimonTap(2)">■</button>
+          <button class="simon-btn yellow" data-color="3" onclick="onSimonTap(3)">★</button>
         </div>
+        <button class="btn btn-small" style="margin-top:1.2rem;opacity:0.7;" onclick="endGame()">終了する</button>
       </div>
     </div>
 
@@ -85,6 +86,7 @@
     </div>
   </div>
   <script src="../../js/auto-ruby.js"></script>
+  <script src="../../js/shared.js"></script>
   <script src="game.js"></script>
 </body>
 </html>

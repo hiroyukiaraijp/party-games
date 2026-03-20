@@ -1,11 +1,28 @@
 /* ===== Color Panic (カラーパニック) ===== */
 
-const COLORS = [
-  { name: 'あか', hex: '#ef4444' },
-  { name: 'あお', hex: '#3b82f6' },
-  { name: 'みどり', hex: '#22c55e' },
-  { name: 'きいろ', hex: '#eab308' },
+const BASE_COLORS = [
+  { name: 'あか', hex: '#ef4444', shape: '●' },
+  { name: 'あお', hex: '#3b82f6', shape: '▲' },
+  { name: 'みどり', hex: '#22c55e', shape: '■' },
+  { name: 'きいろ', hex: '#eab308', shape: '★' },
 ];
+const EXTRA_COLORS = [
+  { name: 'むらさき', hex: '#a855f7', shape: '◆' },  // DDA level 4+
+  { name: 'だいだい', hex: '#f97316', shape: '◇' },  // DDA level 7+
+];
+
+function getActiveColors() {
+  const level = getDDALevel('color-panic');
+  if (level >= 7) return [...BASE_COLORS, ...EXTRA_COLORS];
+  if (level >= 4) return [...BASE_COLORS, EXTRA_COLORS[0]];
+  return [...BASE_COLORS];
+}
+
+function getDisplayInterval() {
+  const level = getDDALevel('color-panic');
+  // Not used for timed interval in this game, but controls question pacing feel
+  return level;
+}
 
 const STORAGE_KEY = 'colorpanic_state';
 const SHARED_PLAYERS_KEY = 'partygames_players';
@@ -128,9 +145,10 @@ function startPlayerRound() {
   showPhase('gamePhase');
   showToast(`${currentPlayer} の番！`, 1500);
 
-  // Render color buttons
-  document.getElementById('colorButtons').innerHTML = COLORS.map(c =>
-    `<button class="color-btn" style="background:${c.hex}" onclick="answer('${c.name}')">${c.name}</button>`
+  // Render color buttons with shape characters for accessibility
+  const activeColors = getActiveColors();
+  document.getElementById('colorButtons').innerHTML = activeColors.map(c =>
+    `<button class="color-btn" style="background:${c.hex}" data-color="${c.name}" onclick="answer('${c.name}',this)">${c.shape} ${c.name}</button>`
   ).join('');
 
   nextQuestion();
@@ -146,9 +164,10 @@ function startPlayerRound() {
 
 function nextQuestion() {
   // Pick random word and color (ensure they differ for stroop effect)
-  const wordColor = COLORS[Math.floor(Math.random() * COLORS.length)];
+  const colors = getActiveColors();
+  const wordColor = colors[Math.floor(Math.random() * colors.length)];
   let displayColor;
-  do { displayColor = COLORS[Math.floor(Math.random() * COLORS.length)]; } while (displayColor.name === wordColor.name);
+  do { displayColor = colors[Math.floor(Math.random() * colors.length)]; } while (displayColor.name === wordColor.name);
 
   roundMode = gameMode === 'mix' ? (Math.random() < 0.5 ? 'color' : 'meaning') : gameMode;
   correctAnswer = roundMode === 'color' ? displayColor.name : wordColor.name;
@@ -163,17 +182,33 @@ function nextQuestion() {
   document.getElementById('timerDisplay').textContent = `残り ${timerLeft}秒`;
 }
 
-function answer(colorName) {
+function answer(colorName, btnEl) {
   questionCount++;
-  if (colorName === correctAnswer) {
+  const isCorrect = colorName === correctAnswer;
+
+  // Update DDA
+  updateDDALevel('color-panic', isCorrect);
+
+  if (isCorrect) {
     combo++;
     if (combo > maxCombo) maxCombo = combo;
     const pts = combo >= 5 ? 3 : combo >= 3 ? 2 : 1;
     currentScore += pts;
     playBeep(1000, 80);
+    // Visual feedback: flash button green
+    if (btnEl) {
+      const origBg = btnEl.style.background;
+      btnEl.style.background = '#22c55e';
+      btnEl.style.transform = 'scale(1.08)';
+      setTimeout(() => { btnEl.style.background = origBg; btnEl.style.transform = ''; }, 150);
+    }
   } else {
     combo = 0;
     playBeep(300, 200);
+    // Visual feedback: shake the question display
+    const $word = document.getElementById('stroopWord');
+    $word.classList.add('shake');
+    setTimeout(() => $word.classList.remove('shake'), 400);
   }
   nextQuestion();
 }
@@ -192,6 +227,11 @@ function endPlayerRound() {
   document.getElementById('resultTitle').textContent = `${currentPlayer}: ${currentScore}pt！`;
   document.getElementById('resultDetails').innerHTML =
     `回答数: ${questionCount}<br>最大コンボ: ${maxCombo}<br>モード: ${gameMode === 'color' ? '文字の色' : gameMode === 'meaning' ? '文字の意味' : 'ミックス'}`;
+
+  // Best badge & game recommendation
+  let extraHTML = renderBestBadge('color-panic', currentScore);
+  extraHTML += renderGameRecommendation('color-panic');
+  document.getElementById('resultExtra').innerHTML = extraHTML;
 
   if (currentScore >= 15) {
     const rect = document.getElementById('resultTitle').getBoundingClientRect();

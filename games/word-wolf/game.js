@@ -471,19 +471,21 @@ function startVotePhase() {
 
 function updateVoteUI() {
   const voter = voteOrder[voteIndex];
-  document.getElementById('voteProgress').textContent =
-    `投票 (${voteIndex}/${voteOrder.length}人完了)`;
-  document.getElementById('votePlayerName').textContent = `${voter} の投票`;
+  showBlindScreen('スマホを渡してください', voter + ' の投票', function() {
+    document.getElementById('voteProgress').textContent =
+      `投票 (${voteIndex}/${voteOrder.length}人完了)`;
+    document.getElementById('votePlayerName').textContent = `${voter} の投票`;
 
-  voteSelection = null;
-  document.getElementById('voteConfirmBtn').style.display = 'none';
+    voteSelection = null;
+    document.getElementById('voteConfirmBtn').style.display = 'none';
 
-  // Show all players except the voter
-  const grid = document.getElementById('voteGrid');
-  grid.innerHTML = players
-    .filter(p => p !== voter)
-    .map(p => `<button class="vote-btn" onclick="selectVote(this, '${esc(p)}')">${esc(p)}</button>`)
-    .join('');
+    // Show all players except the voter
+    const grid = document.getElementById('voteGrid');
+    grid.innerHTML = players
+      .filter(p => p !== voter)
+      .map(p => `<button class="vote-btn" onclick="selectVote(this, '${esc(p)}')">${esc(p)}</button>`)
+      .join('');
+  });
 }
 
 function selectVote(btn, name) {
