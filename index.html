@@ -3,205 +3,274 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Party Games</title>
+  <title>asobi.dev - 無料の知育・脳トレスマホゲーム13選 | ダウンロード不要で今すぐ遊べる</title>
+  <meta name="description" content="知育・脳トレに効くスマホゲーム13種類が全て無料。語彙力、論理思考、記憶力、反射神経を鍛えるパーティーゲームがダウンロード不要で遊べます。2人〜15人対応、子供から大人まで。">
+  <meta name="keywords" content="知育ゲーム,脳トレ,スマホゲーム,無料,パーティーゲーム,ブラウザゲーム,語彙力,論理思考,記憶力,ワードウルフ,カタカナーシ,謎解き,子供,大人,2人,大人数">
+  <meta property="og:title" content="asobi.dev - 無料の知育・脳トレスマホゲーム13選">
+  <meta property="og:description" content="スマホ1台で遊べる知育・脳トレゲーム。13種類が全て無料、ダウンロード不要。語彙力、論理思考、記憶力を楽しく鍛えよう。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://hiroyukiaraijp.github.io/party-games/">
+  <meta property="og:site_name" content="asobi.dev">
+  <link rel="canonical" href="https://hiroyukiaraijp.github.io/party-games/">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <style>
-    body { background: var(--bg); }
-    .home-header {
+    /* Hero */
+    .lp-hero {
       background: var(--gradient-header);
-      padding: 1.2rem 1rem .8rem;
+      padding: 3rem 1.5rem 2.5rem;
       text-align: center; color: #fff;
     }
-    .home-header h1 { font-size: 1.4rem; letter-spacing: .08em; text-shadow: 0 2px 6px rgba(0,0,0,.15); }
-    .home-header .subtitle { font-size: .75rem; color: rgba(255,255,255,.8); margin-top: .15rem; }
-
-    /* Filter bar */
-    .filter-bar {
-      display: flex; gap: .3rem; padding: .6rem 1rem; overflow-x: auto;
-      -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    .lp-hero .brand { font-size: .75rem; letter-spacing: .15em; opacity: .8; margin-bottom: .3rem; }
+    .lp-hero h1 { font-size: 1.6rem; font-weight: 900; line-height: 1.4; text-shadow: 0 2px 8px rgba(0,0,0,.15); }
+    .lp-hero h1 em { font-style: normal; color: var(--accent-yellow); }
+    .lp-hero .sub { font-size: .8rem; color: rgba(255,255,255,.8); line-height: 1.6; margin-top: .5rem; }
+    .lp-hero .badges { display: flex; gap: .4rem; justify-content: center; flex-wrap: wrap; margin-top: .8rem; }
+    .lp-hero .badges span { background: rgba(255,255,255,.2); padding: .2rem .6rem; border-radius: 999px; font-size: .65rem; font-weight: 700; }
+    .lp-cta {
+      display: inline-block; margin-top: 1.2rem;
+      background: #fff; color: var(--primary); font-weight: 900;
+      padding: .8rem 2.5rem; border-radius: 999px; font-size: 1.1rem;
+      text-decoration: none; box-shadow: 0 4px 20px rgba(0,0,0,.15);
+      transition: transform .15s, box-shadow .15s; font-family: inherit;
     }
-    .filter-bar::-webkit-scrollbar { display: none; }
-    .filter-pill {
-      padding: .25rem .7rem; font-size: .7rem; border-radius: 999px;
-      border: 2px solid var(--surface2); background: var(--surface);
-      color: var(--text-muted); cursor: pointer; font-family: inherit;
-      font-weight: 600; white-space: nowrap; transition: all .15s;
-      flex-shrink: 0;
-    }
-    .filter-pill:hover { border-color: var(--secondary); }
-    .filter-pill.active {
-      background: var(--gradient-btn); color: #fff; border-color: transparent;
+    .lp-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,.2); }
+    .lp-cta-secondary {
+      display: inline-block; margin-top: .5rem;
+      color: rgba(255,255,255,.85); font-size: .75rem; text-decoration: underline;
     }
 
-    /* App grid */
-    .app-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-      gap: .8rem .5rem;
-      padding: .8rem 1rem 1.5rem;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    .app-icon {
-      display: flex; flex-direction: column; align-items: center;
-      text-decoration: none; color: var(--text);
-      -webkit-tap-highlight-color: transparent;
-    }
-    .app-icon .icon-box {
-      width: 60px; height: 60px; border-radius: 16px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.8rem; background: var(--surface);
-      box-shadow: var(--shadow);
-      transition: transform .15s, box-shadow .15s;
-    }
-    .app-icon:hover .icon-box,
-    .app-icon:active .icon-box {
-      transform: scale(1.08);
-      box-shadow: var(--shadow-hover);
-    }
-    .app-icon .icon-label {
-      font-size: .6rem; font-weight: 700; margin-top: .3rem;
-      text-align: center; line-height: 1.2; max-width: 80px;
-      overflow: hidden; text-overflow: ellipsis;
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-    }
-    .app-icon .icon-meta {
-      font-size: .5rem; color: var(--text-muted); margin-top: .1rem;
-    }
+    /* Sections */
+    .lp-section { max-width: 700px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .lp-section h2 { font-size: 1.2rem; font-weight: 900; margin-bottom: .3rem; text-align: center; }
+    .lp-section .section-sub { font-size: .75rem; color: var(--text-muted); text-align: center; margin-bottom: 1rem; }
 
-    /* Footer */
-    .home-footer {
-      text-align: center; padding: .5rem 1rem 2rem;
-    }
-    .reset-btn {
-      background: none; border: 2px solid var(--surface2); color: var(--text-muted);
-      padding: .3rem 1rem; border-radius: 999px; font-size: .7rem;
-      font-family: inherit; font-weight: 600; cursor: pointer;
-    }
+    /* Features */
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .8rem; }
+    .feature-card { background: var(--surface); border-radius: var(--radius); padding: 1rem; text-align: center; box-shadow: var(--shadow); }
+    .feature-card .icon { font-size: 1.8rem; margin-bottom: .3rem; }
+    .feature-card h3 { font-size: .8rem; font-weight: 900; margin-bottom: .2rem; }
+    .feature-card p { font-size: .65rem; color: var(--text-muted); line-height: 1.5; }
 
-    @media (min-width: 480px) {
-      .app-grid { grid-template-columns: repeat(5, 1fr); }
-      .app-icon .icon-box { width: 68px; height: 68px; font-size: 2rem; }
+    /* Cognitive */
+    .cog-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; }
+    .cog-item { background: var(--surface); border-radius: 12px; padding: .6rem .4rem; text-align: center; box-shadow: var(--shadow); }
+    .cog-item .icon { font-size: 1.2rem; }
+    .cog-item .label { font-size: .6rem; font-weight: 700; margin-top: .2rem; color: var(--text); }
+
+    /* Game categories */
+    .cat-tabs { display: flex; gap: .3rem; justify-content: center; flex-wrap: wrap; margin-bottom: .8rem; }
+    .cat-tab { padding: .2rem .6rem; font-size: .7rem; border-radius: 999px; border: 2px solid var(--surface2); background: var(--surface); color: var(--text-muted); cursor: pointer; font-family: inherit; font-weight: 600; }
+    .cat-tab.active { background: var(--gradient-btn); color: #fff; border-color: transparent; }
+    .game-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: .6rem; }
+    .game-item { background: var(--surface); border-radius: var(--radius); padding: .7rem .8rem; display: flex; align-items: center; gap: .7rem; box-shadow: var(--shadow); }
+    .game-item .gi-icon { font-size: 1.6rem; flex-shrink: 0; }
+    .game-item h3 { font-size: .8rem; font-weight: 900; }
+    .game-item p { font-size: .6rem; color: var(--text-muted); margin-top: .1rem; }
+    .game-item .gi-tag { font-size: .55rem; color: var(--secondary); font-weight: 700; }
+
+    /* Steps */
+    .steps { display: flex; flex-direction: column; gap: .6rem; }
+    .step { display: flex; align-items: flex-start; gap: .7rem; }
+    .step-num { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; background: var(--gradient-btn); color: #fff; font-weight: 900; display: flex; align-items: center; justify-content: center; font-size: .8rem; }
+    .step-text h3 { font-size: .85rem; font-weight: 900; }
+    .step-text p { font-size: .7rem; color: var(--text-muted); margin-top: .1rem; }
+
+    /* FAQ */
+    .faq-list { display: flex; flex-direction: column; gap: .5rem; }
+    .faq-item { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .faq-q { padding: .7rem .8rem; font-size: .8rem; font-weight: 900; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+    .faq-q::after { content: '+'; font-size: 1rem; color: var(--text-muted); }
+    .faq-a { padding: 0 .8rem .7rem; font-size: .7rem; color: var(--text-muted); line-height: 1.6; display: none; }
+    .faq-item.open .faq-a { display: block; }
+    .faq-item.open .faq-q::after { content: '-'; }
+
+    /* Bottom CTA */
+    .lp-bottom { text-align: center; padding: 2rem 1.5rem 2.5rem; background: var(--surface2); }
+    .lp-bottom h2 { font-size: 1.1rem; font-weight: 900; margin-bottom: .3rem; }
+    .lp-bottom p { font-size: .75rem; color: var(--text-muted); margin-bottom: 1rem; }
+
+    .lp-footer { text-align: center; padding: 1rem; font-size: .6rem; color: var(--text-muted); }
+
+    @media (max-width: 480px) {
+      .lp-hero h1 { font-size: 1.3rem; }
+      .lp-hero { padding: 2rem 1rem 1.8rem; }
+      .feature-grid { grid-template-columns: repeat(2, 1fr); }
+      .cog-grid { grid-template-columns: repeat(4, 1fr); gap: .3rem; }
+      .game-list { grid-template-columns: 1fr; }
     }
   </style>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "asobi.dev",
+    "alternateName": "Party Games",
+    "description": "知育・脳トレに効くスマホゲーム13種類が全て無料。語彙力、論理思考、記憶力、反射神経を鍛えるパーティーゲームがダウンロード不要で遊べます。",
+    "url": "https://hiroyukiaraijp.github.io/party-games/",
+    "applicationCategory": "GameApplication",
+    "applicationSubCategory": "Educational Game",
+    "operatingSystem": "Web Browser",
+    "offers": {"@type": "Offer", "price": "0", "priceCurrency": "JPY"},
+    "audience": {"@type": "PeopleAudience", "suggestedMinAge": "6"},
+    "browserRequirements": "Requires a modern web browser",
+    "featureList": ["語彙力トレーニング","論理思考","記憶力強化","反射神経","社会的知性","創造力","空間認識","処理速度"]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {"@type": "Question", "name": "本当に無料ですか？", "acceptedAnswer": {"@type": "Answer", "text": "はい、完全無料です。広告もなく、課金もありません。ブラウザで開くだけで遊べます。"}},
+      {"@type": "Question", "name": "何人で遊べますか？", "acceptedAnswer": {"@type": "Answer", "text": "1人から15人まで対応。1人で脳トレとして楽しむことも、大人数のパーティーで使うこともできます。"}},
+      {"@type": "Question", "name": "アプリのダウンロードは必要ですか？", "acceptedAnswer": {"@type": "Answer", "text": "不要です。スマートフォンのブラウザでサイトにアクセスするだけで、すぐに遊び始められます。"}},
+      {"@type": "Question", "name": "子供でも遊べますか？", "acceptedAnswer": {"@type": "Answer", "text": "はい。ふりがな表示機能があり、漢字が読めないお子さんでも楽しめます。対象年齢6歳以上を想定しています。"}},
+      {"@type": "Question", "name": "脳トレ効果はありますか？", "acceptedAnswer": {"@type": "Answer", "text": "認知科学の研究に基づき、語彙力・論理思考・記憶力・処理速度・創造力・社会的知性・空間認識・注意力の8つの認知能力をカバーするゲームを設計しています。"}}
+    ]
+  }
+  </script>
 </head>
 <body>
 
-  <header class="home-header">
-    <h1>Party Games</h1>
-    <p class="subtitle">みんなで楽しめる脳トレゲーム集</p>
-  </header>
+  <!-- Hero -->
+  <section class="lp-hero">
+    <p class="brand">asobi.dev</p>
+    <h1>スマホ1台で遊べる<br><em>知育・脳トレ</em>ゲーム13選</h1>
+    <p class="sub">ダウンロード不要・完全無料<br>2人から15人まで、子供から大人まで楽しめる</p>
+    <div class="badges">
+      <span>無料</span><span>広告なし</span><span>登録不要</span><span>13ゲーム</span>
+    </div>
+    <a href="games.html" class="lp-cta">今すぐ遊ぶ</a>
+    <br><a href="#games" class="lp-cta-secondary">ゲーム一覧を見る</a>
+  </section>
 
-  <div class="filter-bar" id="filterBar">
-    <button class="filter-pill active" data-filter="all" onclick="setFilter('all', this)">すべて</button>
-    <button class="filter-pill" data-filter="freq" onclick="setFilter('freq', this)">よくプレイ</button>
-    <button class="filter-pill" data-filter="1" onclick="setFilter('1', this)">1人OK</button>
-    <button class="filter-pill" data-filter="2" onclick="setFilter('2', this)">2人〜</button>
-    <button class="filter-pill" data-filter="3" onclick="setFilter('3', this)">3人〜</button>
-    <button class="filter-pill" data-filter="lang" onclick="setFilter('lang', this)">言語系</button>
-    <button class="filter-pill" data-filter="think" onclick="setFilter('think', this)">思考系</button>
-    <button class="filter-pill" data-filter="reflex" onclick="setFilter('reflex', this)">反射・記憶</button>
-  </div>
+  <!-- 認知能力 -->
+  <section class="lp-section">
+    <h2>遊びながら鍛える8つの脳力</h2>
+    <p class="section-sub">認知科学の研究に基づいた知育ゲーム設計</p>
+    <div class="cog-grid">
+      <div class="cog-item"><div class="icon">📚</div><div class="label">語彙力</div></div>
+      <div class="cog-item"><div class="icon">🧩</div><div class="label">論理思考</div></div>
+      <div class="cog-item"><div class="icon">🧠</div><div class="label">記憶力</div></div>
+      <div class="cog-item"><div class="icon">⚡</div><div class="label">処理速度</div></div>
+      <div class="cog-item"><div class="icon">💡</div><div class="label">創造力</div></div>
+      <div class="cog-item"><div class="icon">👥</div><div class="label">社会的知性</div></div>
+      <div class="cog-item"><div class="icon">📐</div><div class="label">空間認識</div></div>
+      <div class="cog-item"><div class="icon">👁</div><div class="label">注意力</div></div>
+    </div>
+  </section>
 
-  <div class="app-grid" id="appGrid"></div>
+  <!-- こんなシーンで -->
+  <section class="lp-section">
+    <h2>こんなシーンで使える</h2>
+    <div class="feature-grid">
+      <div class="feature-card"><div class="icon">🎉</div><h3>飲み会・パーティ</h3><p>大人数でワイワイ。初対面でもすぐ盛り上がる</p></div>
+      <div class="feature-card"><div class="icon">👫</div><h3>2人デート・友達</h3><p>2人専用ゲームも充実。待ち時間にも最適</p></div>
+      <div class="feature-card"><div class="icon">👨‍👩‍👧‍👦</div><h3>家族で知育タイム</h3><p>ふりがな対応。子供から大人まで一緒に遊べる</p></div>
+      <div class="feature-card"><div class="icon">🏢</div><h3>研修・アイスブレイク</h3><p>5秒でルール説明。チームビルディングにも</p></div>
+    </div>
+  </section>
 
-  <div class="home-footer">
-    <label style="display:inline-flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--text-muted);font-weight:600;cursor:pointer;margin-bottom:.5rem;">
-      <input type="checkbox" id="rubyToggle" onchange="toggleRuby(this.checked)" style="width:16px;height:16px;">
-      ふりがな表示
-    </label>
-    <br>
-    <button class="reset-btn" onclick="resetAll()">プレイヤー・スコアをリセット</button>
-  </div>
-  <div class="toast" id="toast"></div>
+  <!-- ゲーム一覧 -->
+  <section class="lp-section" id="games">
+    <h2>全13種類の知育・脳トレゲーム</h2>
+    <p class="section-sub">タップですぐにプレイ開始</p>
+    <div class="cat-tabs">
+      <button class="cat-tab active" onclick="filterGames('all',this)">すべて</button>
+      <button class="cat-tab" onclick="filterGames('lang',this)">言語・語彙</button>
+      <button class="cat-tab" onclick="filterGames('think',this)">思考・推理</button>
+      <button class="cat-tab" onclick="filterGames('reflex',this)">記憶・反射</button>
+    </div>
+    <div class="game-list" id="gameList"></div>
+  </section>
+
+  <!-- 遊び方 -->
+  <section class="lp-section">
+    <h2>遊び方はカンタン3ステップ</h2>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-text"><h3>サイトを開く</h3><p>ダウンロード不要。スマホのブラウザでアクセスするだけ</p></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-text"><h3>プレイヤーを登録</h3><p>名前を入力するだけ。全ゲーム共通で使える</p></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-text"><h3>ゲームを選んでスタート</h3><p>ルールは各ゲーム内で説明。5秒で理解できる</p></div></div>
+    </div>
+  </section>
+
+  <!-- 特徴 -->
+  <section class="lp-section">
+    <h2>asobi.devの特徴</h2>
+    <div class="feature-grid">
+      <div class="feature-card"><div class="icon">📱</div><h3>スマホ1台でOK</h3><p>全員がスマホを持っている必要なし</p></div>
+      <div class="feature-card"><div class="icon">💰</div><h3>完全無料・広告なし</h3><p>課金も登録も一切なし。ずっと無料</p></div>
+      <div class="feature-card"><div class="icon">🔬</div><h3>認知科学ベース</h3><p>8つの認知能力を科学的にカバー</p></div>
+      <div class="feature-card"><div class="icon">👶</div><h3>ふりがな対応</h3><p>漢字に自動でふりがな。子供も安心</p></div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="lp-section">
+    <h2>よくある質問</h2>
+    <div class="faq-list">
+      <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-q">本当に無料ですか？</div><div class="faq-a">はい、完全無料です。広告もなく、課金もありません。ブラウザで開くだけで遊べます。</div></div>
+      <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-q">何人で遊べますか？</div><div class="faq-a">1人から15人まで対応しています。1人で脳トレとして楽しむことも、大人数のパーティーで使うこともできます。</div></div>
+      <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-q">アプリのダウンロードは必要ですか？</div><div class="faq-a">不要です。スマートフォンのブラウザでサイトにアクセスするだけで、すぐに遊び始められます。iPhone・Androidどちらでも対応しています。</div></div>
+      <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-q">子供でも遊べますか？</div><div class="faq-a">はい。ふりがな表示機能があり、漢字が読めないお子さんでも楽しめます。対象年齢6歳以上を想定しています。</div></div>
+      <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-q">脳トレ効果はありますか？</div><div class="faq-a">認知科学の研究に基づき、語彙力・論理思考・記憶力・処理速度・創造力・社会的知性・空間認識・注意力の8つの認知能力をカバーするゲームを設計しています。</div></div>
+      <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-q">データはどこに保存されますか？</div><div class="faq-a">プレイヤー名やスコアはお使いのブラウザのローカルストレージに保存されます。サーバーにデータを送信することはありません。</div></div>
+    </div>
+  </section>
+
+  <!-- Bottom CTA -->
+  <section class="lp-bottom">
+    <h2>さっそく遊んでみよう</h2>
+    <p>13種類の知育・脳トレゲームが全て無料</p>
+    <a href="games.html" class="lp-cta" style="background:var(--gradient-btn);color:#fff;">ゲーム一覧へ</a>
+  </section>
+
+  <footer class="lp-footer">
+    <p>&copy; 2026 asobi.dev — 知育・脳トレスマホゲーム</p>
+  </footer>
 
   <script>
     const GAMES = [
-      { id: 'word-slot', icon: '🎰', name: 'ワードスロット', min: 1, tags: ['lang'], href: 'games/word-slot/index.html' },
-      { id: 'katakana-nashi', icon: '🚫', name: 'カタカナーシ', min: 2, tags: ['lang'], href: 'games/katakana-nashi/index.html' },
-      { id: 'word-wolf', icon: '🐺', name: 'ワードウルフ', min: 3, tags: ['think'], href: 'games/word-wolf/index.html' },
-      { id: 'master-game', icon: '👑', name: 'マスターゲーム', min: 2, tags: ['think'], href: 'games/master-game/index.html' },
-      { id: 'number-expression', icon: '🎲', name: '数字deコトバ', min: 3, tags: ['lang', 'think'], href: 'games/number-expression/index.html' },
-      { id: 'hint-bridge', icon: '🔗', name: '連想ブリッジ', min: 2, tags: ['lang'], href: 'games/hint-bridge/index.html' },
-      { id: 'color-panic', icon: '🎨', name: 'カラーパニック', min: 1, tags: ['reflex'], href: 'games/color-panic/index.html' },
-      { id: 'flash-memory', icon: '🧠', name: 'フラッシュメモリー', min: 1, tags: ['reflex'], href: 'games/flash-memory/index.html' },
-      { id: 'rhythm-relay', icon: '🔔', name: 'リズムリレー', min: 1, tags: ['reflex'], href: 'games/rhythm-relay/index.html' },
-      { id: 'reverse-dictionary', icon: '📖', name: '逆引き辞書クイズ', min: 1, tags: ['lang'], href: 'games/reverse-dictionary/index.html' },
-      { id: 'puzzle-solver', icon: '🔍', name: 'ナゾトキ', min: 1, tags: ['think'], href: 'games/puzzle-solver/index.html' },
-      { id: 'air-reading', icon: '🎯', name: '空気読みスケール', min: 3, tags: ['think'], href: 'games/air-reading/index.html' },
-      { id: 'initial-battle', icon: '⚡', name: '頭文字バトル', min: 2, tags: ['lang'], href: 'games/initial-battle/index.html' },
+      {icon:'🎰',name:'ワードスロット',desc:'文字数と頭文字がランダムに決まる！条件に合う単語を最速で叫べ',tag:'1人〜 / 語彙力・処理速度',tags:['lang'],href:'games/word-slot/index.html'},
+      {icon:'🚫',name:'カタカナーシ',desc:'カタカナ語をカタカナ抜きで説明！言い換え力が試される',tag:'2人〜 / 言い換え・抑制制御',tags:['lang'],href:'games/katakana-nashi/index.html'},
+      {icon:'🐺',name:'ワードウルフ',desc:'1人だけ違うお題のウルフは誰だ？会話で探り合う心理戦',tag:'3人〜 / 社会的知性・論理思考',tags:['think'],href:'games/word-wolf/index.html'},
+      {icon:'👑',name:'マスターゲーム',desc:'マスターにYes/Noで質問してお題を当てろ！',tag:'2人〜 / 質問設計・論理推論',tags:['think'],href:'games/master-game/index.html'},
+      {icon:'🎲',name:'数字deコトバ',desc:'秘密の数字を言葉で表現！みんなで協力して並べよう',tag:'3人〜 / 創造力・協力',tags:['lang','think'],href:'games/number-expression/index.html'},
+      {icon:'🔗',name:'連想ブリッジ',desc:'1語ずつヒントを出してお題を当てろ！',tag:'2人〜 / 戦略的コミュニケーション',tags:['lang'],href:'games/hint-bridge/index.html'},
+      {icon:'🎨',name:'カラーパニック',desc:'文字の色と意味が矛盾！正しい色を最速でタップ',tag:'1人〜 / 処理速度・注意力',tags:['reflex'],href:'games/color-panic/index.html'},
+      {icon:'🧠',name:'フラッシュメモリー',desc:'一瞬だけ光るパターンを記憶して再現！',tag:'1人〜 / 空間認識・記憶力',tags:['reflex'],href:'games/flash-memory/index.html'},
+      {icon:'🔔',name:'リズムリレー',desc:'色の順番を覚えて再現+1つ追加！チェインを伸ばせ',tag:'1人〜 / 順序記憶・注意力',tags:['reflex'],href:'games/rhythm-relay/index.html'},
+      {icon:'📖',name:'逆引き辞書クイズ',desc:'辞書の説明文から単語を当てろ！1050問収録',tag:'1人〜 / 語彙の深さ・推論力',tags:['lang'],href:'games/reverse-dictionary/index.html'},
+      {icon:'🔍',name:'ナゾトキ',desc:'暗号・なぞなぞ・規則発見・脱出パズルの4種',tag:'1人〜 / 論理思考・パターン認識',tags:['think'],href:'games/puzzle-solver/index.html'},
+      {icon:'🎯',name:'空気読みスケール',desc:'みんなの「普通」に最も近い人が勝ち！',tag:'3人〜 / メタ認知・社会的推論',tags:['think'],href:'games/air-reading/index.html'},
+      {icon:'⚡',name:'頭文字バトル',desc:'他の人と被らないユニークな答えを書け！',tag:'2人〜 / 発散的思考・語彙力',tags:['lang'],href:'games/initial-battle/index.html'},
     ];
 
-    const PLAY_COUNT_KEY = 'partygames_playcount';
-
-    function getPlayCounts() {
-      try { return JSON.parse(localStorage.getItem(PLAY_COUNT_KEY)) || {}; } catch { return {}; }
-    }
-
-    function trackPlay(gameId) {
-      const counts = getPlayCounts();
-      counts[gameId] = (counts[gameId] || 0) + 1;
-      try { localStorage.setItem(PLAY_COUNT_KEY, JSON.stringify(counts)); } catch {}
-    }
-
-    let currentFilter = 'all';
-
-    function setFilter(filter, btn) {
-      currentFilter = filter;
-      document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+    let currentCat = 'all';
+    function filterGames(cat, btn) {
+      currentCat = cat;
+      document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
       btn.classList.add('active');
-      renderGrid();
+      renderGames();
     }
 
-    function renderGrid() {
-      const counts = getPlayCounts();
-      let filtered = [...GAMES];
-
-      if (currentFilter === 'freq') {
-        filtered.sort((a, b) => (counts[b.id] || 0) - (counts[a.id] || 0));
-        filtered = filtered.filter(g => (counts[g.id] || 0) > 0);
-        if (filtered.length === 0) filtered = [...GAMES]; // fallback
-      } else if (currentFilter === '1') {
-        filtered = filtered.filter(g => g.min <= 1);
-      } else if (currentFilter === '2') {
-        filtered = filtered.filter(g => g.min <= 2);
-      } else if (currentFilter === '3') {
-        filtered = filtered.filter(g => g.min >= 3);
-      } else if (['lang', 'think', 'reflex'].includes(currentFilter)) {
-        filtered = filtered.filter(g => g.tags.includes(currentFilter));
-      }
-
-      const grid = document.getElementById('appGrid');
-      grid.innerHTML = filtered.map(g => {
-        const plays = counts[g.id] || 0;
-        const meta = g.min === 1 ? '1人〜' : `${g.min}人〜`;
-        return `<a href="${g.href}" class="app-icon" onclick="trackPlay('${g.id}')">
-          <div class="icon-box">${g.icon}</div>
-          <div class="icon-label">${g.name}</div>
-          <div class="icon-meta">${meta}${plays > 0 ? ' ・' + plays + '回' : ''}</div>
-        </a>`;
-      }).join('');
+    function renderGames() {
+      const filtered = currentCat === 'all' ? GAMES : GAMES.filter(g => g.tags.includes(currentCat));
+      document.getElementById('gameList').innerHTML = filtered.map(g =>
+        `<a href="${g.href}" class="game-item" style="text-decoration:none;color:inherit;">
+          <div class="gi-icon">${g.icon}</div>
+          <div>
+            <h3>${g.name}</h3>
+            <p>${g.desc}</p>
+            <div class="gi-tag">${g.tag}</div>
+          </div>
+        </a>`
+      ).join('');
     }
-
-    function resetAll() {
-      if (!confirm('全ゲームのプレイヤーとスコアをリセットしますか？')) return;
-      ['partygames_players','wordslot_state','katakananashi_state','wordwolf_state','mastergame_state','numberexpression_state','hintbridge_state','colorpanic_state','flashmemory_state','rhythmrelay_state','reversedictionary_state','puzzlesolver_state','airreading_state','initialbattle_state','partygames_playcount'].forEach(k => localStorage.removeItem(k));
-      const el = document.getElementById('toast');
-      el.textContent = 'リセットしました';
-      el.classList.add('show');
-      setTimeout(() => el.classList.remove('show'), 2000);
-      renderGrid();
-    }
-
-    function toggleRuby(on) {
-      localStorage.setItem('partygames_ruby', on ? 'on' : 'off');
-    }
-    // Init toggle state
-    document.getElementById('rubyToggle').checked = localStorage.getItem('partygames_ruby') === 'on';
-
-    renderGrid();
+    renderGames();
   </script>
+
 </body>
 </html>
