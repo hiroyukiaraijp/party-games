@@ -464,6 +464,7 @@ function submitOrder() {
     correctPairs, totalPairs, scoreAwarded,
   });
 
+  savePlayLog('number-expression', correctPairs, totalPairs);
   renderScoreboard(); renderLog(); saveState();
 }
 

@@ -189,6 +189,7 @@ function showResult(){
   }
 
   logs.unshift({timestamp:new Date().toISOString(),round,topic:currentTopic.q,winner,median:Math.round(median)});
+  savePlayLog('air-reading', 1, 1);
   renderScoreboard();renderLog();saveState();
 }
 

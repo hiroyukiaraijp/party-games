@@ -313,6 +313,7 @@ function finishCorrect(answerer) {
   const rect = document.getElementById('resultAnswer').getBoundingClientRect();
   emitParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
 
+  savePlayLog('hint-bridge', pts, 5);
   renderScoreboard(); renderLog(); saveState();
 }
 

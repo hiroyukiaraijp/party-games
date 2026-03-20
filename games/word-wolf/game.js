@@ -607,6 +607,7 @@ function showResult() {
     result,
   });
 
+  savePlayLog('word-wolf', wolfDetected ? 1 : 0, 1);
   renderScoreboard();
   renderLog();
   saveState();

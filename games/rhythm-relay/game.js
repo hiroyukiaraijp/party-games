@@ -202,6 +202,7 @@ function endGame() {
   }
 
   logs.unshift({ timestamp: new Date().toISOString(), round, chainLength: sequence.length, playerCount: players.length });
+  savePlayLog('rhythm-relay', sequence.length, 20);
   renderScoreboard(); renderLog(); saveState();
 }
 

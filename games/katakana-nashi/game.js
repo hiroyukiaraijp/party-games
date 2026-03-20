@@ -355,6 +355,7 @@ function selectAnswerer(name) {
   const elapsed = Date.now() - roundStartTime;
   scores[currentPresenter] = (scores[currentPresenter] || 0) + 1;
   scores[name] = (scores[name] || 0) + 1;
+  savePlayLog('katakana-nashi', 1, 1);
 
   logs.unshift({
     timestamp: new Date().toISOString(),

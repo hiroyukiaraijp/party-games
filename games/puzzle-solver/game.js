@@ -359,6 +359,7 @@ function endSet(){
   if(pct>=80){const r=$('resultTitle').getBoundingClientRect();emitParticles(r.left+r.width/2,r.top+r.height/2);}
 
   logs.unshift({timestamp:new Date().toISOString(),round,correct:setCorrect,total:setTotal,pct});
+  savePlayLog('puzzle-solver', setCorrect, setTotal);
   renderScoreboard();renderLog();saveState();
 }
 

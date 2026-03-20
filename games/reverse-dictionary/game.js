@@ -199,6 +199,7 @@ function endSet() {
   }
 
   logs.unshift({ timestamp: new Date().toISOString(), round, correct: setCorrect, total: setTotal, pct });
+  savePlayLog('reverse-dictionary', setCorrect, setTotal);
   renderScoreboard(); renderLog(); saveState();
 }
 

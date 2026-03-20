@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>認知プロファイル - asobi.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .profile-page { max-width: 500px; margin: 0 auto; padding: .5rem .75rem; min-height: calc(100vh - 48px); }
+
+    .top-bar { display: flex; align-items: center; justify-content: space-between; padding: .5rem 1rem; background: var(--surface); border-bottom: 3px solid transparent; border-image: var(--gradient-btn) 1; box-shadow: 0 2px 8px rgba(45,32,64,.06); }
+    .top-bar .title { font-size: .85rem; font-weight: 600; color: var(--text-muted); }
+    .top-bar .title a { color: var(--text-muted); }
+    .top-bar .title span { color: var(--text); font-weight: 900; }
+
+    .card { background: var(--surface); border-radius: var(--radius); padding: 1.2rem; box-shadow: var(--shadow); margin-top: .6rem; }
+    .card h2 { font-size: 1rem; font-weight: 900; margin-bottom: .6rem; text-align: center; }
+
+    .form-group { margin-bottom: .6rem; }
+    .form-group label { display: block; font-size: .7rem; font-weight: 700; color: var(--text-muted); margin-bottom: .2rem; text-transform: uppercase; }
+    .form-group input { width: 100%; padding: .5rem .7rem; font-size: .9rem; border-radius: 12px; border: 2px solid var(--surface2); background: var(--surface); color: var(--text); font-family: inherit; outline: none; box-sizing: border-box; }
+    .form-group input:focus { border-color: var(--secondary); }
+
+    .form-row { display: flex; gap: .4rem; }
+    .form-row .btn { flex: 1; padding: .5rem; font-size: .85rem; border-radius: 12px; }
+    .btn-register { background: var(--gradient-btn); color: #fff; border: none; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .btn-login { background: var(--surface2); color: var(--text); border: 2px solid var(--surface2); font-weight: 700; cursor: pointer; font-family: inherit; }
+
+    .user-info { text-align: center; margin-bottom: .5rem; }
+    .user-id { font-size: 1.2rem; font-weight: 900; color: var(--text); }
+    .user-meta { font-size: .7rem; color: var(--text-muted); }
+
+    .radar-container { display: flex; justify-content: center; margin: .5rem 0; }
+
+    .brain-type { text-align: center; margin: .5rem 0; }
+    .brain-type .type-label { font-size: .65rem; color: var(--text-muted); }
+    .brain-type .type-name { font-size: 1.3rem; font-weight: 900; color: var(--secondary); }
+
+    .domain-list { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem; margin-top: .5rem; }
+    .domain-item { display: flex; align-items: center; gap: .4rem; font-size: .75rem; padding: .3rem .5rem; background: var(--surface2); border-radius: 10px; }
+    .domain-bar { height: 6px; border-radius: 3px; flex: 1; background: var(--surface); overflow: hidden; }
+    .domain-bar-fill { height: 100%; border-radius: 3px; transition: width .5s; }
+    .domain-score { font-weight: 900; font-size: .7rem; min-width: 24px; text-align: right; }
+
+    .play-count { text-align: center; font-size: .75rem; color: var(--text-muted); margin-top: .5rem; }
+    .play-count strong { color: var(--text); }
+
+    .logout-btn { background: none; border: 2px solid var(--surface2); color: var(--text-muted); padding: .3rem 1rem; border-radius: 999px; font-size: .7rem; cursor: pointer; font-family: inherit; font-weight: 600; margin-top: .5rem; }
+
+    .toast { position: fixed; top: 1rem; left: 50%; transform: translateX(-50%) translateY(-100%); background: var(--text); color: #fff; padding: .5rem 1rem; border-radius: 12px; font-size: .85rem; font-weight: 600; z-index: 2000; opacity: 0; transition: transform .3s, opacity .3s; }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="toast" id="toast"></div>
+
+  <div class="top-bar">
+    <div class="title"><a href="games.html">asobi.dev</a> / <span>認知プロファイル</span></div>
+  </div>
+
+  <div class="profile-page">
+
+    <!-- Login/Register -->
+    <div id="authCard" class="card">
+      <h2>認知プロファイル</h2>
+      <p style="font-size:.75rem;color:var(--text-muted);text-align:center;margin-bottom:.8rem;">IDと生年月日でプロファイルを作成・ログインします</p>
+      <div class="form-group">
+        <label>ID（ひらがな・英数OK）</label>
+        <input type="text" id="userId" placeholder="例: たろう、taro123" maxlength="20">
+      </div>
+      <div class="form-group">
+        <label>生年月日</label>
+        <input type="date" id="userBirthday">
+      </div>
+      <div class="form-row">
+        <button class="btn btn-register" onclick="doRegister()">新規登録</button>
+        <button class="btn btn-login" onclick="doLogin()">ログイン</button>
+      </div>
+    </div>
+
+    <!-- Profile View -->
+    <div id="profileCard" class="card" style="display:none;">
+      <div class="user-info">
+        <div class="user-id" id="profileId"></div>
+        <div class="user-meta" id="profileMeta"></div>
+      </div>
+
+      <div class="brain-type" id="brainType"></div>
+      <div class="radar-container" id="radarChart"></div>
+
+      <div class="domain-list" id="domainList"></div>
+      <div class="play-count" id="playCount"></div>
+
+      <div style="text-align:center;">
+        <a href="games.html" style="display:inline-block;margin-top:.6rem;padding:.5rem 1.5rem;border-radius:999px;background:var(--gradient-btn);color:#fff;text-decoration:none;font-weight:700;font-size:.85rem;">ゲームで遊んでスコアを上げる</a>
+        <br>
+        <button class="logout-btn" onclick="doLogout()">ログアウト</button>
+      </div>
+    </div>
+
+    <!-- No data message -->
+    <div id="noDataCard" class="card" style="display:none;text-align:center;">
+      <p style="font-size:.85rem;margin-bottom:.5rem;">まだプレイデータがありません</p>
+      <p style="font-size:.75rem;color:var(--text-muted);">ゲームを遊ぶと、認知プロファイルが自動で生成されます</p>
+      <a href="games.html" style="display:inline-block;margin-top:.8rem;padding:.5rem 1.5rem;border-radius:999px;background:var(--gradient-btn);color:#fff;text-decoration:none;font-weight:700;font-size:.85rem;">ゲームで遊ぶ</a>
+    </div>
+
+  </div>
+
+  <script src="js/profile.js"></script>
+  <script>
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg; el.classList.add('show');
+      clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 2000);
+    }
+
+    function doRegister() {
+      const id = document.getElementById('userId').value.trim();
+      const bday = document.getElementById('userBirthday').value;
+      if (!id) { showToast('IDを入力してください'); return; }
+      if (!bday) { showToast('生年月日を入力してください'); return; }
+
+      const existing = getProfiles()[id.toLowerCase()];
+      if (existing) { showToast('このIDは既に使われています。ログインしてください'); return; }
+
+      registerUser(id, bday);
+      showToast('登録しました！');
+      showProfile();
+    }
+
+    function doLogin() {
+      const id = document.getElementById('userId').value.trim();
+      const bday = document.getElementById('userBirthday').value;
+      if (!id || !bday) { showToast('IDと生年月日を入力してください'); return; }
+
+      const user = loginUser(id, bday);
+      if (!user) { showToast('IDまたは生年月日が違います'); return; }
+      showToast('ログインしました！');
+      showProfile();
+    }
+
+    function doLogout() {
+      logoutUser();
+      document.getElementById('authCard').style.display = '';
+      document.getElementById('profileCard').style.display = 'none';
+      document.getElementById('noDataCard').style.display = 'none';
+    }
+
+    function showProfile() {
+      const user = getCurrentUser();
+      if (!user) { document.getElementById('authCard').style.display = ''; return; }
+
+      document.getElementById('authCard').style.display = 'none';
+
+      const profile = calculateProfile(user.id);
+      const logs = getPlayLogs().filter(l => l.userId === user.id.toLowerCase());
+
+      if (!profile || logs.length === 0) {
+        document.getElementById('noDataCard').style.display = '';
+        document.getElementById('profileCard').style.display = 'none';
+        return;
+      }
+
+      document.getElementById('profileCard').style.display = '';
+      document.getElementById('noDataCard').style.display = 'none';
+
+      // User info
+      document.getElementById('profileId').textContent = user.id;
+      const age = Math.floor((Date.now() - new Date(user.birthday).getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+      document.getElementById('profileMeta').textContent = `${age}歳 / ${logs.length}回プレイ`;
+
+      // Brain type
+      const summary = getProfileSummary(profile);
+      document.getElementById('brainType').innerHTML = `
+        <div class="type-label">あなたの脳タイプ</div>
+        <div class="type-name">${summary.type}</div>
+      `;
+
+      // Radar
+      renderRadarChart('radarChart', profile);
+
+      // Domain bars
+      const domainList = document.getElementById('domainList');
+      domainList.innerHTML = COG_DOMAINS.map(d => {
+        const score = profile[d.id] || 0;
+        return `<div class="domain-item">
+          <span>${d.icon}</span>
+          <div class="domain-bar"><div class="domain-bar-fill" style="width:${score}%;background:${d.color};"></div></div>
+          <span class="domain-score" style="color:${d.color};">${score}</span>
+        </div>`;
+      }).join('');
+
+      // Play count
+      const gameCount = new Set(logs.map(l => l.gameId)).size;
+      document.getElementById('playCount').innerHTML = `<strong>${logs.length}</strong>回プレイ / <strong>${gameCount}</strong>種類のゲーム`;
+    }
+
+    // Auto-show profile if logged in
+    const user = getCurrentUser();
+    if (user) showProfile();
+  </script>
+</body>
+</html>

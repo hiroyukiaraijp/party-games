@@ -424,6 +424,7 @@ function showResultScreen(result, guesser) {
     elapsedMs: Date.now() - roundStartTime,
   });
 
+  savePlayLog('master-game', result === 'solved' ? 1 : 0, 1);
   renderScoreboard();
   renderLog();
   saveState();

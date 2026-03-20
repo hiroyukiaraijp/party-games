@@ -155,6 +155,7 @@ function submitAnswer() {
     }
 
     logs.unshift({ timestamp: new Date().toISOString(), round, player, level: level + 1, gridSize: size, litCount: pattern.length, correctCount, perfect, pts });
+    savePlayLog('flash-memory', correctCount, pattern.length);
 
     // Determine next step
     const $btn = document.getElementById('nextBtn');

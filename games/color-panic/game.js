@@ -238,6 +238,7 @@ function endPlayerRound() {
     emitParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
   }
 
+  savePlayLog('color-panic', currentScore, 30);
   renderScoreboard(); renderLog(); saveState();
 }
 

@@ -176,6 +176,7 @@ function showReveal(){
   }
 
   logs.unshift({timestamp:new Date().toISOString(),round,initial:currentInitial,category:currentCategory,unique:uniqueCount,total:players.length});
+  savePlayLog('initial-battle', uniqueCount, entries.length);
   renderScoreboard();renderLog();saveState();
 }
 
