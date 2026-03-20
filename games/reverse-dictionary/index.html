@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>逆引き辞書クイズ - Party Games</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="toast" id="toast"></div>
+  <div class="particle-container" id="particles"></div>
+
+  <div class="top-bar">
+    <div class="title"><a href="../../index.html">Party Games</a> / <span><ruby>逆引<rt>ぎゃくび</rt></ruby>き<ruby>辞書<rt>じしょ</rt></ruby>クイズ</span></div>
+    <div class="top-bar-actions"><button class="icon-btn" onclick="document.getElementById('helpModal').classList.add('show')">?</button></div>
+  </div>
+
+  <div class="modal-overlay" id="helpModal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="document.getElementById('helpModal').classList.remove('show')">&times;</button>
+      <h3><ruby>遊<rt>あそ</rt></ruby>び<ruby>方<rt>かた</rt></ruby></h3>
+      <ul>
+        <li><ruby>辞書<rt>じしょ</rt></ruby>の<ruby>説明文<rt>せつめいぶん</rt></ruby>が<ruby>表示<rt>ひょうじ</rt></ruby>されます</li>
+        <li>その<ruby>説明<rt>せつめい</rt></ruby>に<ruby>合<rt>あ</rt></ruby>う<strong><ruby>単語<rt>たんご</rt></ruby>を<ruby>当<rt>あ</rt></ruby>ててください</strong></li>
+        <li><ruby>答<rt>こた</rt></ruby>えを<ruby>入力<rt>にゅうりょく</rt></ruby>して<ruby>自動判定<rt>じどうはんてい</rt></ruby>！1<ruby>人<rt>り</rt></ruby>でも<ruby>遊<rt>あそ</rt></ruby>べます</li>
+        <li>2<ruby>人<rt>にん</rt></ruby>なら<ruby>読<rt>よ</rt></ruby>み<ruby>上<rt>あ</rt></ruby>げて<ruby>相手<rt>あいて</rt></ruby>が<ruby>答<rt>こた</rt></ruby>える！</li>
+        <li>ヒントボタンで<ruby>最初<rt>さいしょ</rt></ruby>の<ruby>文字<rt>もじ</rt></ruby>が<ruby>見<rt>み</rt></ruby>れます（-1pt）</li>
+        <li>10<ruby>問<rt>もん</rt></ruby>1セットで<ruby>何問<rt>なんもん</rt></ruby><ruby>正解<rt>せいかい</rt></ruby>できるかチャレンジ！</li>
+      </ul>
+      <h3 style="margin-top:1rem;"><ruby>鍛<rt>きた</rt></ruby>えられる<ruby>力<rt>ちから</rt></ruby></h3>
+      <ul>
+        <li><strong><ruby>語彙<rt>ごい</rt></ruby>の<ruby>深<rt>ふか</rt></ruby>さ</strong> — <ruby>定義<rt>ていぎ</rt></ruby>から<ruby>単語<rt>たんご</rt></ruby>を<ruby>逆引<rt>ぎゃくび</rt></ruby>きする<ruby>力<rt>ちから</rt></ruby></li>
+        <li><strong><ruby>推論力<rt>すいろんりょく</rt></ruby></strong> — <ruby>説明文<rt>せつめいぶん</rt></ruby>のキーワードから<ruby>答<rt>こた</rt></ruby>えを<ruby>導<rt>みちび</rt></ruby>く<ruby>力<rt>ちから</rt></ruby></li>
+        <li><strong><ruby>言語的<rt>げんごてき</rt></ruby><ruby>記憶<rt>きおく</rt></ruby></strong> — <ruby>知<rt>し</rt></ruby>っているはずの<ruby>単語<rt>たんご</rt></ruby>を<ruby>思<rt>おも</rt></ruby>い<ruby>出<rt>だ</rt></ruby>す<ruby>力<rt>ちから</rt></ruby></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="game-page">
+    <div id="setupPhase">
+      <div class="setup-section">
+        <h4>プレイヤー</h4>
+        <div class="player-bar">
+          <input type="text" id="playerNameInput" placeholder="名前" maxlength="10" onkeydown="if(event.key==='Enter')addPlayer()">
+          <button class="btn btn-primary btn-small" onclick="addPlayer()">追加</button>
+        </div>
+        <div class="player-tags" id="playerList"></div>
+        <div class="options-row">
+          <div class="option-group">
+            <label>カテゴリ</label>
+            <div class="option-pills" id="categoryPills">
+              <button class="option-pill selected" data-value="all" onclick="selectOption('category',this)">ミックス</button>
+              <button class="option-pill" data-value="daily" onclick="selectOption('category',this)">日常</button>
+              <button class="option-pill" data-value="nature" onclick="selectOption('category',this)">自然</button>
+              <button class="option-pill" data-value="culture" onclick="selectOption('category',this)">文化</button>
+              <button class="option-pill" data-value="science" onclick="selectOption('category',this)">科学</button>
+            </div>
+          </div>
+        </div>
+        <button class="start-btn" onclick="startGame()">📖 スタート！</button>
+      </div>
+    </div>
+
+    <!-- Quiz Phase -->
+    <div id="quizPhase" style="display:none;">
+      <div class="phase-section">
+        <div class="question-num" id="questionNum"></div>
+        <div class="progress-bar" id="progressBar"></div>
+        <div class="def-card">
+          <div class="def-category" id="defCategory"></div>
+          <div id="defText"></div>
+          <div class="def-hint" id="defHint"></div>
+        </div>
+        <button class="hint-btn" id="hintBtn" onclick="showHint()">💡 ヒント（-1pt）</button>
+        <div class="answer-row">
+          <input type="text" id="answerInput" placeholder="答えを入力" onkeydown="if(event.key==='Enter')submitAnswer()">
+          <button class="btn btn-primary" onclick="submitAnswer()">回答</button>
+        </div>
+        <div class="feedback" id="feedback"></div>
+        <button class="skip-btn" onclick="skipQuestion()">スキップ →</button>
+      </div>
+    </div>
+
+    <!-- Result Phase -->
+    <div id="resultPhase" style="display:none;">
+      <div class="phase-section result-section">
+        <div class="result-icon" id="resultIcon"></div>
+        <div class="result-title" id="resultTitle"></div>
+        <div class="result-details" id="resultDetails"></div>
+        <button class="btn btn-primary next-btn" onclick="nextRound()">もう1セット！</button>
+      </div>
+    </div>
+
+    <div class="score-section" id="scoreboard" style="display:none;">
+      <h4>Score</h4><div class="score-list" id="scoreRows"></div>
+    </div>
+    <div class="log-section" id="answerLog" style="display:none;">
+      <div class="log-header"><h4>Log</h4><button class="clear-log-btn" onclick="clearAllLogs()">消去</button></div>
+      <div id="logEntries"></div>
+    </div>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
