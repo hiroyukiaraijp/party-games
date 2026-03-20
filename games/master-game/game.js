@@ -295,28 +295,12 @@ function updateQuestionUI() {
 // --- Question Actions ---
 function answerQuestion(answer) {
   questionCount++;
-  questionHistory.push({ q: questionCount, answer });
   updateQuestionUI();
 
-  // Check limit
   if (questionLimit > 0 && questionCount >= questionLimit) {
     showToast('質問上限に達しました！推理するかギブアップしてください', 3000);
   }
-  // Hide guess area if open
   document.getElementById('guessArea').style.display = 'none';
-}
-
-function renderQuestionLog() {
-  const $log = document.getElementById('questionLog');
-  if (questionHistory.length === 0) { $log.innerHTML = ''; return; }
-  $log.innerHTML = questionHistory.slice().reverse().map(h => {
-    const cls = h.answer === 'yes' ? 'q-answer-yes' : 'q-answer-no';
-    const label = h.answer === 'yes' ? 'はい' : 'いいえ';
-    return `<div class="q-entry">
-      <span>Q${h.q}</span>
-      <span class="${cls}">${label}</span>
-    </div>`;
-  }).join('');
 }
 
 // --- Guess ---
@@ -372,8 +356,6 @@ function submitGuess() {
     // Wrong
     $result.className = 'guess-result wrong';
     $result.innerHTML = `❌ 不正解！「${esc(guess)}」ではありません`;
-    questionHistory.push({ q: `推理(${esc(selectedGuesser)})`, answer: `❌ ${guess}` });
-    updateQuestionUI();
   }
 }
 
@@ -393,20 +375,17 @@ function showResultScreen(result, guesser) {
 
   $answer.textContent = `「${currentTopic}」`;
   const elapsed = ((Date.now() - roundStartTime) / 1000).toFixed(0);
-  const yesCount = questionHistory.filter(h => h.answer === 'yes').length;
-  const noCount = questionHistory.filter(h => h.answer === 'no').length;
-
   if (result === 'solved') {
     $icon.textContent = '🎉';
     $title.textContent = '正解！';
-    $details.innerHTML = `回答者: <strong>${esc(guesser)}</strong> (+1pt)<br>質問数: ${questionCount}回 (はい${yesCount} / いいえ${noCount})<br>所要時間: ${elapsed}秒`;
+    $details.innerHTML = `回答者: <strong>${esc(guesser)}</strong> (+1pt)<br>質問数: ${questionCount}回<br>所要時間: ${elapsed}秒`;
 
     const rect = $answer.getBoundingClientRect();
     emitParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
   } else {
     $icon.textContent = '👑';
     $title.textContent = 'マスターの勝利！';
-    $details.innerHTML = `マスター: <strong>${esc(currentMaster)}</strong> (+1pt)<br>質問数: ${questionCount}回 (はい${yesCount} / いいえ${noCount})<br>誰も当てられませんでした`;
+    $details.innerHTML = `マスター: <strong>${esc(currentMaster)}</strong> (+1pt)<br>質問数: ${questionCount}回<br>誰も当てられませんでした`;
   }
 
   logs.unshift({
@@ -418,8 +397,6 @@ function showResultScreen(result, guesser) {
     result,
     guesser: guesser || null,
     questionCount,
-    yesCount,
-    noCount,
     elapsedMs: Date.now() - roundStartTime,
   });
 
