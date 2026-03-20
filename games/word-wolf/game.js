@@ -138,6 +138,7 @@ let logs = [];
 let round = 0;
 let difficulty = 'easy';
 let discussionTime = 180;
+let blindMode = false;
 let usedTopics = [];
 
 // Round state
@@ -294,6 +295,7 @@ function selectOption(type, btn) {
   btn.classList.add('selected');
   if (type === 'difficulty') difficulty = btn.dataset.value;
   if (type === 'time') discussionTime = parseInt(btn.dataset.value);
+  if (type === 'blind') blindMode = btn.dataset.value === 'true';
 }
 
 // --- Phase Management ---
@@ -388,11 +390,20 @@ function revealMyTopic() {
   document.getElementById('confirmRevealed').style.display = '';
 
   const card = document.getElementById('revealedCard');
-  card.className = 'topic-card ' + (isWolf ? 'wolf' : 'citizen');
-  document.getElementById('roleIcon').textContent = isWolf ? '🐺' : '👤';
-  document.getElementById('roleLabel').textContent = isWolf ? 'あなたはウルフです！' : 'あなたは市民です';
-  document.getElementById('myTopicWord').textContent = topic;
-  document.getElementById('wolfHint').textContent = isWolf ? '（他の人と違うお題です）' : '';
+  if (blindMode) {
+    // Blind mode: no role reveal, just show topic
+    card.className = 'topic-card citizen';
+    document.getElementById('roleIcon').textContent = '🔒';
+    document.getElementById('roleLabel').textContent = 'あなたのお題';
+    document.getElementById('myTopicWord').textContent = topic;
+    document.getElementById('wolfHint').textContent = '';
+  } else {
+    card.className = 'topic-card ' + (isWolf ? 'wolf' : 'citizen');
+    document.getElementById('roleIcon').textContent = isWolf ? '🐺' : '👤';
+    document.getElementById('roleLabel').textContent = isWolf ? 'あなたはウルフです！' : 'あなたは市民です';
+    document.getElementById('myTopicWord').textContent = topic;
+    document.getElementById('wolfHint').textContent = isWolf ? '（他の人と違うお題です）' : '';
+  }
 }
 
 function confirmAndNext() {
@@ -665,5 +676,8 @@ function esc(str) {
   });
   document.querySelectorAll('#timePills .option-pill').forEach(btn => {
     btn.classList.toggle('selected', btn.dataset.value === String(discussionTime));
+  });
+  document.querySelectorAll('#blindPills .option-pill').forEach(btn => {
+    btn.classList.toggle('selected', btn.dataset.value === String(blindMode));
   });
 })();

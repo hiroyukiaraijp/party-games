@@ -119,6 +119,8 @@
                  onkeydown="if(event.key==='Enter'){event.preventDefault();}">
           <button class="btn btn-yes" onclick="answerQuestion('yes')">⭕</button>
           <button class="btn btn-no" onclick="answerQuestion('no')">❌</button>
+          <button class="btn btn-maybe" onclick="answerQuestion('unknown')">？</button>
+          <button class="btn btn-maybe" onclick="answerQuestion('both')">△</button>
         </div>
 
         <div class="question-log" id="questionLog"></div>

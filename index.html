@@ -64,6 +64,18 @@
       </div>
     </a>
 
+    <a href="games/number-expression/index.html" class="game-card">
+      <div class="card-icon">🎲</div>
+      <div class="card-body">
+        <h3>数字deコトバ</h3>
+        <p>秘密の数字を言葉で表現！みんなで協力して正しく並べよう！</p>
+      </div>
+      <div class="card-footer">
+        <span>2人〜</span>
+        <span class="badge">Play</span>
+      </div>
+    </a>
+
   </main>
 
   <div style="text-align:center;margin:1rem 0 2rem;">
@@ -73,7 +85,7 @@
   <script>
     function resetAll() {
       if (!confirm('全ゲームのプレイヤーとスコアをリセットしますか？')) return;
-      ['partygames_players','wordslot_state','katakananashi_state','wordwolf_state','mastergame_state'].forEach(k => localStorage.removeItem(k));
+      ['partygames_players','wordslot_state','katakananashi_state','wordwolf_state','mastergame_state','numberexpression_state'].forEach(k => localStorage.removeItem(k));
       const el = document.getElementById('toast');
       el.textContent = 'リセットしました';
       el.classList.add('show');

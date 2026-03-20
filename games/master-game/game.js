@@ -311,13 +311,18 @@ function answerQuestion(answer) {
 function renderQuestionLog() {
   const $log = document.getElementById('questionLog');
   if (questionHistory.length === 0) { $log.innerHTML = ''; return; }
+  const answerMap = {
+    yes: { cls: 'q-answer-yes', label: '⭕' },
+    no: { cls: 'q-answer-no', label: '❌' },
+    unknown: { cls: 'q-answer-maybe', label: '？' },
+    both: { cls: 'q-answer-maybe', label: '△' },
+  };
   $log.innerHTML = questionHistory.slice().reverse().map(h => {
-    const cls = h.answer === 'yes' ? 'q-answer-yes' : 'q-answer-no';
-    const label = h.answer === 'yes' ? '⭕' : '❌';
+    const a = answerMap[h.answer] || answerMap.unknown;
     const text = h.text ? esc(h.text) : `Q${h.q}`;
     return `<div class="q-entry">
       <span class="q-text">${text}</span>
-      <span class="${cls}">${label}</span>
+      <span class="${a.cls}">${a.label}</span>
     </div>`;
   }).join('');
 }

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>数字deコトバ - Party Games</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="toast" id="toast"></div>
+  <div class="particle-container" id="particles"></div>
+
+  <div class="top-bar">
+    <div class="title"><a href="../../index.html">Party Games</a> / <span>数字deコトバ</span></div>
+    <div class="top-bar-actions">
+      <button class="icon-btn" onclick="document.getElementById('helpModal').classList.add('show')" title="遊び方">?</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="helpModal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="document.getElementById('helpModal').classList.remove('show')">&times;</button>
+      <h3>遊び方</h3>
+      <ul>
+        <li>テーマ（例:「怖いもの」）が表示されます</li>
+        <li>各プレイヤーに<strong>テーマの度合いを表す数字</strong>（1〜100）が秘密で配られます</li>
+        <li>自分の数字の度合いに合うものを考えて入力します（例: 怖さ25→「お化け屋敷」）</li>
+        <li>全員のヒントを見て相談し、<strong>度合いが低い順</strong>に並べ替えます</li>
+        <li>全員協力！隣同士の順番が正しければポイント獲得</li>
+      </ul>
+      <h3 style="margin-top:1rem;">鍛えられる力</h3>
+      <ul>
+        <li><strong>創造力</strong> — 数値を具体的な言葉に変換する抽象表現力</li>
+        <li><strong>社会的知性</strong> — 他者の表現から度合いを推測する共感力</li>
+        <li><strong>言語力</strong> — テーマ内の適切な語彙を選ぶ力</li>
+        <li><strong>論理思考</strong> — 相対的な大小関係を推論する力</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="game-page">
+
+    <!-- Setup -->
+    <div id="setupPhase">
+      <div class="setup-section">
+        <h4>プレイヤー</h4>
+        <div class="player-bar">
+          <input type="text" id="playerNameInput" placeholder="名前" maxlength="10"
+                 onkeydown="if(event.key==='Enter')addPlayer()">
+          <button class="btn btn-primary btn-small" onclick="addPlayer()">追加</button>
+        </div>
+        <div class="player-tags" id="playerList"></div>
+
+        <div class="options-row">
+          <div class="option-group">
+            <label>テーマ</label>
+            <div class="option-pills" id="themePills">
+              <button class="option-pill selected" data-value="all" onclick="selectOption('theme',this)">ミックス</button>
+              <button class="option-pill" data-value="emotion" onclick="selectOption('theme',this)">感情</button>
+              <button class="option-pill" data-value="daily" onclick="selectOption('theme',this)">日常</button>
+              <button class="option-pill" data-value="food" onclick="selectOption('theme',this)">食べ物</button>
+              <button class="option-pill" data-value="experience" onclick="selectOption('theme',this)">体験</button>
+              <button class="option-pill" data-value="subculture" onclick="selectOption('theme',this)">サブカル</button>
+            </div>
+          </div>
+          <div class="option-group">
+            <label>数字の範囲</label>
+            <div class="option-pills" id="rangePills">
+              <button class="option-pill" data-value="50" onclick="selectOption('range',this)">1-50</button>
+              <button class="option-pill selected" data-value="100" onclick="selectOption('range',this)">1-100</button>
+            </div>
+          </div>
+        </div>
+
+        <button class="start-btn" onclick="startGame()">🎲 ゲーム開始！</button>
+      </div>
+    </div>
+
+    <!-- Distribution Phase -->
+    <div id="distributionPhase" style="display:none;">
+      <div class="phase-section">
+        <div class="round-counter" id="distRound"></div>
+        <div class="theme-display" id="distTheme"></div>
+        <div class="theme-hint" id="distThemeHint"></div>
+        <div class="confirm-progress" id="distDots"></div>
+        <div class="confirm-instruction">スマホを渡してください</div>
+        <div class="confirm-player-name" id="distPlayerName"></div>
+
+        <div class="number-card" id="numberCard" onclick="revealNumber()">
+          <span class="tap-icon">🎲</span>
+          <span class="tap-text">タップして自分の数字を確認</span>
+        </div>
+        <div id="numberRevealed" style="display:none;">
+          <div class="number-card revealed">
+            <div class="number-hint">あなたの数字</div>
+            <div class="my-number" id="myNumber"></div>
+            <div class="number-hint" id="myNumberHint"></div>
+          </div>
+          <button class="btn btn-primary confirm-next-btn" onclick="confirmAndNext()">覚えた → 次の人へ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hint Phase -->
+    <div id="hintPhase" style="display:none;">
+      <div class="phase-section">
+        <div class="round-counter" id="hintRound"></div>
+        <div class="theme-display" id="hintTheme"></div>
+        <div class="theme-hint">自分の数字の度合いに合うものを入力してください</div>
+        <div class="hint-list" id="hintList"></div>
+        <button class="btn btn-primary all-hints-btn" id="allHintsBtn" style="display:none;" onclick="startOrderPhase()">全員出揃った → 並べ替えへ</button>
+      </div>
+    </div>
+
+    <!-- Order Phase -->
+    <div id="orderPhase" style="display:none;">
+      <div class="phase-section">
+        <div class="round-counter" id="orderRound"></div>
+        <div class="theme-display" id="orderTheme"></div>
+        <div class="theme-hint">ドラッグして度合いが低い順に並べ替えよう</div>
+        <div class="order-labels"><span>↑ 度合い低い</span><span>度合い高い ↓</span></div>
+        <div class="sort-list" id="sortList"></div>
+        <button class="btn btn-primary submit-order-btn" onclick="submitOrder()">🎯 答え合わせ！</button>
+      </div>
+    </div>
+
+    <!-- Result Phase -->
+    <div id="resultPhase" style="display:none;">
+      <div class="phase-section result-section">
+        <div class="result-icon" id="resultIcon"></div>
+        <div class="result-title" id="resultTitle"></div>
+        <div class="pair-results" id="pairResults"></div>
+        <div class="result-score" id="resultScore"></div>
+        <button class="btn btn-primary next-btn" onclick="nextRound()">次のラウンドへ →</button>
+      </div>
+    </div>
+
+    <!-- Scoreboard -->
+    <div class="score-section" id="scoreboard" style="display:none;">
+      <h4>Score</h4>
+      <div class="score-list" id="scoreRows"></div>
+    </div>
+
+    <!-- Log -->
+    <div class="log-section" id="answerLog" style="display:none;">
+      <div class="log-header">
+        <h4>Log</h4>
+        <button class="clear-log-btn" onclick="clearAllLogs()">消去</button>
+      </div>
+      <div id="logEntries"></div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

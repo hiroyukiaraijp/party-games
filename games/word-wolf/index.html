@@ -69,6 +69,13 @@
             </div>
           </div>
           <div class="option-group">
+            <label>ウルフ通知</label>
+            <div class="option-pills" id="blindPills">
+              <button class="option-pill selected" data-value="false" onclick="selectOption('blind', this)">役割あり</button>
+              <button class="option-pill" data-value="true" onclick="selectOption('blind', this)">役割なし</button>
+            </div>
+          </div>
+          <div class="option-group">
             <label>議論時間</label>
             <div class="option-pills" id="timePills">
               <button class="option-pill" data-value="120" onclick="selectOption('time', this)">2分</button>
