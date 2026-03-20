@@ -61,6 +61,27 @@ const $answerLog = document.getElementById('answerLog');
 const $logEntries = document.getElementById('logEntries');
 const $playerList = document.getElementById('playerList');
 
+// --- Sound ---
+let audioCtx = null;
+function playBeep(freq, duration, count = 1) {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    for (let i = 0; i < count; i++) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      gain.gain.value = 0.3;
+      const start = audioCtx.currentTime + i * (duration / 1000 + 0.1);
+      osc.start(start);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + duration / 1000);
+      osc.stop(start + duration / 1000 + 0.05);
+    }
+  } catch (e) { /* audio not available */ }
+}
+
 // --- Toast ---
 function showToast(msg, duration = 2000) {
   const el = document.getElementById('toast');
@@ -298,11 +319,13 @@ function startExplaining() {
   timerInterval = setInterval(() => {
     timeLeft--;
     updateTimerDisplay();
-    if (timeLeft <= 10) {
-      timerArea.classList.add('warning');
-    }
+    if (timeLeft === 60) playBeep(600, 200, 1);
+    if (timeLeft === 30) playBeep(800, 200, 2);
+    if (timeLeft === 10) playBeep(1000, 150, 3);
+    if (timeLeft <= 10 && timeLeft > 0) timerArea.classList.add('warning');
     if (timeLeft <= 0) {
       clearInterval(timerInterval);
+      playBeep(400, 500, 3);
       timeUp();
     }
   }, 1000);
