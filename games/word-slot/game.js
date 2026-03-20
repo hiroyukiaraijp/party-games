@@ -152,31 +152,78 @@ function renderPlayers() {
 }
 
 // --- IME Composition Tracking ---
-// Track hiragana readings as user types with IME, auto-fill furigana
-let imeCompositionText = '';  // current composition hiragana
-let imeReadingSegments = [];  // collected readings per composition session
-let imeAutoFilled = false;    // whether reading was auto-filled (vs manually edited)
+// Track hiragana readings as user types with IME, auto-fill furigana.
+// Strategy: during composition, the input field value contains hiragana.
+// We snapshot the value before composition starts and extract the
+// composed portion by diffing before/after values.
+let imeReadingSegments = [];
+let imeAutoFilled = false;
+let imePreValue = '';           // input value before composition started
+let imePreCursor = 0;           // cursor position before composition
+let imeLastCompositionData = ''; // last compositionupdate data (hiragana)
 
 (function setupIMETracking() {
+  $answerWord.addEventListener('compositionstart', () => {
+    // Snapshot state before composition begins
+    imePreValue = $answerWord.value;
+    imePreCursor = $answerWord.selectionStart || 0;
+    imeLastCompositionData = '';
+  });
+
   $answerWord.addEventListener('compositionupdate', (e) => {
-    imeCompositionText = e.data || '';
+    // e.data contains the current composition string (usually hiragana)
+    if (e.data) imeLastCompositionData = e.data;
   });
 
   $answerWord.addEventListener('compositionend', (e) => {
-    // Store the hiragana reading from this composition session
-    const reading = toHiragana(imeCompositionText || e.data || '');
-    imeReadingSegments.push(reading);
-    imeCompositionText = '';
-    // Auto-fill reading if the word now contains kanji
-    autoFillReading();
+    // Determine the reading for this composition session.
+    // Priority: compositionupdate data > diff-based extraction > compositionend data
+    let reading = '';
+
+    // Method 1: compositionupdate captured hiragana
+    if (imeLastCompositionData && isAllKana(imeLastCompositionData.replace(/ー/g, 'あ'))) {
+      reading = imeLastCompositionData;
+    }
+
+    // Method 2: diff the input value to extract what was composed
+    if (!reading) {
+      const postValue = $answerWord.value;
+      const committed = e.data || '';
+      // The composed text replaced characters at imePreCursor
+      // Extract by comparing pre and post values
+      const prefixLen = imePreCursor;
+      const suffixLen = imePreValue.length - imePreCursor;
+      const postSuffix = postValue.slice(postValue.length - suffixLen || postValue.length);
+      const composedPart = postValue.slice(prefixLen, suffixLen > 0 ? postValue.length - suffixLen : postValue.length);
+      // If the composed part is kana, use it directly
+      if (composedPart && isAllKana(composedPart.replace(/ー/g, 'あ'))) {
+        reading = composedPart;
+      }
+    }
+
+    // Method 3: fallback to compositionend data
+    if (!reading) {
+      reading = e.data || '';
+    }
+
+    reading = toHiragana(reading);
+    if (reading) {
+      imeReadingSegments.push(reading);
+    }
+
+    imeLastCompositionData = '';
+    imePreValue = '';
+    imePreCursor = 0;
+
+    // Auto-fill after a short delay (let input event fire first)
+    setTimeout(autoFillReading, 10);
   });
 })();
 
 function autoFillReading() {
   const word = $answerWord.value.trim();
   if (hasKanji(word) && imeReadingSegments.length > 0) {
-    const autoReading = imeReadingSegments.join('');
-    $answerReading.value = autoReading;
+    $answerReading.value = imeReadingSegments.join('');
     imeAutoFilled = true;
     $furiganaRow.style.display = 'flex';
     updateCharCount();
@@ -185,8 +232,10 @@ function autoFillReading() {
 
 function resetIMETracking() {
   imeReadingSegments = [];
-  imeCompositionText = '';
   imeAutoFilled = false;
+  imePreValue = '';
+  imePreCursor = 0;
+  imeLastCompositionData = '';
 }
 
 // --- Furigana / Word Input Handling ---
