@@ -401,7 +401,9 @@ function timeUp() {
 
 function buzzer() {
   violations++;
-  document.getElementById('violationCount').textContent = `違反: ${violations}回`;
+  scores[currentPresenter] = (scores[currentPresenter] || 0) - 1;
+  document.getElementById('violationCount').textContent = `違反: ${violations}回 (-${violations}pt)`;
+  renderScoreboard();
 
   // Flash
   const flash = document.getElementById('flashOverlay');
@@ -435,7 +437,7 @@ function showResult(result, answerer, elapsed) {
     let html = `正解者: <strong>${esc(answerer)}</strong> (+1pt)<br>`;
     html += `出題者: <strong>${esc(currentPresenter)}</strong> (+1pt)<br>`;
     html += `説明時間: ${secs}秒`;
-    if (violations > 0) html += `<br>カタカナ違反: ${violations}回`;
+    if (violations > 0) html += `<br>カタカナ違反: ${violations}回 (-${violations}pt)`;
     $details.innerHTML = html;
 
     // Particles
@@ -444,7 +446,7 @@ function showResult(result, answerer, elapsed) {
   } else if (result === 'timeout') {
     $icon.textContent = '⏰';
     let html = `タイムアップ！ 得点なし`;
-    if (violations > 0) html += `<br>カタカナ違反: ${violations}回`;
+    if (violations > 0) html += `<br>カタカナ違反: ${violations}回 (-${violations}pt)`;
     $details.innerHTML = html;
   } else {
     $icon.textContent = '⏭';
