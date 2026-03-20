@@ -225,9 +225,10 @@ function renderPlayers() {
 let selectedPlayer = null;
 
 function renderPlayerSelectButtons() {
-  const preselect = lastAnswerer && players.includes(lastAnswerer) ? lastAnswerer : null;
+  const activePlayers = getActivePlayers(players);
+  const preselect = lastAnswerer && activePlayers.includes(lastAnswerer) ? lastAnswerer : null;
   selectedPlayer = preselect;
-  $playerSelectRow.innerHTML = players.map(p => {
+  $playerSelectRow.innerHTML = activePlayers.map(p => {
     const sel = p === preselect ? ' selected' : '';
     return `<button class="player-select-btn${sel}" data-player="${esc(p)}" onclick="selectPlayer(this, '${esc(p)}')">${esc(p)}</button>`;
   }).join('');
@@ -367,8 +368,9 @@ function getReading(word) {
 
 // --- Slot Machine ---
 function spin() {
+  syncActivePlayers(players,scores);
   if (spinning) return;
-  if (players.length < 1) {
+  if (getActivePlayers(players).length < 1) {
     showToast('プレイヤーを1人以上登録してください');
     return;
   }

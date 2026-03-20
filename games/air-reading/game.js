@@ -70,6 +70,7 @@ function renderPlayers(){renderSessionPlayerBar('playerList',players,scores,func
 function showPhase(id){[$setupPhase,$inputPhase,$resultPhase].forEach(e=>e.style.display='none');$(id).style.display='';}
 
 function startGame(){
+  syncActivePlayers(players,scores);
   if(players.length<3){showToast('プレイヤーを3人以上登録してください');return;}
   beginRound();
 }
@@ -82,7 +83,7 @@ function beginRound(){
   currentTopic=pool[Math.floor(Math.random()*pool.length)];
   usedTopics.push(currentTopic.q);
 
-  inputOrder=[...players].sort(()=>Math.random()-.5);
+  inputOrder=[...getActivePlayers(players)].sort(()=>Math.random()-.5);
   inputIndex=0;
 
   showPhase('inputPhase');
@@ -125,15 +126,14 @@ function showResult(){
   showPhase('resultPhase');
   $('resultTopic').textContent=currentTopic.q;
 
-  // Calculate median
-  const vals=Object.values(answers).sort((a,b)=>a-b);
-  const mid=Math.floor(vals.length/2);
-  const median=vals.length%2?vals[mid]:(vals[mid-1]+vals[mid])/2;
+  // Calculate average
+  const vals=Object.values(answers);
+  const avg=Math.round(vals.reduce((s,v)=>s+v,0)/vals.length);
 
-  // Find closest to median
+  // Find closest to average
   let minDist=Infinity,winner=null;
   for(const [name,val] of Object.entries(answers)){
-    const dist=Math.abs(val-median);
+    const dist=Math.abs(val-avg);
     if(dist<minDist){minDist=dist;winner=name;}
   }
 
@@ -143,15 +143,15 @@ function showResult(){
   let secondDist=Infinity,second=null;
   for(const [name,val] of Object.entries(answers)){
     if(name===winner)continue;
-    const dist=Math.abs(val-median);
+    const dist=Math.abs(val-avg);
     if(dist<secondDist){secondDist=dist;second=name;}
   }
   if(second)scores[second]=(scores[second]||0)+1;
 
   // Render result bar
   const bar=$('resultBar');
-  let html=`<div class="median-line" style="left:${median}%"></div>`;
-  html+=`<div class="median-label" style="left:${median}%">中央値: ${Math.round(median)}</div>`;
+  let html=`<div class="median-line" style="left:${avg}%"></div>`;
+  html+=`<div class="median-label" style="left:${avg}%">平均値: ${avg}</div>`;
 
   const sorted=Object.entries(answers).sort((a,b)=>a[1]-b[1]);
   sorted.forEach(([name,val],i)=>{
@@ -168,15 +168,15 @@ function showResult(){
   // Find most extreme
   let maxDist=0,extreme=null;
   for(const [name,val] of Object.entries(answers)){
-    const dist=Math.abs(val-median);
+    const dist=Math.abs(val-avg);
     if(dist>maxDist){maxDist=dist;extreme=name;}
   }
 
   $('resultIcon').textContent='🎯';
   $('resultTitle').textContent=`${winner} が空気読み名人！(+3pt)`;
-  let details=`中央値: <strong>${Math.round(median)}</strong><br>`;
+  let details=`平均値: <strong>${avg}</strong><br>`;
   sorted.forEach(([name,val])=>{
-    const dist=Math.abs(val-median);
+    const dist=Math.abs(val-avg);
     const tag=name===winner?' 👑':name===extreme?' 😱':'';
     details+=`${esc(name)}: ${val} (差${Math.round(dist)})${tag}<br>`;
   });
@@ -188,7 +188,7 @@ function showResult(){
     emitParticles(rect.left+rect.width/2,rect.top+rect.height/2);
   }
 
-  logs.unshift({timestamp:new Date().toISOString(),round,topic:currentTopic.q,winner,median:Math.round(median)});
+  logs.unshift({timestamp:new Date().toISOString(),round,topic:currentTopic.q,winner,avg});
   savePlayLog('air-reading', 1, 1);
   renderScoreboard();renderLog();saveState();
 }

@@ -40,6 +40,7 @@ function renderPlayers(){renderSessionPlayerBar('playerList',players,scores,func
 function showPhase(id){[$setupPhase,$inputPhase,$revealPhase].forEach(e=>e.style.display='none');$(id).style.display='';}
 
 function startGame(){
+  syncActivePlayers(players,scores);
   if(players.length<2){showToast('プレイヤーを2人以上登録してください');return;}
   beginRound();
 }
@@ -49,7 +50,7 @@ function beginRound(){
   currentInitial=INITIALS[Math.floor(Math.random()*INITIALS.length)];
   currentCategory=CATEGORIES[Math.floor(Math.random()*CATEGORIES.length)];
 
-  inputOrder=[...players].sort(()=>Math.random()-.5);
+  inputOrder=[...getActivePlayers(players)].sort(()=>Math.random()-.5);
   inputIndex=0;
 
   showPhase('inputPhase');

@@ -76,8 +76,11 @@ function toggleCell(cell, index) {
   }
 }
 
+let roundPlayers = [];
 function startGame() {
-  if (players.length < 1) { showToast('プレイヤーを1人以上登録してください'); return; }
+  syncActivePlayers(players,scores);
+  if (getActivePlayers(players).length < 1) { showToast('プレイヤーを1人以上登録してください'); return; }
+  roundPlayers = getActivePlayers(players);
   level = 0; playerIndex = 0; round++;
   startLevel();
 }
@@ -110,7 +113,7 @@ function startLevel() {
 }
 
 function startAnswerPhase(size) {
-  const player = players[playerIndex];
+  const player = roundPlayers[playerIndex];
   showPhase('answerPhaseEl');
   document.getElementById('answerLevel').textContent = `レベル ${level + 1}`;
   document.getElementById('answerPlayer').textContent = player;
@@ -119,7 +122,7 @@ function startAnswerPhase(size) {
 }
 
 function submitAnswer() {
-  const player = players[playerIndex];
+  const player = roundPlayers[playerIndex];
   const [size] = LEVELS[Math.min(level, LEVELS.length - 1)];
   const patternSet = new Set(pattern);
 
@@ -160,7 +163,7 @@ function submitAnswer() {
     // Determine next step
     const $btn = document.getElementById('nextBtn');
     playerIndex++;
-    if (playerIndex < players.length) {
+    if (playerIndex < roundPlayers.length) {
       $btn.textContent = `次のプレイヤー →`;
       $btn.onclick = () => { startAnswerPhaseForSameLevel(); };
     } else {

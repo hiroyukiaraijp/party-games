@@ -130,14 +130,17 @@ function showPhase(id) {
 }
 
 // --- Game ---
+let roundPlayers = [];
 function startGame() {
-  if (players.length < 1) { showToast('プレイヤーを1人以上登録してください'); return; }
+  syncActivePlayers(players,scores);
+  if (getActivePlayers(players).length < 1) { showToast('プレイヤーを1人以上登録してください'); return; }
+  roundPlayers = getActivePlayers(players);
   playerIndex = 0;
   startPlayerRound();
 }
 
 function startPlayerRound() {
-  currentPlayer = players[playerIndex];
+  currentPlayer = roundPlayers[playerIndex];
   round++;
   currentScore = 0; combo = 0; maxCombo = 0; questionCount = 0;
   timerLeft = ROUND_TIME;
@@ -244,7 +247,7 @@ function endPlayerRound() {
 
 function nextRound() {
   playerIndex++;
-  if (playerIndex < players.length) {
+  if (playerIndex < roundPlayers.length) {
     startPlayerRound();
   } else {
     showPhase('setupPhase');

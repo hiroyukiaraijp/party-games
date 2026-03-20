@@ -208,6 +208,7 @@ function showPhase(phaseId) {
 
 // --- Game Flow ---
 function startGame() {
+  syncActivePlayers(players,scores);
   if (players.length < 2) {
     showToast('プレイヤーを2人以上登録してください');
     return;
@@ -243,7 +244,7 @@ function showPresenterPhase() {
   // Step 1: show presenter select buttons
   document.getElementById('presenterSelectArea').style.display = '';
   document.getElementById('topicArea').style.display = 'none';
-  document.getElementById('presenterGrid').innerHTML = players.map(p =>
+  document.getElementById('presenterGrid').innerHTML = getActivePlayers(players).map(p =>
     `<button class="answerer-btn" onclick="onSelectPresenter('${esc(p)}')">${esc(p)}</button>`
   ).join('');
 

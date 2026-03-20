@@ -182,6 +182,7 @@ function showPhase(id) {
 
 // --- Game Flow ---
 function startGame() {
+  syncActivePlayers(players,scores);
   if (players.length < 2) { showToast('プレイヤーを2人以上登録してください'); return; }
   beginRound();
 }
@@ -205,7 +206,7 @@ function beginRound() {
   document.getElementById('presRound').textContent = `ラウンド ${round}`;
 
   // Presenter select
-  document.getElementById('presenterGrid').innerHTML = players.map(p => {
+  document.getElementById('presenterGrid').innerHTML = getActivePlayers(players).map(p => {
     const rec = p === lastPresenter ? '' : '';
     return `<button class="presenter-btn" onclick="onSelectPresenter('${esc(p)}')">${esc(p)}</button>`;
   }).join('');

@@ -149,7 +149,8 @@ function selectOption(t,b){b.parentElement.querySelectorAll('.option-pill').forE
 function showPhase(id){[$setupPhase,$puzzlePhase,$resultPhase].forEach(e=>e.style.display='none');$(id).style.display='';}
 
 function startGame(){
-  if(players.length<1){showToast('プレイヤーを1人以上登録してください');return;}
+  syncActivePlayers(players,scores);
+  if(getActivePlayers(players).length<1){showToast('プレイヤーを1人以上登録してください');return;}
   round++; setCorrect=0; setTotal=0;
 
   // Build puzzle pool

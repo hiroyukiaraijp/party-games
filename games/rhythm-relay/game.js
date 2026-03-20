@@ -77,10 +77,11 @@ function renderPlayers() { renderSessionPlayerBar('playerList', players, scores,
 function showPhase(id) { [$setupPhase, $gamePhase, $resultPhase].forEach(el => el.style.display = 'none'); document.getElementById(id).style.display = ''; }
 
 function startGame() {
-  if (players.length < 1) { showToast('プレイヤーを1人以上登録してください'); return; }
+  syncActivePlayers(players,scores);
+  if (getActivePlayers(players).length < 1) { showToast('プレイヤーを1人以上登録してください'); return; }
   round++;
   sequence = [];
-  playerOrder = [...players];
+  playerOrder = [...getActivePlayers(players)];
   turnIndex = 0;
   showPhase('gamePhase');
   startTurn();

@@ -53,7 +53,8 @@ function showPhase(id) { [$setupPhase, $quizPhase, $resultPhase].forEach(el => e
 
 // --- Game ---
 function startGame() {
-  if (players.length < 1) { showToast('プレイヤーを1人以上登録してください'); return; }
+  syncActivePlayers(players,scores);
+  if (getActivePlayers(players).length < 1) { showToast('プレイヤーを1人以上登録してください'); return; }
   round++;
   setCorrect = 0; setTotal = 0;
 

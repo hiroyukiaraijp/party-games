@@ -308,6 +308,7 @@ function showPhase(phaseId) {
 
 // --- Game Flow ---
 function startGame() {
+  syncActivePlayers(players,scores);
   if (players.length < 3) {
     showToast('プレイヤーを3人以上登録してください');
     return;
@@ -337,12 +338,13 @@ function beginRound() {
   }
 
   // Assign wolves
-  const wolfCount = getWolfCount(players.length);
-  const shuffled = [...players].sort(() => Math.random() - 0.5);
+  const activePlayers = getActivePlayers(players);
+  const wolfCount = getWolfCount(activePlayers.length);
+  const shuffled = [...activePlayers].sort(() => Math.random() - 0.5);
   wolfPlayers = shuffled.slice(0, wolfCount);
 
   // Confirm order = shuffled players
-  confirmOrder = [...players].sort(() => Math.random() - 0.5);
+  confirmOrder = [...activePlayers].sort(() => Math.random() - 0.5);
   confirmIndex = 0;
   votes = {};
   voteSelection = null;
@@ -460,7 +462,7 @@ function endDiscussion() {
 
 // --- Vote Phase ---
 function startVotePhase() {
-  voteOrder = [...players].sort(() => Math.random() - 0.5);
+  voteOrder = [...getActivePlayers(players)].sort(() => Math.random() - 0.5);
   voteIndex = 0;
   votes = {};
   voteSelection = null;

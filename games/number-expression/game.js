@@ -155,6 +155,7 @@ function showPhase(id) {
 
 // --- Game Flow ---
 function startGame() {
+  syncActivePlayers(players,scores);
   if (players.length < 3) { showToast('プレイヤーを3人以上登録してください'); return; }
   beginRound();
 }
@@ -176,16 +177,17 @@ function beginRound() {
   usedThemes.push(currentTheme);
 
   // Assign numbers (no duplicates)
+  const activePlayers = getActivePlayers(players);
   const nums = [];
-  while (nums.length < players.length) {
+  while (nums.length < activePlayers.length) {
     const n = Math.floor(Math.random() * numberRange) + 1;
     if (!nums.includes(n)) nums.push(n);
   }
-  const shuffled = [...players].sort(() => Math.random() - .5);
+  const shuffled = [...activePlayers].sort(() => Math.random() - .5);
   shuffled.forEach((p, i) => { assignments[p] = nums[i]; });
 
   // Confirm order
-  confirmOrder = [...players].sort(() => Math.random() - .5);
+  confirmOrder = [...activePlayers].sort(() => Math.random() - .5);
   confirmIndex = 0;
 
   showDistributionPhase();

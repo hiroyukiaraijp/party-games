@@ -2,7 +2,9 @@
 
 // ========== 1. Blind Screen (覗き見防止) ==========
 // Usage: showBlindScreen('次の人にスマホを渡してください', 'Aさん の番', callback)
+let _blindScreenCallback = null;
 function showBlindScreen(instruction, playerName, onReady) {
+  _blindScreenCallback = onReady;
   let el = document.getElementById('_blindScreen');
   if (!el) {
     el = document.createElement('div');
@@ -13,7 +15,7 @@ function showBlindScreen(instruction, playerName, onReady) {
   el.innerHTML = `
     <div style="font-size:.85rem;color:var(--text-muted,#7a6b8a);">${_escBS(instruction)}</div>
     <div style="font-size:1.3rem;font-weight:900;color:var(--text,#2d2040);">${_escBS(playerName)}</div>
-    <button onclick="document.getElementById('_blindScreen').style.display='none';(${onReady.name||'function(){}'})()" style="margin-top:1rem;padding:.7rem 2rem;font-size:1rem;font-weight:700;border:none;border-radius:999px;background:var(--gradient-btn,linear-gradient(135deg,#ff6b9d,#c084fc));color:#fff;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(0,0,0,.15);">準備OK</button>
+    <button onclick="document.getElementById('_blindScreen').style.display='none';if(_blindScreenCallback)_blindScreenCallback();" style="margin-top:1rem;padding:.7rem 2rem;font-size:1rem;font-weight:700;border:none;border-radius:999px;background:var(--gradient-btn,linear-gradient(135deg,#ff6b9d,#c084fc));color:#fff;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(0,0,0,.15);">準備OK</button>
   `;
   el.style.display = 'flex';
 }
@@ -232,6 +234,21 @@ function renderSessionPlayerBar(containerId, players, scores, onChangeCallback) 
   };
 
   render();
+}
+
+// Get active players for game start. Does NOT modify the master players array.
+// Games should use this to get the list of who's playing this round.
+function getActivePlayers(playersRef) {
+  if (typeof _getActivePlayers === 'function') {
+    return _getActivePlayers();
+  }
+  return playersRef || [];
+}
+
+// Backward compat: syncActivePlayers is now a no-op to avoid breaking games
+function syncActivePlayers(playersRef, scoresRef) {
+  // No-op: players array should not be mutated.
+  // Games should use getActivePlayers() when building round player lists.
 }
 
 function _escSPB(s) { return s.replace(/'/g, "\\'").replace(/</g, '&lt;'); }

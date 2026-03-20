@@ -219,6 +219,7 @@ function showPhase(id) {
 
 // --- Game Flow ---
 function startGame() {
+  syncActivePlayers(players,scores);
   if (players.length < 2) { showToast('プレイヤーを2人以上登録してください'); return; }
   beginRound();
 }
@@ -231,7 +232,8 @@ function beginRound() {
   roundStartTime = Date.now();
 
   // Random master
-  currentMaster = players[Math.floor(Math.random() * players.length)];
+  const activePlayers = getActivePlayers(players);
+  currentMaster = activePlayers[Math.floor(Math.random() * activePlayers.length)];
 
   // Pick topic
   const pool = getTopicPool();
