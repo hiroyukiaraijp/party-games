@@ -119,16 +119,15 @@ function getSessionMemberNames() {
 }
 
 // Load session members into game's player/score arrays
+// Always merges session members (even if players already has data from localStorage)
 function initSessionPlayers(playersRef, scoresRef) {
   const members = getSessionMemberNames();
-  if (members.length > 0 && playersRef.length === 0) {
-    members.forEach(name => {
-      if (!playersRef.includes(name)) {
-        playersRef.push(name);
-        scoresRef[name] = scoresRef[name] || 0;
-      }
-    });
-  }
+  members.forEach(name => {
+    if (!playersRef.includes(name)) {
+      playersRef.push(name);
+      scoresRef[name] = scoresRef[name] || 0;
+    }
+  });
 }
 
 // Render session-aware player bar into a container element
