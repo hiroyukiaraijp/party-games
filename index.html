@@ -88,6 +88,42 @@
       </div>
     </a>
 
+    <a href="games/color-panic/index.html" class="game-card">
+      <div class="card-icon">🎨</div>
+      <div class="card-body">
+        <h3>カラーパニック</h3>
+        <p>文字の色と意味が矛盾！正しい色を最速でタップするストループバトル！</p>
+      </div>
+      <div class="card-footer">
+        <span>1人〜</span>
+        <span class="badge">Play</span>
+      </div>
+    </a>
+
+    <a href="games/flash-memory/index.html" class="game-card">
+      <div class="card-icon">🧠</div>
+      <div class="card-body">
+        <h3>フラッシュメモリー</h3>
+        <p>一瞬だけ光るパターンを記憶して再現！空間記憶チャレンジ！</p>
+      </div>
+      <div class="card-footer">
+        <span>1人〜</span>
+        <span class="badge">Play</span>
+      </div>
+    </a>
+
+    <a href="games/rhythm-relay/index.html" class="game-card">
+      <div class="card-icon">🔔</div>
+      <div class="card-body">
+        <h3>リズムリレー</h3>
+        <p>色の順番を覚えて再現+1つ追加！チェインをどこまで伸ばせる？</p>
+      </div>
+      <div class="card-footer">
+        <span>1人〜</span>
+        <span class="badge">Play</span>
+      </div>
+    </a>
+
   </main>
 
   <div style="text-align:center;margin:1rem 0 2rem;">
@@ -97,7 +133,7 @@
   <script>
     function resetAll() {
       if (!confirm('全ゲームのプレイヤーとスコアをリセットしますか？')) return;
-      ['partygames_players','wordslot_state','katakananashi_state','wordwolf_state','mastergame_state','numberexpression_state','hintbridge_state'].forEach(k => localStorage.removeItem(k));
+      ['partygames_players','wordslot_state','katakananashi_state','wordwolf_state','mastergame_state','numberexpression_state','hintbridge_state','colorpanic_state','flashmemory_state','rhythmrelay_state'].forEach(k => localStorage.removeItem(k));
       const el = document.getElementById('toast');
       el.textContent = 'リセットしました';
       el.classList.add('show');

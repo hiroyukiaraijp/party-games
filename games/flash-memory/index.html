@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>フラッシュメモリー - Party Games</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="toast" id="toast"></div>
+  <div class="particle-container" id="particles"></div>
+
+  <div class="top-bar">
+    <div class="title"><a href="../../index.html">Party Games</a> / <span>フラッシュメモリー</span></div>
+    <div class="top-bar-actions"><button class="icon-btn" onclick="document.getElementById('helpModal').classList.add('show')">?</button></div>
+  </div>
+
+  <div class="modal-overlay" id="helpModal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="document.getElementById('helpModal').classList.remove('show')">&times;</button>
+      <h3>遊び方</h3>
+      <ul>
+        <li>グリッド上にパターンが<strong>一瞬だけ</strong>表示されます</li>
+        <li>パターンを記憶して、タップで再現してください</li>
+        <li>正解セル数に応じてポイント獲得。完全一致でボーナス！</li>
+        <li>レベルが上がるとセル数が増えて難しくなります</li>
+      </ul>
+      <h3 style="margin-top:1rem;">鍛えられる力</h3>
+      <ul>
+        <li><strong>空間認識</strong> — グリッド上の位置関係を記憶する力</li>
+        <li><strong>ワーキングメモリ</strong> — 短期間パターンを保持する力</li>
+        <li><strong>注意力</strong> — 一瞬の表示に集中する力</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="game-page">
+    <div id="setupPhase">
+      <div class="setup-section">
+        <h4>プレイヤー</h4>
+        <div class="player-bar">
+          <input type="text" id="playerNameInput" placeholder="名前" maxlength="10" onkeydown="if(event.key==='Enter')addPlayer()">
+          <button class="btn btn-primary btn-small" onclick="addPlayer()">追加</button>
+        </div>
+        <div class="player-tags" id="playerList"></div>
+        <button class="start-btn" onclick="startGame()">🧠 スタート！</button>
+      </div>
+    </div>
+
+    <div id="showPhaseEl" style="display:none;">
+      <div class="phase-section">
+        <div class="level-display" id="levelDisplay"></div>
+        <div class="phase-label">覚えてください！</div>
+        <div class="memory-grid" id="showGrid"></div>
+      </div>
+    </div>
+
+    <div id="answerPhaseEl" style="display:none;">
+      <div class="phase-section">
+        <div class="level-display" id="answerLevel"></div>
+        <div class="player-turn">回答: <span class="name" id="answerPlayer"></span></div>
+        <div class="phase-label">記憶したパターンをタップ！</div>
+        <div class="memory-grid" id="answerGrid"></div>
+        <button class="btn btn-primary submit-btn" onclick="submitAnswer()">決定！</button>
+      </div>
+    </div>
+
+    <div id="resultPhase" style="display:none;">
+      <div class="phase-section result-section">
+        <div class="result-icon" id="resultIcon"></div>
+        <div class="result-title" id="resultTitle"></div>
+        <div class="result-details" id="resultDetails"></div>
+        <button class="btn btn-primary next-btn" id="nextBtn" onclick="nextStep()"></button>
+      </div>
+    </div>
+
+    <div class="score-section" id="scoreboard" style="display:none;">
+      <h4>Score</h4><div class="score-list" id="scoreRows"></div>
+    </div>
+    <div class="log-section" id="answerLog" style="display:none;">
+      <div class="log-header"><h4>Log</h4><button class="clear-log-btn" onclick="clearAllLogs()">消去</button></div>
+      <div id="logEntries"></div>
+    </div>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>カラーパニック - Party Games</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="toast" id="toast"></div>
+  <div class="particle-container" id="particles"></div>
+
+  <div class="top-bar">
+    <div class="title"><a href="../../index.html">Party Games</a> / <span>カラーパニック</span></div>
+    <div class="top-bar-actions">
+      <button class="icon-btn" onclick="document.getElementById('helpModal').classList.add('show')">?</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="helpModal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="document.getElementById('helpModal').classList.remove('show')">&times;</button>
+      <h3>遊び方</h3>
+      <ul>
+        <li>画面に<strong>色の名前</strong>が<strong>別の色</strong>で表示されます</li>
+        <li>モードに従って正しいボタンをタップ！</li>
+        <li>「文字の色」モード → 文字が塗られている色を答える</li>
+        <li>「文字の意味」モード → 書いてある言葉の意味を答える</li>
+        <li>30秒で何問正解できるかチャレンジ！</li>
+      </ul>
+      <h3 style="margin-top:1rem;">鍛えられる力</h3>
+      <ul>
+        <li><strong>処理速度</strong> — 瞬時に正しい判断を下す力</li>
+        <li><strong>選択的注意</strong> — 干渉する情報を無視して正しい情報に集中する力</li>
+        <li><strong>抑制制御</strong> — 自動的な反応を抑えて正しい反応を選ぶ力</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="game-page">
+    <div id="setupPhase">
+      <div class="setup-section">
+        <h4>プレイヤー</h4>
+        <div class="player-bar">
+          <input type="text" id="playerNameInput" placeholder="名前" maxlength="10" onkeydown="if(event.key==='Enter')addPlayer()">
+          <button class="btn btn-primary btn-small" onclick="addPlayer()">追加</button>
+        </div>
+        <div class="player-tags" id="playerList"></div>
+        <div class="options-row">
+          <div class="option-group">
+            <label>モード</label>
+            <div class="option-pills" id="modePills">
+              <button class="option-pill selected" data-value="color" onclick="selectOption('mode',this)">文字の色</button>
+              <button class="option-pill" data-value="meaning" onclick="selectOption('mode',this)">文字の意味</button>
+              <button class="option-pill" data-value="mix" onclick="selectOption('mode',this)">ミックス</button>
+            </div>
+          </div>
+        </div>
+        <button class="start-btn" onclick="startGame()">🎨 スタート！</button>
+      </div>
+    </div>
+
+    <!-- Game Phase -->
+    <div id="gamePhase" style="display:none;">
+      <div class="phase-section">
+        <div class="stroop-mode" id="stroopMode"></div>
+        <div class="stroop-word" id="stroopWord"></div>
+        <div class="stroop-score">スコア: <span id="scoreDisplay">0</span></div>
+        <div class="stroop-combo" id="comboDisplay"></div>
+        <div class="stroop-timer" id="timerDisplay"></div>
+        <div class="color-buttons" id="colorButtons"></div>
+      </div>
+    </div>
+
+    <!-- Answerer Phase (multiplayer voice) -->
+    <div id="answererPhase" style="display:none;">
+      <div class="phase-section">
+        <div style="font-size:.9rem;font-weight:700;margin-bottom:.5rem;">誰が最初に答えた？</div>
+        <div class="answerer-grid" id="answererGrid"></div>
+      </div>
+    </div>
+
+    <!-- Result Phase -->
+    <div id="resultPhase" style="display:none;">
+      <div class="phase-section result-section">
+        <div class="result-icon" id="resultIcon"></div>
+        <div class="result-title" id="resultTitle"></div>
+        <div class="result-details" id="resultDetails"></div>
+        <button class="btn btn-primary next-btn" onclick="nextRound()">もう1回！</button>
+      </div>
+    </div>
+
+    <div class="score-section" id="scoreboard" style="display:none;">
+      <h4>Score</h4>
+      <div class="score-list" id="scoreRows"></div>
+    </div>
+    <div class="log-section" id="answerLog" style="display:none;">
+      <div class="log-header"><h4>Log</h4><button class="clear-log-btn" onclick="clearAllLogs()">消去</button></div>
+      <div id="logEntries"></div>
+    </div>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>

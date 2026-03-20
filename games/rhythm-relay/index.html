@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>リズムリレー - Party Games</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="toast" id="toast"></div>
+  <div class="particle-container" id="particles"></div>
+
+  <div class="top-bar">
+    <div class="title"><a href="../../index.html">Party Games</a> / <span>リズムリレー</span></div>
+    <div class="top-bar-actions"><button class="icon-btn" onclick="document.getElementById('helpModal').classList.add('show')">?</button></div>
+  </div>
+
+  <div class="modal-overlay" id="helpModal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="document.getElementById('helpModal').classList.remove('show')">&times;</button>
+      <h3>遊び方</h3>
+      <ul>
+        <li>4色ボタンを使った<strong>記憶チェインゲーム</strong>です</li>
+        <li>最初のプレイヤーがボタンを1つタップ</li>
+        <li>次の人は<strong>前の人までの順番を全部再現</strong>してから、新しく1つ追加</li>
+        <li>間違えたらアウト！チェインが長く続くほど全員に得点</li>
+        <li>最後まで生き残った人にボーナス！</li>
+      </ul>
+      <h3 style="margin-top:1rem;">鍛えられる力</h3>
+      <ul>
+        <li><strong>ワーキングメモリ</strong> — 増え続ける順序を記憶する力</li>
+        <li><strong>注意力</strong> — 他プレイヤーの操作を集中して観察する力</li>
+        <li><strong>空間認識</strong> — ボタンの位置関係を覚える力</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="game-page">
+    <div id="setupPhase">
+      <div class="setup-section">
+        <h4>プレイヤー</h4>
+        <div class="player-bar">
+          <input type="text" id="playerNameInput" placeholder="名前" maxlength="10" onkeydown="if(event.key==='Enter')addPlayer()">
+          <button class="btn btn-primary btn-small" onclick="addPlayer()">追加</button>
+        </div>
+        <div class="player-tags" id="playerList"></div>
+        <button class="start-btn" onclick="startGame()">🔔 スタート！</button>
+      </div>
+    </div>
+
+    <div id="gamePhase" style="display:none;">
+      <div class="phase-section">
+        <div class="chain-display" id="chainDisplay"></div>
+        <div class="chain-label">チェイン</div>
+        <div class="player-turn"><span class="name" id="turnPlayer"></span> の番</div>
+        <div class="phase-label" id="phaseLabel"></div>
+        <div class="simon-grid" id="simonGrid">
+          <button class="simon-btn red" data-color="0" onclick="onSimonTap(0)"></button>
+          <button class="simon-btn blue" data-color="1" onclick="onSimonTap(1)"></button>
+          <button class="simon-btn green" data-color="2" onclick="onSimonTap(2)"></button>
+          <button class="simon-btn yellow" data-color="3" onclick="onSimonTap(3)"></button>
+        </div>
+      </div>
+    </div>
+
+    <div id="resultPhase" style="display:none;">
+      <div class="phase-section result-section">
+        <div class="result-icon" id="resultIcon"></div>
+        <div class="result-title" id="resultTitle"></div>
+        <div class="result-details" id="resultDetails"></div>
+        <button class="btn btn-primary next-btn" onclick="nextRound()">もう1回！</button>
+      </div>
+    </div>
+
+    <div class="score-section" id="scoreboard" style="display:none;">
+      <h4>Score</h4><div class="score-list" id="scoreRows"></div>
+    </div>
+    <div class="log-section" id="answerLog" style="display:none;">
+      <div class="log-header"><h4>Log</h4><button class="clear-log-btn" onclick="clearAllLogs()">消去</button></div>
+      <div id="logEntries"></div>
+    </div>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
