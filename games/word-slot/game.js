@@ -151,15 +151,60 @@ function renderPlayers() {
   }
 }
 
+// --- IME Composition Tracking ---
+// Track hiragana readings as user types with IME, auto-fill furigana
+let imeCompositionText = '';  // current composition hiragana
+let imeReadingSegments = [];  // collected readings per composition session
+let imeAutoFilled = false;    // whether reading was auto-filled (vs manually edited)
+
+(function setupIMETracking() {
+  $answerWord.addEventListener('compositionupdate', (e) => {
+    imeCompositionText = e.data || '';
+  });
+
+  $answerWord.addEventListener('compositionend', (e) => {
+    // Store the hiragana reading from this composition session
+    const reading = toHiragana(imeCompositionText || e.data || '');
+    imeReadingSegments.push(reading);
+    imeCompositionText = '';
+    // Auto-fill reading if the word now contains kanji
+    autoFillReading();
+  });
+})();
+
+function autoFillReading() {
+  const word = $answerWord.value.trim();
+  if (hasKanji(word) && imeReadingSegments.length > 0) {
+    const autoReading = imeReadingSegments.join('');
+    $answerReading.value = autoReading;
+    imeAutoFilled = true;
+    $furiganaRow.style.display = 'flex';
+    updateCharCount();
+  }
+}
+
+function resetIMETracking() {
+  imeReadingSegments = [];
+  imeCompositionText = '';
+  imeAutoFilled = false;
+}
+
 // --- Furigana / Word Input Handling ---
 function onWordInput() {
   const word = $answerWord.value.trim();
+  if (!word) {
+    // Field cleared — reset everything
+    resetIMETracking();
+    $furiganaRow.style.display = 'none';
+    $answerReading.value = '';
+    $charCount.textContent = '';
+    return;
+  }
   if (hasKanji(word)) {
-    // Show furigana field for kanji input
     $furiganaRow.style.display = 'flex';
+    // Don't overwrite if user has manually edited
     updateCharCount();
   } else {
-    // All kana or empty — hide furigana, auto-set reading
     $furiganaRow.style.display = 'none';
     $answerReading.value = '';
     updateCharCount();
@@ -167,7 +212,8 @@ function onWordInput() {
 }
 
 function onReadingInput() {
-  // Force hiragana
+  // User is manually editing — mark as not auto-filled
+  imeAutoFilled = false;
   $answerReading.value = toHiragana($answerReading.value);
   updateCharCount();
 }
@@ -181,8 +227,7 @@ function updateCharCount() {
     reading = toHiragana(word);
   }
   if (reading) {
-    const count = countKana(reading);
-    $charCount.textContent = `${count}文字`;
+    $charCount.textContent = `${countKana(reading)}文字`;
   } else {
     $charCount.textContent = '';
   }
@@ -239,7 +284,7 @@ function spin() {
     $answerReading.value = '';
     $furiganaRow.style.display = 'none';
     $charCount.textContent = '';
-    // Reset player selection to empty
+    resetIMETracking();
     $answerPlayer.value = '';
     $answerWord.focus();
 
@@ -336,6 +381,7 @@ function finishSubmit(player, word, reading, valid, reason, dictResult) {
   $answerReading.value = '';
   $furiganaRow.style.display = 'none';
   $charCount.textContent = '';
+  resetIMETracking();
   $answerPlayer.value = '';
   $answerWord.focus();
   submitting = false;
