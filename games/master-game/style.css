@@ -120,8 +120,32 @@ body { overflow-x: hidden; }
   letter-spacing: .05em; font-weight: 700;
 }
 
+.question-input-row {
+  display: flex; gap: .4rem; justify-content: center; align-items: center;
+  margin-top: .6rem;
+}
+.question-input-row input {
+  flex: 1; min-width: 0; max-width: 240px;
+  padding: .4rem .6rem; font-size: .8rem; border-radius: 10px;
+}
+.question-input-row .btn {
+  padding: .4rem .7rem; font-size: .9rem; border-radius: 10px; flex-shrink: 0;
+}
+
+.question-log {
+  margin-top: .5rem; text-align: left; max-height: 140px; overflow-y: auto;
+}
+.q-entry {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: .15rem 0; border-bottom: 1px solid var(--surface2); font-size: .7rem;
+}
+.q-entry:last-child { border-bottom: none; }
+.q-entry .q-text { color: var(--text-muted); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.q-entry .q-answer-yes { color: var(--accent-green); font-weight: 700; flex-shrink: 0; margin-left: .3rem; }
+.q-entry .q-answer-no { color: var(--primary); font-weight: 700; flex-shrink: 0; margin-left: .3rem; }
+
 .question-actions {
-  display: flex; gap: .5rem; justify-content: center; margin-top: .8rem;
+  display: flex; gap: .5rem; justify-content: center; margin-top: .5rem;
   flex-wrap: wrap;
 }
 .question-actions .btn {

@@ -295,12 +295,31 @@ function updateQuestionUI() {
 // --- Question Actions ---
 function answerQuestion(answer) {
   questionCount++;
+  const $input = document.getElementById('questionText');
+  const text = $input.value.trim();
+  questionHistory.push({ q: questionCount, answer, text });
+  $input.value = '';
   updateQuestionUI();
+  renderQuestionLog();
 
   if (questionLimit > 0 && questionCount >= questionLimit) {
     showToast('質問上限に達しました！推理するかギブアップしてください', 3000);
   }
   document.getElementById('guessArea').style.display = 'none';
+}
+
+function renderQuestionLog() {
+  const $log = document.getElementById('questionLog');
+  if (questionHistory.length === 0) { $log.innerHTML = ''; return; }
+  $log.innerHTML = questionHistory.slice().reverse().map(h => {
+    const cls = h.answer === 'yes' ? 'q-answer-yes' : 'q-answer-no';
+    const label = h.answer === 'yes' ? '⭕' : '❌';
+    const text = h.text ? esc(h.text) : `Q${h.q}`;
+    return `<div class="q-entry">
+      <span class="q-text">${text}</span>
+      <span class="${cls}">${label}</span>
+    </div>`;
+  }).join('');
 }
 
 // --- Guess ---

@@ -114,10 +114,14 @@
         <div class="question-counter" id="questionCount">0</div>
         <div class="question-counter-label" id="questionLimit">/ 20 問</div>
 
-        <div class="question-actions">
-          <button class="btn btn-yes" onclick="answerQuestion('yes')">⭕ はい</button>
-          <button class="btn btn-no" onclick="answerQuestion('no')">❌ いいえ</button>
+        <div class="question-input-row">
+          <input type="text" id="questionText" placeholder="質問メモ（任意）"
+                 onkeydown="if(event.key==='Enter'){event.preventDefault();}">
+          <button class="btn btn-yes" onclick="answerQuestion('yes')">⭕</button>
+          <button class="btn btn-no" onclick="answerQuestion('no')">❌</button>
         </div>
+
+        <div class="question-log" id="questionLog"></div>
         <div class="question-actions" style="margin-top:.4rem;">
           <button class="btn btn-guess" onclick="showGuessUI()">💡 推理する！</button>
           <button class="btn btn-giveup" onclick="giveUp()">🏳️ ギブアップ</button>
