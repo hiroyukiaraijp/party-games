@@ -155,7 +155,7 @@ function showPhase(id) {
 
 // --- Game Flow ---
 function startGame() {
-  if (players.length < 2) { showToast('プレイヤーを2人以上登録してください'); return; }
+  if (players.length < 3) { showToast('プレイヤーを3人以上登録してください'); return; }
   beginRound();
 }
 
