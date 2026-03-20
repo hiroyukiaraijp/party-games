@@ -1,9 +1,8 @@
-/* ===== Cognitive Profile System ===== */
-// ID + 生年月日でユーザー識別。localStorageにプレイログを蓄積し、8軸認知プロファイルを生成。
+/* ===== Cognitive Profile System (Firebase版) ===== */
+// 名前+生年月日でユーザー識別。Firestoreにプレイログを蓄積し、8軸認知プロファイルを生成。
 
-const PROFILE_KEY = 'asobi_profiles';
-const PLAY_LOG_KEY = 'asobi_playlogs';
-const CURRENT_USER_KEY = 'asobi_current_user';
+const CURRENT_SESSION_KEY = 'asobi_session'; // {userId, name, birthday}
+const SESSION_PLAYERS_KEY = 'asobi_session_players'; // [{userId, name}]
 
 // 8 cognitive domains
 const COG_DOMAINS = [
@@ -34,74 +33,119 @@ const GAME_DOMAIN_MAP = {
   'initial-battle':      { LNG: 4, CRE: 4, SPD: 2 },
 };
 
-// ---- User Management ----
-function getProfiles() {
-  try { return JSON.parse(localStorage.getItem(PROFILE_KEY)) || {}; } catch { return {}; }
-}
-function saveProfiles(p) {
-  try { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); } catch {}
+// ---- User ID generation ----
+function makeUserId(name, birthday) {
+  return (name.trim().toLowerCase() + '_' + birthday).replace(/[^a-z0-9ぁ-んァ-ヶー\-_]/g, '');
 }
 
-function registerUser(id, birthday) {
-  if (!id || !birthday) return null;
-  const key = id.trim().toLowerCase();
-  const profiles = getProfiles();
-  if (!profiles[key]) {
-    profiles[key] = { id: id.trim(), birthday, createdAt: new Date().toISOString() };
-    saveProfiles(profiles);
+// ---- Session (localStorage - current device only) ----
+function getSession() {
+  try { return JSON.parse(localStorage.getItem(CURRENT_SESSION_KEY)); } catch { return null; }
+}
+function setSession(user) {
+  localStorage.setItem(CURRENT_SESSION_KEY, JSON.stringify(user));
+}
+function clearSession() {
+  localStorage.removeItem(CURRENT_SESSION_KEY);
+}
+function getSessionPlayers() {
+  try { return JSON.parse(localStorage.getItem(SESSION_PLAYERS_KEY)) || []; } catch { return []; }
+}
+function setSessionPlayers(players) {
+  localStorage.setItem(SESSION_PLAYERS_KEY, JSON.stringify(players));
+  // Also update shared players for game compatibility
+  localStorage.setItem('partygames_players', JSON.stringify(players.map(p => p.name)));
+}
+
+// ---- Firestore: User Management ----
+async function findUser(name, birthday) {
+  const db = initFirebase();
+  if (!db) return null;
+  const id = makeUserId(name, birthday);
+  const doc = await db.collection('users').doc(id).get();
+  return doc.exists ? { id, ...doc.data() } : null;
+}
+
+async function createUser(name, birthday) {
+  const db = initFirebase();
+  if (!db) return null;
+  const id = makeUserId(name, birthday);
+  const data = { name: name.trim(), birthday, createdAt: new Date().toISOString() };
+  await db.collection('users').doc(id).set(data);
+  return { id, ...data };
+}
+
+async function updateUserName(userId, newName) {
+  const db = initFirebase();
+  if (!db) return;
+  await db.collection('users').doc(userId).update({ name: newName.trim() });
+}
+
+async function loginOrRegister(name, birthday) {
+  const existing = await findUser(name, birthday);
+  if (existing) {
+    return { user: existing, isNew: false };
   }
-  localStorage.setItem(CURRENT_USER_KEY, key);
-  return profiles[key];
+  const user = await createUser(name, birthday);
+  return { user, isNew: true };
 }
 
-function loginUser(id, birthday) {
-  const key = id.trim().toLowerCase();
-  const profiles = getProfiles();
-  const p = profiles[key];
-  if (!p) return null;
-  if (p.birthday !== birthday) return null;
-  localStorage.setItem(CURRENT_USER_KEY, key);
-  return p;
-}
-
-function getCurrentUser() {
-  const key = localStorage.getItem(CURRENT_USER_KEY);
-  if (!key) return null;
-  const profiles = getProfiles();
-  return profiles[key] || null;
-}
-
-function logoutUser() {
-  localStorage.removeItem(CURRENT_USER_KEY);
-}
-
-// ---- Play Log ----
-function getPlayLogs() {
-  try { return JSON.parse(localStorage.getItem(PLAY_LOG_KEY)) || []; } catch { return []; }
-}
-
-function savePlayLog(gameId, score, maxScore, extra) {
-  const user = getCurrentUser();
-  if (!user) return;
-  const logs = getPlayLogs();
-  logs.push({
-    userId: user.id.toLowerCase(),
+// ---- Firestore: Play Logs ----
+async function savePlayLogToFirestore(userId, gameId, score, maxScore, withPlayers) {
+  const db = initFirebase();
+  if (!db) return;
+  const pct = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+  await db.collection('playlogs').add({
+    userId,
     gameId,
     score: score || 0,
     maxScore: maxScore || 1,
-    pct: maxScore > 0 ? Math.round((score / maxScore) * 100) : 0,
-    timestamp: new Date().toISOString(),
-    ...extra,
+    pct,
+    withPlayers: withPlayers || [],
+    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    createdAt: new Date().toISOString(),
   });
-  // Keep last 500 entries
-  if (logs.length > 500) logs.splice(0, logs.length - 500);
-  try { localStorage.setItem(PLAY_LOG_KEY, JSON.stringify(logs)); } catch {}
+}
+
+async function getPlayLogsForUser(userId) {
+  const db = initFirebase();
+  if (!db) return [];
+  const snap = await db.collection('playlogs')
+    .where('userId', '==', userId)
+    .orderBy('createdAt', 'desc')
+    .limit(500)
+    .get();
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+// ---- Wrapper: savePlayLog (called from games) ----
+// Replaces the localStorage version. Saves to Firestore for all session players.
+function savePlayLog(gameId, score, maxScore, extra) {
+  const session = getSession();
+  const players = getSessionPlayers();
+  const playerNames = players.map(p => p.name);
+
+  // Save for each logged-in session player
+  for (const p of players) {
+    if (p.userId) {
+      savePlayLogToFirestore(p.userId, gameId, score, maxScore, playerNames).catch(e => {
+        console.warn('Firestore log failed, falling back to localStorage:', e);
+      });
+    }
+  }
+
+  // Also save to localStorage as fallback
+  try {
+    const logs = JSON.parse(localStorage.getItem('asobi_playlogs') || '[]');
+    logs.push({ userId: session?.userId || 'anonymous', gameId, score, maxScore, pct: maxScore > 0 ? Math.round((score / maxScore) * 100) : 0, timestamp: new Date().toISOString() });
+    if (logs.length > 500) logs.splice(0, logs.length - 500);
+    localStorage.setItem('asobi_playlogs', JSON.stringify(logs));
+  } catch {}
 }
 
 // ---- Profile Calculation ----
-function calculateProfile(userId) {
-  const logs = getPlayLogs().filter(l => l.userId === userId.toLowerCase());
-  if (logs.length === 0) return null;
+function calculateProfileFromLogs(logs) {
+  if (!logs || logs.length === 0) return null;
 
   const domainScores = {};
   const domainCounts = {};
@@ -110,7 +154,7 @@ function calculateProfile(userId) {
   for (const log of logs) {
     const weights = GAME_DOMAIN_MAP[log.gameId];
     if (!weights) continue;
-    const pct = log.pct / 100; // 0-1
+    const pct = (log.pct || 0) / 100;
     for (const [domain, weight] of Object.entries(weights)) {
       domainScores[domain] += pct * weight;
       domainCounts[domain] += weight;
@@ -123,7 +167,6 @@ function calculateProfile(userId) {
       ? Math.round((domainScores[d.id] / domainCounts[d.id]) * 100)
       : 0;
   });
-
   return profile;
 }
 
@@ -132,79 +175,71 @@ function renderRadarChart(containerId, profile) {
   const container = document.getElementById(containerId);
   if (!container || !profile) return;
 
-  const size = 280;
-  const cx = size / 2, cy = size / 2;
-  const maxR = 110;
-  const n = COG_DOMAINS.length;
-
-  // Background circles
+  const size = 280, cx = size / 2, cy = size / 2, maxR = 110, n = COG_DOMAINS.length;
   let svg = `<svg viewBox="0 0 ${size} ${size}" style="width:100%;max-width:${size}px;">`;
 
-  // Grid circles
   for (let r = 1; r <= 4; r++) {
     const radius = (maxR * r) / 4;
     svg += `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="#e5e1f0" stroke-width="1"/>`;
   }
-
-  // Axis lines + labels
   for (let i = 0; i < n; i++) {
     const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
-    const x = cx + Math.cos(angle) * maxR;
-    const y = cy + Math.sin(angle) * maxR;
+    const x = cx + Math.cos(angle) * maxR, y = cy + Math.sin(angle) * maxR;
     svg += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#e5e1f0" stroke-width="1"/>`;
-
-    // Label
-    const lx = cx + Math.cos(angle) * (maxR + 22);
-    const ly = cy + Math.sin(angle) * (maxR + 22);
+    const lx = cx + Math.cos(angle) * (maxR + 22), ly = cy + Math.sin(angle) * (maxR + 22);
     svg += `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="central" font-size="9" font-weight="700" fill="#7a6b8a">${COG_DOMAINS[i].icon}${COG_DOMAINS[i].name}</text>`;
   }
 
-  // Data polygon
   const points = COG_DOMAINS.map((d, i) => {
     const val = (profile[d.id] || 0) / 100;
     const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
     const r = maxR * Math.max(val, 0.05);
     return `${cx + Math.cos(angle) * r},${cy + Math.sin(angle) * r}`;
   }).join(' ');
-
   svg += `<polygon points="${points}" fill="rgba(192,132,252,0.2)" stroke="#c084fc" stroke-width="2.5"/>`;
 
-  // Data dots
   COG_DOMAINS.forEach((d, i) => {
     const val = (profile[d.id] || 0) / 100;
     const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
     const r = maxR * Math.max(val, 0.05);
-    const x = cx + Math.cos(angle) * r;
-    const y = cy + Math.sin(angle) * r;
-    svg += `<circle cx="${x}" cy="${y}" r="4" fill="${d.color}" stroke="#fff" stroke-width="2"/>`;
+    svg += `<circle cx="${cx + Math.cos(angle) * r}" cy="${cy + Math.sin(angle) * r}" r="4" fill="${d.color}" stroke="#fff" stroke-width="2"/>`;
   });
 
-  // Center score
   const avg = Math.round(COG_DOMAINS.reduce((s, d) => s + (profile[d.id] || 0), 0) / n);
   svg += `<text x="${cx}" y="${cy - 6}" text-anchor="middle" font-size="22" font-weight="900" fill="#2d2040">${avg}</text>`;
   svg += `<text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="8" fill="#7a6b8a">総合スコア</text>`;
-
   svg += '</svg>';
   container.innerHTML = svg;
 }
 
-// ---- Profile Summary Text ----
-function getProfileSummary(profile) {
-  if (!profile) return '';
+// ---- Brain Type ----
+function getBrainType(profile) {
+  if (!profile) return { type: '???', top: null, bottom: null, avg: 0 };
   const sorted = COG_DOMAINS.map(d => ({ ...d, score: profile[d.id] || 0 })).sort((a, b) => b.score - a.score);
-  const top = sorted[0];
-  const bottom = sorted[sorted.length - 1];
+  const top = sorted[0], bottom = sorted[sorted.length - 1];
   const avg = Math.round(sorted.reduce((s, d) => s + d.score, 0) / sorted.length);
+  const types = { LNG: '言語マスター', LOG: 'ロジカルシンカー', MEM: '記憶の達人', SPD: 'スピードスター', CRE: 'クリエイター', SOC: '人間観察マスター', SPA: '空間認識の天才', ATT: '集中力の鬼' };
+  return { type: types[top.id] || '???', top, bottom, avg };
+}
 
-  let type = '';
-  if (top.id === 'LNG') type = '言語マスター';
-  else if (top.id === 'LOG') type = 'ロジカルシンカー';
-  else if (top.id === 'MEM') type = '記憶の達人';
-  else if (top.id === 'SPD') type = 'スピードスター';
-  else if (top.id === 'CRE') type = 'クリエイター';
-  else if (top.id === 'SOC') type = '人間観察マスター';
-  else if (top.id === 'SPA') type = '空間認識の天才';
-  else if (top.id === 'ATT') type = '集中力の鬼';
+// ---- Advice ----
+function getAdvice(profile) {
+  if (!profile) return { strengthen: '', improve: '' };
+  const sorted = COG_DOMAINS.map(d => ({ ...d, score: profile[d.id] || 0 })).sort((a, b) => b.score - a.score);
+  const top = sorted[0], bottom = sorted[sorted.length - 1];
 
-  return { type, top, bottom, avg };
+  const gameRecs = {
+    LNG: ['ワードスロット', '逆引き辞書クイズ', 'カタカナーシ'],
+    LOG: ['ナゾトキ', 'マスターゲーム', 'ワードウルフ'],
+    MEM: ['フラッシュメモリー', 'リズムリレー'],
+    SPD: ['カラーパニック', 'ワードスロット'],
+    CRE: ['数字deコトバ', '頭文字バトル'],
+    SOC: ['ワードウルフ', '空気読みスケール', '連想ブリッジ'],
+    SPA: ['フラッシュメモリー'],
+    ATT: ['カラーパニック', 'リズムリレー'],
+  };
+
+  const strengthen = `${top.icon} ${top.name}が得意！${(gameRecs[top.id] || []).join('・')}でさらに伸ばそう`;
+  const improve = `${bottom.icon} ${bottom.name}を伸ばすには${(gameRecs[bottom.id] || []).join('・')}がおすすめ`;
+  return { strengthen, improve };
 }

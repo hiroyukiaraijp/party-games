@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>asobi.dev - はじめる</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .start-page { max-width: 500px; margin: 0 auto; padding: .5rem .75rem; min-height: 100vh; }
+    .top-bar { display: flex; align-items: center; justify-content: space-between; padding: .5rem 1rem; background: var(--surface); border-bottom: 3px solid transparent; border-image: var(--gradient-btn) 1; }
+    .top-bar .title { font-size: .85rem; font-weight: 900; color: var(--text); }
+    .card { background: var(--surface); border-radius: var(--radius); padding: 1.2rem; box-shadow: var(--shadow); margin-top: .6rem; }
+    .card h2 { font-size: 1rem; font-weight: 900; margin-bottom: .5rem; text-align: center; }
+    .card .sub { font-size: .75rem; color: var(--text-muted); text-align: center; margin-bottom: .8rem; }
+    .form-group { margin-bottom: .5rem; }
+    .form-group label { display: block; font-size: .7rem; font-weight: 700; color: var(--text-muted); margin-bottom: .2rem; }
+    .form-group input { width: 100%; padding: .5rem .7rem; font-size: .9rem; border-radius: 12px; border: 2px solid var(--surface2); background: var(--surface); color: var(--text); font-family: inherit; outline: none; box-sizing: border-box; }
+    .form-group input:focus { border-color: var(--secondary); }
+    .btn-primary-full { width: 100%; padding: .6rem; font-size: 1rem; border-radius: 999px; background: var(--gradient-btn); color: #fff; border: none; font-weight: 700; cursor: pointer; font-family: inherit; margin-top: .5rem; }
+    .btn-primary-full:active { transform: scale(.97); }
+    .btn-secondary-full { width: 100%; padding: .5rem; font-size: .85rem; border-radius: 999px; background: var(--surface2); color: var(--text); border: none; font-weight: 700; cursor: pointer; font-family: inherit; margin-top: .3rem; }
+
+    /* Member list */
+    .member-list { margin: .5rem 0; }
+    .member-item { display: flex; align-items: center; justify-content: space-between; padding: .4rem .6rem; background: var(--surface2); border-radius: 10px; margin-bottom: .3rem; font-size: .85rem; font-weight: 700; }
+    .member-item .remove { color: var(--primary); cursor: pointer; font-weight: 900; padding: 0 .3rem; }
+    .member-item .badge { font-size: .6rem; background: var(--gradient-btn); color: #fff; padding: .1rem .4rem; border-radius: 999px; }
+    .member-item .badge.new { background: var(--accent-green); }
+
+    .alert-box { padding: .5rem .7rem; border-radius: 10px; font-size: .8rem; margin-bottom: .5rem; }
+    .alert-box.info { background: rgba(99,102,241,.1); border: 2px solid #6366f1; color: #6366f1; }
+    .alert-box.warn { background: rgba(251,191,36,.1); border: 2px solid #fbbf24; color: #92400e; }
+    .alert-box.success { background: rgba(52,211,153,.1); border: 2px solid var(--accent-green); color: #065f46; }
+
+    .toast { position: fixed; top: 1rem; left: 50%; transform: translateX(-50%) translateY(-100%); background: var(--text); color: #fff; padding: .5rem 1rem; border-radius: 12px; font-size: .85rem; font-weight: 600; z-index: 2000; opacity: 0; transition: transform .3s, opacity .3s; }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    .loading { text-align: center; padding: 2rem; color: var(--text-muted); font-size: .85rem; }
+  </style>
+</head>
+<body>
+  <div class="toast" id="toast"></div>
+
+  <div class="top-bar">
+    <div class="title">asobi.dev</div>
+  </div>
+
+  <div class="start-page">
+
+    <!-- Step 1: Login -->
+    <div id="step1" class="card">
+      <h2>まず自分を登録</h2>
+      <p class="sub">名前と生年月日で認識します。どの携帯からでもデータが引き継がれます。</p>
+      <div class="form-group">
+        <label>名前</label>
+        <input type="text" id="myName" placeholder="例: たろう" maxlength="20">
+      </div>
+      <div class="form-group">
+        <label>生年月日</label>
+        <input type="date" id="myBirthday">
+      </div>
+      <div id="step1Alert"></div>
+      <button class="btn-primary-full" onclick="doStep1()">ログイン / 登録</button>
+    </div>
+
+    <!-- Step 2: Add today's members -->
+    <div id="step2" class="card" style="display:none;">
+      <h2>今日のメンバー</h2>
+      <p class="sub">一緒に遊ぶ人を追加しよう。各自の名前と生年月日を入れてね。</p>
+
+      <div class="member-list" id="memberList"></div>
+
+      <div class="form-group">
+        <label>名前</label>
+        <input type="text" id="addName" placeholder="名前" maxlength="20">
+      </div>
+      <div class="form-group">
+        <label>生年月日</label>
+        <input type="date" id="addBirthday">
+      </div>
+      <div id="step2Alert"></div>
+      <button class="btn-secondary-full" onclick="doAddMember()">メンバーを追加</button>
+      <button class="btn-primary-full" onclick="doStartGames()" style="margin-top:.8rem;">ゲームで遊ぶ →</button>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" class="loading" style="display:none;">読み込み中...</div>
+
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/profile.js"></script>
+  <script>
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg; el.classList.add('show');
+      clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 2500);
+    }
+
+    let sessionMembers = []; // [{userId, name, isNew}]
+    let myUser = null;
+
+    // Step 1: Login/Register self
+    async function doStep1() {
+      const name = document.getElementById('myName').value.trim();
+      const bday = document.getElementById('myBirthday').value;
+      if (!name) { showToast('名前を入力してください'); return; }
+      if (!bday) { showToast('生年月日を入力してください'); return; }
+
+      document.getElementById('loading').style.display = '';
+      const alertEl = document.getElementById('step1Alert');
+
+      try {
+        initFirebase();
+        const result = await loginOrRegister(name, bday);
+        myUser = result.user;
+        setSession({ userId: myUser.id, name: myUser.name, birthday: bday });
+
+        if (result.isNew) {
+          alertEl.innerHTML = '<div class="alert-box success">新規登録しました！</div>';
+        } else {
+          alertEl.innerHTML = `<div class="alert-box info">おかえりなさい、${myUser.name}さん！</div>`;
+        }
+
+        // Add self to members
+        sessionMembers = [{ userId: myUser.id, name: myUser.name, isNew: result.isNew }];
+        renderMembers();
+
+        setTimeout(() => {
+          document.getElementById('step1').style.display = 'none';
+          document.getElementById('step2').style.display = '';
+        }, 1000);
+      } catch (e) {
+        alertEl.innerHTML = `<div class="alert-box warn">接続エラー: ${e.message}</div>`;
+        console.error(e);
+      }
+      document.getElementById('loading').style.display = 'none';
+    }
+
+    // Step 2: Add members
+    async function doAddMember() {
+      const name = document.getElementById('addName').value.trim();
+      const bday = document.getElementById('addBirthday').value;
+      if (!name) { showToast('名前を入力してください'); return; }
+      if (!bday) { showToast('生年月日を入力してください'); return; }
+
+      const alertEl = document.getElementById('step2Alert');
+      alertEl.innerHTML = '';
+
+      try {
+        const result = await loginOrRegister(name, bday);
+        const userId = result.user.id;
+
+        // Check duplicate in session
+        if (sessionMembers.some(m => m.userId === userId)) {
+          alertEl.innerHTML = '<div class="alert-box warn">この人は既に追加されています</div>';
+          return;
+        }
+
+        if (result.isNew) {
+          alertEl.innerHTML = `<div class="alert-box success">${name}さんを新規登録しました！</div>`;
+        } else {
+          alertEl.innerHTML = `<div class="alert-box info">${result.user.name}さんのデータが見つかりました！</div>`;
+        }
+
+        sessionMembers.push({ userId, name: result.user.name, isNew: result.isNew });
+        renderMembers();
+        document.getElementById('addName').value = '';
+        document.getElementById('addBirthday').value = '';
+      } catch (e) {
+        alertEl.innerHTML = `<div class="alert-box warn">エラー: ${e.message}</div>`;
+      }
+    }
+
+    function removeMember(idx) {
+      if (idx === 0) { showToast('自分は削除できません'); return; }
+      sessionMembers.splice(idx, 1);
+      renderMembers();
+    }
+
+    function renderMembers() {
+      const list = document.getElementById('memberList');
+      list.innerHTML = sessionMembers.map((m, i) => {
+        const badge = i === 0 ? '<span class="badge">自分</span>' : (m.isNew ? '<span class="badge new">NEW</span>' : '');
+        const remove = i > 0 ? `<span class="remove" onclick="removeMember(${i})">&times;</span>` : '';
+        return `<div class="member-item"><span>${m.name} ${badge}</span>${remove}</div>`;
+      }).join('');
+    }
+
+    // Step 3: Go to games
+    function doStartGames() {
+      if (sessionMembers.length < 1) { showToast('メンバーが必要です'); return; }
+      setSessionPlayers(sessionMembers);
+      window.location.href = 'games.html';
+    }
+
+    // Auto-restore session
+    const session = getSession();
+    if (session && session.userId) {
+      document.getElementById('myName').value = session.name || '';
+      // Don't auto-login, let user confirm
+    }
+  </script>
+</body>
+</html>
