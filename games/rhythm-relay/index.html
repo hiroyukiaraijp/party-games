@@ -21,19 +21,19 @@
   <div class="modal-overlay" id="helpModal" onclick="if(event.target===this)this.classList.remove('show')">
     <div class="modal-box">
       <button class="modal-close" onclick="document.getElementById('helpModal').classList.remove('show')">&times;</button>
-      <h3><ruby>遊<rt>あそ</rt></ruby>び<ruby>方<rt>かた</rt></ruby></h3>
+      <h3 data-ruby>遊び方</h3>
       <ul>
-        <li>4<ruby>色<rt>しょく</rt></ruby>ボタンを<ruby>使<rt>つか</rt></ruby>った<strong><ruby>記憶<rt>きおく</rt></ruby>チェインゲーム</strong>です</li>
-        <li><ruby>最初<rt>さいしょ</rt></ruby>のプレイヤーがボタンを1つタップ</li>
-        <li><ruby>次<rt>つぎ</rt></ruby>の<ruby>人<rt>ひと</rt></ruby>は<strong><ruby>前<rt>まえ</rt></ruby>の<ruby>人<rt>ひと</rt></ruby>までの<ruby>順番<rt>じゅんばん</rt></ruby>を<ruby>全部再現<rt>ぜんぶさいげん</rt></ruby></strong>してから、<ruby>新<rt>あたら</rt></ruby>しく1つ<ruby>追加<rt>ついか</rt></ruby></li>
-        <li><ruby>間違<rt>まちが</rt></ruby>えたらアウト！チェインが<ruby>長<rt>なが</rt></ruby>く<ruby>続<rt>つづ</rt></ruby>くほど<ruby>全員<rt>ぜんいん</rt></ruby>に<ruby>得点<rt>とくてん</rt></ruby></li>
-        <li><ruby>最後<rt>さいご</rt></ruby>まで<ruby>生<rt>い</rt></ruby>き<ruby>残<rt>のこ</rt></ruby>った<ruby>人<rt>ひと</rt></ruby>にボーナス！</li>
+        <li data-ruby>4色ボタンを使った<strong>記憶チェインゲーム</strong>です</li>
+        <li data-ruby>最初のプレイヤーがボタンを1つタップ</li>
+        <li data-ruby>次の人は<strong>前の人までの順番を全部再現</strong>してから、新しく1つ追加</li>
+        <li data-ruby>間違えたらアウト！チェインが長く続くほど全員に得点</li>
+        <li data-ruby>最後まで生き残った人にボーナス！</li>
       </ul>
-      <h3 style="margin-top:1rem;"><ruby>鍛<rt>きた</rt></ruby>えられる<ruby>力<rt>ちから</rt></ruby></h3>
+      <h3 data-ruby style="margin-top:1rem;">鍛えられる力</h3>
       <ul>
-        <li><strong>ワーキングメモリ</strong> — <ruby>増<rt>ふ</rt></ruby>え<ruby>続<rt>つづ</rt></ruby>ける<ruby>順序<rt>じゅんじょ</rt></ruby>を<ruby>記憶<rt>きおく</rt></ruby>する<ruby>力<rt>ちから</rt></ruby></li>
-        <li><strong><ruby>注意力<rt>ちゅういりょく</rt></ruby></strong> — <ruby>他<rt>た</rt></ruby>プレイヤーの<ruby>操作<rt>そうさ</rt></ruby>を<ruby>集中<rt>しゅうちゅう</rt></ruby>して<ruby>観察<rt>かんさつ</rt></ruby>する<ruby>力<rt>ちから</rt></ruby></li>
-        <li><strong><ruby>空間認識<rt>くうかんにんしき</rt></ruby></strong> — ボタンの<ruby>位置関係<rt>いちかんけい</rt></ruby>を<ruby>覚<rt>おぼ</rt></ruby>える<ruby>力<rt>ちから</rt></ruby></li>
+        <li data-ruby><strong>ワーキングメモリ</strong> — 増え続ける順序を記憶する力</li>
+        <li data-ruby><strong>注意力</strong> — 他プレイヤーの操作を集中して観察する力</li>
+        <li data-ruby><strong>空間認識</strong> — ボタンの位置関係を覚える力</li>
       </ul>
     </div>
   </div>
@@ -83,6 +83,7 @@
       <div id="logEntries"></div>
     </div>
   </div>
+  <script src="../../js/auto-ruby.js"></script>
   <script src="game.js"></script>
 </body>
 </html>

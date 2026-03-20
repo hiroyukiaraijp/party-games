@@ -108,6 +108,11 @@
   <div class="app-grid" id="appGrid"></div>
 
   <div class="home-footer">
+    <label style="display:inline-flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--text-muted);font-weight:600;cursor:pointer;margin-bottom:.5rem;">
+      <input type="checkbox" id="rubyToggle" onchange="toggleRuby(this.checked)" style="width:16px;height:16px;">
+      ふりがな表示
+    </label>
+    <br>
     <button class="reset-btn" onclick="resetAll()">プレイヤー・スコアをリセット</button>
   </div>
   <div class="toast" id="toast"></div>
@@ -186,6 +191,12 @@
       setTimeout(() => el.classList.remove('show'), 2000);
       renderGrid();
     }
+
+    function toggleRuby(on) {
+      localStorage.setItem('partygames_ruby', on ? 'on' : 'off');
+    }
+    // Init toggle state
+    document.getElementById('rubyToggle').checked = localStorage.getItem('partygames_ruby') === 'on';
 
     renderGrid();
   </script>
