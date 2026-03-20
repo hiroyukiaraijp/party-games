@@ -46,7 +46,7 @@ function saveSharedPlayers() { try { localStorage.setItem(SHARED_PLAYERS_KEY, JS
 
 function addPlayer() { const input = document.getElementById('playerNameInput'); const name = input.value.trim(); if (!name || players.includes(name)) { input.value = ''; return; } players.push(name); scores[name] = scores[name] || 0; input.value = ''; renderPlayers(); renderScoreboard(); saveState(); saveSharedPlayers(); }
 function removePlayer(name) { players = players.filter(p => p !== name); delete scores[name]; renderPlayers(); renderScoreboard(); saveState(); saveSharedPlayers(); }
-function renderPlayers() { $playerList.innerHTML = players.map(p => `<span class="player-tag">${esc(p)} <span class="remove" onclick="removePlayer('${esc(p)}')">&times;</span></span>`).join(''); }
+function renderPlayers() { renderSessionPlayerBar('playerList', players, scores, function(active) { renderScoreboard(); }); }
 function selectOption(type, btn) { btn.parentElement.querySelectorAll('.option-pill').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); if (type === 'category') categoryFilter = btn.dataset.value; }
 
 function showPhase(id) { [$setupPhase, $quizPhase, $resultPhase].forEach(el => el.style.display = 'none'); document.getElementById(id).style.display = ''; }
@@ -225,6 +225,7 @@ function clearAllLogs() { showToast('リセットしました'); logs = []; roun
 
 (function init() {
   loadState();
-  if (players.length > 0) { renderPlayers(); renderScoreboard(); renderLog(); }
+  initSessionPlayers(players, scores);
+  renderPlayers(); renderScoreboard(); renderLog();
   document.querySelectorAll('#categoryPills .option-pill').forEach(btn => btn.classList.toggle('selected', btn.dataset.value === categoryFilter));
 })();

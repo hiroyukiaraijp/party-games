@@ -164,9 +164,9 @@ function removePlayer(name) {
   renderPlayers(); renderScoreboard(); saveState(); saveSharedPlayers();
 }
 function renderPlayers() {
-  $playerList.innerHTML = players.map(p =>
-    `<span class="player-tag">${esc(p)} <span class="remove" onclick="removePlayer('${esc(p)}')">&times;</span></span>`
-  ).join('');
+  renderSessionPlayerBar('playerList', players, scores, function(active) {
+    renderScoreboard();
+  });
 }
 
 function selectOption(type, btn) {
@@ -377,7 +377,8 @@ function clearAllLogs() {
 // --- Init ---
 (function init() {
   loadState();
-  if (players.length > 0) { renderPlayers(); renderScoreboard(); renderLog(); }
+  initSessionPlayers(players, scores);
+  renderPlayers(); renderScoreboard(); renderLog();
   document.querySelectorAll('#categoryPills .option-pill').forEach(btn =>
     btn.classList.toggle('selected', btn.dataset.value === categoryFilter));
 })();

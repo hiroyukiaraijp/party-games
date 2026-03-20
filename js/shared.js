@@ -109,21 +109,20 @@ function updateDDALevel(gameId, correct) {
 }
 
 // ========== 5. Session Player UI (ゲーム内プレイヤー管理) ==========
-// セッションメンバーからプレイヤーを選択/除外。新規追加は名前+生年月日が必要。
-// Usage: initSessionPlayerUI('playerList', 'playerNameInput', players, scores, callbacks)
+// セッションメンバーが最初からセット。除外/復帰が可能。新規追加は名前+生年月日。
 
+function getSessionMembers() {
+  try { return JSON.parse(localStorage.getItem('asobi_session_players') || '[]'); } catch { return []; }
+}
 function getSessionMemberNames() {
-  try {
-    const sp = JSON.parse(localStorage.getItem('asobi_session_players') || '[]');
-    return sp.map(p => p.name);
-  } catch { return []; }
+  return getSessionMembers().map(p => p.name);
 }
 
-// Replace the game's addPlayer to use session-aware version
+// Load session members into game's player/score arrays
 function initSessionPlayers(playersRef, scoresRef) {
-  const sessionNames = getSessionMemberNames();
-  if (sessionNames.length > 0 && playersRef.length === 0) {
-    sessionNames.forEach(name => {
+  const members = getSessionMemberNames();
+  if (members.length > 0 && playersRef.length === 0) {
+    members.forEach(name => {
       if (!playersRef.includes(name)) {
         playersRef.push(name);
         scoresRef[name] = scoresRef[name] || 0;
@@ -131,3 +130,109 @@ function initSessionPlayers(playersRef, scoresRef) {
     });
   }
 }
+
+// Render session-aware player bar into a container element
+// - Shows session members as toggleable tags (active/inactive)
+// - "追加" opens name+birthday mini-form
+// - Returns {getActivePlayers()} for the game to use
+function renderSessionPlayerBar(containerId, players, scores, onChangeCallback) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const sessionMembers = getSessionMembers();
+  const excluded = new Set();
+
+  function render() {
+    let html = '<div style="display:flex;flex-wrap:wrap;gap:.3rem;align-items:center;">';
+
+    // Session member tags (toggleable)
+    players.forEach((name, i) => {
+      const isExcluded = excluded.has(name);
+      const style = isExcluded
+        ? 'opacity:.4;text-decoration:line-through;'
+        : '';
+      html += `<span class="player-tag" style="cursor:pointer;${style}" onclick="window._togglePlayer('${_escSPB(name)}')">${_escSPB(name)} ${isExcluded ? '＋' : '×'}</span>`;
+    });
+
+    // Add new member button
+    html += `<button onclick="window._showAddMemberForm()" style="background:none;border:2px dashed var(--surface2,#e5e1f0);color:var(--text-muted,#7a6b8a);padding:.15rem .5rem;border-radius:999px;font-size:.7rem;cursor:pointer;font-family:inherit;font-weight:600;">+ 追加</button>`;
+    html += '</div>';
+
+    // Add member form (hidden by default)
+    html += `<div id="_addMemberForm" style="display:none;margin-top:.4rem;padding:.5rem;background:var(--surface2,#f0ecf9);border-radius:10px;">
+      <div style="font-size:.7rem;font-weight:700;color:var(--text-muted);margin-bottom:.3rem;">新しいメンバー（名前＋生年月日）</div>
+      <div style="display:flex;gap:.3rem;flex-wrap:wrap;">
+        <input type="text" id="_addMemberName" placeholder="名前" maxlength="20" style="padding:.3rem .5rem;font-size:.8rem;border-radius:8px;border:2px solid var(--surface2,#e5e1f0);width:80px;min-width:0;font-family:inherit;">
+        <input type="date" id="_addMemberBday" style="padding:.3rem .5rem;font-size:.8rem;border-radius:8px;border:2px solid var(--surface2,#e5e1f0);font-family:inherit;">
+        <button onclick="window._doAddMember()" style="padding:.3rem .6rem;font-size:.75rem;border-radius:8px;background:var(--gradient-btn,linear-gradient(135deg,#ff6b9d,#c084fc));color:#fff;border:none;cursor:pointer;font-family:inherit;font-weight:700;">登録</button>
+        <button onclick="document.getElementById('_addMemberForm').style.display='none'" style="padding:.3rem .6rem;font-size:.75rem;border-radius:8px;background:var(--surface,#fff);color:var(--text-muted);border:1px solid var(--surface2);cursor:pointer;font-family:inherit;">閉じる</button>
+      </div>
+      <div id="_addMemberAlert" style="font-size:.7rem;margin-top:.2rem;"></div>
+    </div>`;
+
+    container.innerHTML = html;
+  }
+
+  // Toggle player active/excluded
+  window._togglePlayer = function(name) {
+    if (excluded.has(name)) {
+      excluded.delete(name);
+    } else {
+      excluded.add(name);
+    }
+    render();
+    if (onChangeCallback) onChangeCallback(players.filter(n => !excluded.has(n)));
+  };
+
+  window._showAddMemberForm = function() {
+    document.getElementById('_addMemberForm').style.display = '';
+  };
+
+  window._doAddMember = async function() {
+    const nameEl = document.getElementById('_addMemberName');
+    const bdayEl = document.getElementById('_addMemberBday');
+    const alertEl = document.getElementById('_addMemberAlert');
+    const name = nameEl.value.trim();
+    const bday = bdayEl.value;
+    if (!name || !bday) { alertEl.textContent = '名前と生年月日を入力してください'; return; }
+
+    try {
+      if (typeof initFirebase === 'function') initFirebase();
+      if (typeof loginOrRegister === 'function') {
+        const result = await loginOrRegister(name, bday);
+        if (result.isNew) {
+          alertEl.innerHTML = '<span style="color:#10b981;">新規登録しました！</span>';
+        } else {
+          alertEl.innerHTML = '<span style="color:#6366f1;">既存データが見つかりました！</span>';
+        }
+        // Add to session
+        const sp = getSessionMembers();
+        if (!sp.some(m => m.userId === result.user.id)) {
+          sp.push({ userId: result.user.id, name: result.user.name });
+          localStorage.setItem('asobi_session_players', JSON.stringify(sp));
+          localStorage.setItem('partygames_players', JSON.stringify(sp.map(p => p.name)));
+        }
+      }
+    } catch (e) {
+      alertEl.textContent = 'オフラインです。名前だけで追加します。';
+    }
+
+    if (!players.includes(name)) {
+      players.push(name);
+      scores[name] = scores[name] || 0;
+    }
+    nameEl.value = ''; bdayEl.value = '';
+    render();
+    if (onChangeCallback) onChangeCallback(players.filter(n => !excluded.has(n)));
+    setTimeout(() => { document.getElementById('_addMemberForm').style.display = 'none'; }, 1000);
+  };
+
+  // Get current active (non-excluded) players
+  window._getActivePlayers = function() {
+    return players.filter(n => !excluded.has(n));
+  };
+
+  render();
+}
+
+function _escSPB(s) { return s.replace(/'/g, "\\'").replace(/</g, '&lt;'); }

@@ -142,7 +142,7 @@ function saveSharedPlayers(){try{localStorage.setItem(SHARED_PLAYERS_KEY,JSON.st
 
 function addPlayer(){const i=$('playerNameInput');const n=i.value.trim();if(!n||players.includes(n)){i.value='';return;}players.push(n);scores[n]=scores[n]||0;i.value='';renderPlayers();renderScoreboard();saveState();saveSharedPlayers();}
 function removePlayer(n){players=players.filter(p=>p!==n);delete scores[n];renderPlayers();renderScoreboard();saveState();saveSharedPlayers();}
-function renderPlayers(){$playerList.innerHTML=players.map(p=>`<span class="player-tag">${esc(p)} <span class="remove" onclick="removePlayer('${esc(p)}')">&times;</span></span>`).join('');}
+function renderPlayers(){renderSessionPlayerBar('playerList',players,scores,function(active){renderScoreboard();});}
 
 function selectOption(t,b){b.parentElement.querySelectorAll('.option-pill').forEach(p=>p.classList.remove('selected'));b.classList.add('selected');if(t==='category')categoryFilter=b.dataset.value;if(t==='difficulty')difficultyFilter=b.dataset.value;}
 
@@ -383,7 +383,8 @@ function clearAllLogs(){showToast('リセットしました');logs=[];round=0;fo
 
 (function init(){
   loadState();
-  if(players.length>0){renderPlayers();renderScoreboard();renderLog();}
+  initSessionPlayers(players,scores);
+  renderPlayers();renderScoreboard();renderLog();
   document.querySelectorAll('#categoryPills .option-pill').forEach(b=>b.classList.toggle('selected',b.dataset.value===categoryFilter));
   document.querySelectorAll('#difficultyPills .option-pill').forEach(b=>b.classList.toggle('selected',b.dataset.value===difficultyFilter));
 })();

@@ -35,7 +35,7 @@ function saveSharedPlayers(){try{localStorage.setItem(SHARED_PLAYERS_KEY,JSON.st
 
 function addPlayer(){const i=$('playerNameInput');const n=i.value.trim();if(!n||players.includes(n)){i.value='';return;}players.push(n);scores[n]=scores[n]||0;i.value='';renderPlayers();renderScoreboard();saveState();saveSharedPlayers();}
 function removePlayer(n){players=players.filter(p=>p!==n);delete scores[n];renderPlayers();renderScoreboard();saveState();saveSharedPlayers();}
-function renderPlayers(){$playerList.innerHTML=players.map(p=>`<span class="player-tag">${esc(p)} <span class="remove" onclick="removePlayer('${esc(p)}')">&times;</span></span>`).join('');}
+function renderPlayers(){renderSessionPlayerBar('playerList',players,scores,function(active){renderScoreboard();});}
 
 function showPhase(id){[$setupPhase,$inputPhase,$revealPhase].forEach(e=>e.style.display='none');$(id).style.display='';}
 
@@ -200,4 +200,4 @@ function renderLog(){
 }
 function clearAllLogs(){showToast('リセットしました');logs=[];round=0;for(const p of players)scores[p]=0;renderScoreboard();renderLog();saveState();}
 
-(function init(){loadState();if(players.length>0){renderPlayers();renderScoreboard();renderLog();}})();
+(function init(){loadState();initSessionPlayers(players,scores);renderPlayers();renderScoreboard();renderLog();})();

@@ -215,9 +215,10 @@ function removePlayer(name) {
 }
 
 function renderPlayers() {
-  $playerList.innerHTML = players.map(p =>
-    `<span class="player-tag">${esc(p)} <span class="remove" onclick="removePlayer('${esc(p)}')">&times;</span></span>`
-  ).join('');
+  renderSessionPlayerBar('playerList', players, scores, function(active) {
+    renderPlayerSelectButtons();
+    renderScoreboard();
+  });
 }
 
 // --- Player Select Buttons ---
@@ -888,11 +889,10 @@ document.addEventListener('keydown', (e) => {
 // --- Init ---
 (function init() {
   loadState();
-  if (players.length > 0) {
-    renderPlayers();
-    renderPlayerSelectButtons();
-    renderScoreboard();
-    renderLog();
-    if (round > 0) $roundInfo.textContent = `ラウンド ${round}`;
-  }
+  initSessionPlayers(players, scores);
+  renderPlayers();
+  renderPlayerSelectButtons();
+  renderScoreboard();
+  renderLog();
+  if (round > 0) $roundInfo.textContent = `ラウンド ${round}`;
 })();
