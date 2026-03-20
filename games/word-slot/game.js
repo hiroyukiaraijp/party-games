@@ -388,6 +388,83 @@ function finishSubmit(player, word, reading, valid, reason, dictResult) {
   saveState();
 }
 
+// --- Pass ---
+async function passRound() {
+  if (!currentChar || currentNumber === null) return;
+
+  const $v = $validationResult;
+  $v.classList.remove('ok', 'ng', 'pass');
+  $v.classList.add('show', 'pass');
+  $v.style.background = '';
+  $v.style.borderColor = '';
+  $v.innerHTML = `⏭ パス！ 例を検索中...`;
+
+  // Search for example words
+  try {
+    const examples = await findExampleWords(currentChar, currentNumber);
+    if (examples.length > 0) {
+      const list = examples.map(e => `<strong>${esc(e)}</strong>`).join('、');
+      $v.innerHTML = `⏭ パス！ 例: ${list}`;
+    } else {
+      $v.innerHTML = `⏭ パス！ (例が見つかりませんでした)`;
+    }
+  } catch (e) {
+    $v.innerHTML = `⏭ パス！`;
+  }
+
+  // Log the pass
+  logs.unshift({
+    round, player: '(パス)', word: '-', reading: '',
+    number: currentNumber, char: currentChar,
+    valid: false, reason: 'パス',
+    dictInfo: null,
+  });
+  renderLog();
+  saveState();
+}
+
+// Find example words using Wikipedia search
+async function findExampleWords(char, number) {
+  const examples = [];
+  const kataChar = toKatakana(char);
+  // Search with the character as prefix
+  const queries = [char, kataChar];
+
+  for (const q of queries) {
+    if (examples.length >= 3) break;
+    try {
+      const url = `https://ja.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(q)}&limit=20&format=json&origin=*`;
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const data = await res.json();
+      const titles = data[1] || [];
+
+      for (const title of titles) {
+        if (examples.length >= 3) break;
+        // Check length — approximate for titles with kanji
+        // For kana titles, count directly; for kanji, rough check
+        const hira = toHiragana(title);
+        const isKanaTitle = isAllKana(hira.replace(/ー/g, 'あ'));
+        if (isKanaTitle) {
+          const len = countKana(hira);
+          if (number === 11 ? len >= 11 : len === number) {
+            if (!examples.includes(title)) examples.push(title);
+          }
+        } else {
+          // For kanji titles, use character count as rough estimate
+          const len = [...title].length;
+          // Accept if roughly in range (kanji titles are shorter than their reading)
+          if (number === 11 ? len >= 5 : (len >= number - 2 && len <= number)) {
+            if (!examples.includes(title)) examples.push(title);
+          }
+        }
+      }
+    } catch (e) { /* continue */ }
+  }
+
+  return examples;
+}
+
 // --- Log Edit / Delete ---
 function deleteLog(index) {
   const entry = logs[index];

@@ -179,6 +179,7 @@
     .validation-result.show { display: block; }
     .validation-result.ok { background: rgba(76,175,80,.15); border: 1px solid #4caf50; }
     .validation-result.ng { background: rgba(233,69,96,.15); border: 1px solid var(--primary); }
+    .validation-result.pass { background: rgba(255,152,0,.12); border: 1px solid #ff9800; }
 
     @media (max-width: 400px) {
       .answer-form { flex-direction: column; }
@@ -416,6 +417,7 @@
         <input type="text" id="answerWord" placeholder="単語を入力"
                oninput="onWordInput()" onkeydown="if(event.key==='Enter')submitAnswer()">
         <button class="btn btn-primary" onclick="submitAnswer()">回答！</button>
+        <button class="btn btn-secondary" onclick="passRound()" style="padding:.4rem .6rem;font-size:.85rem;">パス</button>
       </div>
       <div class="furigana-row" id="furiganaRow" style="display:none;">
         <label>読み:</label>
