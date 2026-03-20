@@ -23,6 +23,7 @@ const CHARS = [
 ];
 
 const STORAGE_KEY = 'wordslot_state';
+const SHARED_PLAYERS_KEY = 'partygames_players';
 const PARTICLE_EMOJIS = ['🎉', '✨', '⭐', '🌟', '💫', '🎊', '💖', '🔥'];
 
 // --- Toast ---
@@ -159,13 +160,31 @@ function saveState() {
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    const s = JSON.parse(raw);
-    if (s.players) players = s.players;
-    if (s.scores) scores = s.scores;
-    if (s.logs) logs = s.logs;
-    if (s.round) round = s.round;
-    if (s.lastAnswerer) lastAnswerer = s.lastAnswerer;
+    if (raw) {
+      const s = JSON.parse(raw);
+      if (s.players) players = s.players;
+      if (s.scores) scores = s.scores;
+      if (s.logs) logs = s.logs;
+      if (s.round) round = s.round;
+      if (s.lastAnswerer) lastAnswerer = s.lastAnswerer;
+    }
+    // Import players from shared key if this game has none yet
+    if (players.length === 0) {
+      const shared = localStorage.getItem(SHARED_PLAYERS_KEY);
+      if (shared) {
+        const sp = JSON.parse(shared);
+        if (Array.isArray(sp) && sp.length > 0) {
+          players = sp;
+          for (const p of players) scores[p] = scores[p] || 0;
+        }
+      }
+    }
+  } catch (e) { /* ignore */ }
+}
+
+function saveSharedPlayers() {
+  try {
+    localStorage.setItem(SHARED_PLAYERS_KEY, JSON.stringify(players));
   } catch (e) { /* ignore */ }
 }
 
@@ -181,6 +200,7 @@ function addPlayer() {
   renderPlayerSelectButtons();
   renderScoreboard();
   saveState();
+  saveSharedPlayers();
 }
 
 function removePlayer(name) {
@@ -191,6 +211,7 @@ function removePlayer(name) {
   renderPlayerSelectButtons();
   renderScoreboard();
   saveState();
+  saveSharedPlayers();
 }
 
 function renderPlayers() {

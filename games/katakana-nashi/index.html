@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>カタカナーシ - Party Games</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+  <!-- Particle container -->
+  <div class="particle-container" id="particles"></div>
+  <!-- Violation flash overlay -->
+  <div class="flash-overlay" id="flashOverlay"></div>
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="title"><a href="../../index.html">Party Games</a> / <span>カタカナーシ</span></div>
+    <div class="top-bar-actions">
+      <button class="icon-btn" onclick="showHelp()" title="遊び方">?</button>
+    </div>
+  </div>
+
+  <!-- Help Modal -->
+  <div class="modal-overlay" id="helpModal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="document.getElementById('helpModal').classList.remove('show')">&times;</button>
+      <h3>遊び方</h3>
+      <ul>
+        <li>出題者がお題のカタカナ語を<strong>カタカナを一切使わず</strong>に口頭で説明します</li>
+        <li>他のプレイヤーは聞いてお題を当てます（早い者勝ち！）</li>
+        <li>正解が出たら「正解！」→ 正解者を選択。出題者と正解者に+1pt</li>
+        <li>うっかりカタカナを使ったら「ブッブー！」ボタンで違反カウント</li>
+        <li>分からなければ「パス」で次のお題へ（タイマーは継続）</li>
+        <li>タイムアップで得点なし。全員1回出題で1周</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="game-page">
+
+    <!-- ====== Setup Phase ====== -->
+    <div id="setupPhase">
+      <div class="setup-section">
+        <h4>プレイヤー</h4>
+        <div class="player-bar">
+          <input type="text" id="playerNameInput" placeholder="名前" maxlength="10"
+                 onkeydown="if(event.key==='Enter')addPlayer()">
+          <button class="btn btn-primary btn-small" onclick="addPlayer()">追加</button>
+        </div>
+        <div class="player-tags" id="playerList"></div>
+
+        <div class="options-row">
+          <div class="option-group">
+            <label>難易度</label>
+            <div class="option-pills" id="difficultyPills">
+              <button class="option-pill selected" data-value="easy" onclick="selectOption('difficulty', this)">かんたん</button>
+              <button class="option-pill" data-value="normal" onclick="selectOption('difficulty', this)">ふつう</button>
+              <button class="option-pill" data-value="hard" onclick="selectOption('difficulty', this)">むずかしい</button>
+            </div>
+          </div>
+          <div class="option-group">
+            <label>制限時間</label>
+            <div class="option-pills" id="timePills">
+              <button class="option-pill" data-value="30" onclick="selectOption('time', this)">30秒</button>
+              <button class="option-pill selected" data-value="45" onclick="selectOption('time', this)">45秒</button>
+              <button class="option-pill" data-value="60" onclick="selectOption('time', this)">60秒</button>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary start-btn" onclick="startGame()">ゲーム開始！</button>
+      </div>
+    </div>
+
+    <!-- ====== Presenter Phase (topic reveal) ====== -->
+    <div id="presenterPhase" style="display:none;">
+      <div class="phase-section">
+        <div class="round-counter" id="roundCounter"></div>
+
+        <!-- Step 1: Select presenter -->
+        <div id="presenterSelectArea">
+          <div style="font-size:.9rem;font-weight:700;margin-bottom:.5rem;">出題者を選んでください</div>
+          <div class="answerer-grid" id="presenterGrid"></div>
+        </div>
+
+        <!-- Step 2: Topic reveal (shown after presenter selected) -->
+        <div id="topicArea" style="display:none;">
+          <div class="presenter-display">出題者: <span class="presenter-name" id="presenterName"></span></div>
+          <div class="topic-card" id="topicCard" onclick="revealTopic()">
+            <div id="topicHidden" class="topic-hidden">
+              <span class="tap-icon">👆</span>
+              タップでお題を見る
+            </div>
+            <div id="topicRevealed" style="display:none;">
+              <div class="topic-category" id="topicCategory"></div>
+              <div class="topic-word" id="topicWord"></div>
+            </div>
+          </div>
+          <button class="btn btn-primary start-btn" id="confirmBtn" style="display:none;" onclick="startExplaining()">確認OK → スタート</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== Explaining Phase ====== -->
+    <div id="explainingPhase" style="display:none;">
+      <div class="phase-section">
+        <div class="round-counter" id="explainRoundCounter"></div>
+        <div class="presenter-display">出題者: <span class="presenter-name" id="explainPresenter"></span> 🚫カタカナ禁止!</div>
+
+        <div class="timer-area" id="timerArea">
+          <svg viewBox="0 0 120 120">
+            <circle class="timer-bg" cx="60" cy="60" r="52"></circle>
+            <circle class="timer-fg" id="timerCircle" cx="60" cy="60" r="52"></circle>
+          </svg>
+          <div class="timer-text" id="timerText">45</div>
+        </div>
+
+        <div class="action-row">
+          <button class="btn btn-correct" onclick="markCorrect()">⭕ 正解！</button>
+          <button class="btn btn-skip" onclick="skipTopic()">⏭ パス</button>
+        </div>
+
+        <div class="buzzer-row">
+          <button class="buzzer-btn" onclick="buzzer()">🔴 ブッブー！</button>
+          <div class="violation-count" id="violationCount"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== Answerer Select Phase ====== -->
+    <div id="answererPhase" style="display:none;">
+      <div class="phase-section">
+        <div class="answerer-select">
+          <h4>誰が正解した？</h4>
+          <div class="answerer-grid" id="answererGrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== Round Result Phase ====== -->
+    <div id="resultPhase" style="display:none;">
+      <div class="phase-section result-section">
+        <div class="result-icon" id="resultIcon"></div>
+        <div class="result-topic" id="resultTopic"></div>
+        <div class="result-details" id="resultDetails"></div>
+        <button class="btn btn-primary next-btn" id="nextBtn" onclick="nextPresenter()">次へ →</button>
+      </div>
+    </div>
+
+    <!-- ====== Scoreboard ====== -->
+    <div class="score-section" id="scoreboard" style="display:none;">
+      <h4>Score</h4>
+      <div class="score-list" id="scoreRows"></div>
+    </div>
+
+    <!-- ====== Log ====== -->
+    <div class="log-section" id="answerLog" style="display:none;">
+      <div class="log-header">
+        <h4>Log</h4>
+        <button class="clear-log-btn" onclick="clearAllLogs()">消去</button>
+      </div>
+      <div id="logEntries"></div>
+    </div>
+
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
