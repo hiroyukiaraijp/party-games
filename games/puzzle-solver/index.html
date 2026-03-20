@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ナゾトキ - Party Games</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="toast" id="toast"></div>
+  <div class="particle-container" id="particles"></div>
+
+  <div class="top-bar">
+    <div class="title"><a href="../../index.html">Party Games</a> / <span>ナゾトキ</span></div>
+    <div class="top-bar-actions"><button class="icon-btn" onclick="document.getElementById('helpModal').classList.add('show')">?</button></div>
+  </div>
+
+  <div class="modal-overlay" id="helpModal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="document.getElementById('helpModal').classList.remove('show')">&times;</button>
+      <h3 data-ruby>遊び方</h3>
+      <ul>
+        <li data-ruby>4種類の謎解きパズルにチャレンジ！</li>
+        <li data-ruby><strong>暗号解読</strong> — 暗号化されたメッセージを解読</li>
+        <li data-ruby><strong>ひらめきなぞなぞ</strong> — 柔軟な発想で答えを導く</li>
+        <li data-ruby><strong>規則発見</strong> — 数列や文字列の法則を見つける</li>
+        <li data-ruby><strong>脱出パズル</strong> — 前の答えが次のヒントになる連鎖パズル</li>
+        <li data-ruby>ヒントは3段階。使うとポイントが減ります</li>
+        <li data-ruby>答えを入力して自動判定。1人でもみんなでも！</li>
+      </ul>
+      <h3 data-ruby style="margin-top:1rem;">鍛えられる力</h3>
+      <ul>
+        <li data-ruby><strong>論理思考</strong> — 手がかりから答えを導く推理力</li>
+        <li data-ruby><strong>パターン認識</strong> — 規則性を発見する力</li>
+        <li data-ruby><strong>言語処理</strong> — 言葉の多義性や構造を活用する力</li>
+        <li data-ruby><strong>メタ認知</strong> — 自分の思考を客観視して柔軟に切り替える力</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="game-page">
+    <div id="setupPhase">
+      <div class="setup-section">
+        <h4>プレイヤー</h4>
+        <div class="player-bar">
+          <input type="text" id="playerNameInput" placeholder="名前" maxlength="10" onkeydown="if(event.key==='Enter')addPlayer()">
+          <button class="btn btn-primary btn-small" onclick="addPlayer()">追加</button>
+        </div>
+        <div class="player-tags" id="playerList"></div>
+        <div class="options-row">
+          <div class="option-group">
+            <label>カテゴリ</label>
+            <div class="option-pills" id="categoryPills">
+              <button class="option-pill selected" data-value="all" onclick="selectOption('category',this)">ミックス</button>
+              <button class="option-pill" data-value="cipher" onclick="selectOption('category',this)">暗号</button>
+              <button class="option-pill" data-value="riddle" onclick="selectOption('category',this)">なぞなぞ</button>
+              <button class="option-pill" data-value="pattern" onclick="selectOption('category',this)">規則</button>
+              <button class="option-pill" data-value="escape" onclick="selectOption('category',this)">脱出</button>
+            </div>
+          </div>
+          <div class="option-group">
+            <label>難易度</label>
+            <div class="option-pills" id="difficultyPills">
+              <button class="option-pill" data-value="easy" onclick="selectOption('difficulty',this)">かんたん</button>
+              <button class="option-pill selected" data-value="normal" onclick="selectOption('difficulty',this)">ふつう</button>
+              <button class="option-pill" data-value="hard" onclick="selectOption('difficulty',this)">むずかしい</button>
+            </div>
+          </div>
+        </div>
+        <button class="start-btn" onclick="startGame()">🔍 スタート！</button>
+      </div>
+    </div>
+
+    <div id="puzzlePhase" style="display:none;">
+      <div class="phase-section">
+        <div class="puzzle-meta" id="puzzleMeta"></div>
+        <div class="progress-bar" id="progressBar"></div>
+        <div class="puzzle-card" id="puzzleCard"></div>
+        <div class="hint-row">
+          <button class="hint-btn" id="hint1Btn" onclick="showHint(0)">💡 ヒント1</button>
+          <button class="hint-btn" id="hint2Btn" onclick="showHint(1)">💡 ヒント2</button>
+          <button class="hint-btn" id="hint3Btn" onclick="showHint(2)">💡 ヒント3</button>
+        </div>
+        <div class="hint-text" id="hintText"></div>
+        <div class="answer-row">
+          <input type="text" id="answerInput" placeholder="答えを入力" onkeydown="if(event.key==='Enter')submitAnswer()">
+          <button class="btn btn-primary" onclick="submitAnswer()">回答</button>
+        </div>
+        <div class="feedback" id="feedback"></div>
+        <button class="skip-btn" onclick="skipPuzzle()">スキップ →</button>
+      </div>
+    </div>
+
+    <div id="resultPhase" style="display:none;">
+      <div class="phase-section result-section">
+        <div class="result-icon" id="resultIcon"></div>
+        <div class="result-title" id="resultTitle"></div>
+        <div class="result-details" id="resultDetails"></div>
+        <button class="btn btn-primary next-btn" onclick="nextRound()">もう1セット！</button>
+      </div>
+    </div>
+
+    <div class="score-section" id="scoreboard" style="display:none;">
+      <h4>Score</h4><div class="score-list" id="scoreRows"></div>
+    </div>
+    <div class="log-section" id="answerLog" style="display:none;">
+      <div class="log-header"><h4>Log</h4><button class="clear-log-btn" onclick="clearAllLogs()">消去</button></div>
+      <div id="logEntries"></div>
+    </div>
+  </div>
+  <script src="../../js/auto-ruby.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

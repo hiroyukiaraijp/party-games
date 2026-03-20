@@ -129,6 +129,7 @@
       { id: 'flash-memory', icon: '🧠', name: 'フラッシュメモリー', min: 1, tags: ['reflex'], href: 'games/flash-memory/index.html' },
       { id: 'rhythm-relay', icon: '🔔', name: 'リズムリレー', min: 1, tags: ['reflex'], href: 'games/rhythm-relay/index.html' },
       { id: 'reverse-dictionary', icon: '📖', name: '逆引き辞書クイズ', min: 1, tags: ['lang'], href: 'games/reverse-dictionary/index.html' },
+      { id: 'puzzle-solver', icon: '🔍', name: 'ナゾトキ', min: 1, tags: ['think'], href: 'games/puzzle-solver/index.html' },
     ];
 
     const PLAY_COUNT_KEY = 'partygames_playcount';
@@ -184,7 +185,7 @@
 
     function resetAll() {
       if (!confirm('全ゲームのプレイヤーとスコアをリセットしますか？')) return;
-      ['partygames_players','wordslot_state','katakananashi_state','wordwolf_state','mastergame_state','numberexpression_state','hintbridge_state','colorpanic_state','flashmemory_state','rhythmrelay_state','reversedictionary_state','partygames_playcount'].forEach(k => localStorage.removeItem(k));
+      ['partygames_players','wordslot_state','katakananashi_state','wordwolf_state','mastergame_state','numberexpression_state','hintbridge_state','colorpanic_state','flashmemory_state','rhythmrelay_state','reversedictionary_state','puzzlesolver_state','partygames_playcount'].forEach(k => localStorage.removeItem(k));
       const el = document.getElementById('toast');
       el.textContent = 'リセットしました';
       el.classList.add('show');
