@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>頭文字バトルロイヤル - Party Games</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="toast" id="toast"></div>
+  <div class="particle-container" id="particles"></div>
+
+  <div class="top-bar">
+    <div class="title"><a href="../../index.html">Party Games</a> / <span>頭文字バトルロイヤル</span></div>
+    <div class="top-bar-actions"><button class="icon-btn" onclick="document.getElementById('helpModal').classList.add('show')">?</button></div>
+  </div>
+
+  <div class="modal-overlay" id="helpModal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="document.getElementById('helpModal').classList.remove('show')">&times;</button>
+      <h3 data-ruby>遊び方</h3>
+      <ul>
+        <li data-ruby><strong>頭文字</strong>と<strong>カテゴリ</strong>がランダムに決まります</li>
+        <li data-ruby>条件に合う答えをスマホに秘密で入力</li>
+        <li data-ruby>全員の答えを一斉公開！</li>
+        <li data-ruby><strong>他の人と被ったら0点！</strong>ユニークな答えだけが1点</li>
+        <li data-ruby>みんなが思いつかない答えを狙え！</li>
+      </ul>
+      <h3 data-ruby style="margin-top:1rem;">鍛えられる力</h3>
+      <ul>
+        <li data-ruby><strong>発散的思考</strong> — 他人と違うことを考える力</li>
+        <li data-ruby><strong>語彙力</strong> — 条件に合う言葉を引き出す力</li>
+        <li data-ruby><strong>戦略的思考</strong> — 安全策vs冒険のジレンマ</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="game-page">
+    <div id="setupPhase">
+      <div class="setup-section">
+        <h4>プレイヤー</h4>
+        <div class="player-bar">
+          <input type="text" id="playerNameInput" placeholder="名前" maxlength="10" onkeydown="if(event.key==='Enter')addPlayer()">
+          <button class="btn btn-primary btn-small" onclick="addPlayer()">追加</button>
+        </div>
+        <div class="player-tags" id="playerList"></div>
+        <button class="start-btn" onclick="startGame()">⚡ スタート！</button>
+      </div>
+    </div>
+
+    <!-- Input Phase -->
+    <div id="inputPhase" style="display:none;">
+      <div class="phase-section">
+        <div class="round-counter" id="roundCounter"></div>
+        <div class="battle-topic">
+          <div class="battle-initial" id="battleInitial"></div>
+          <div class="battle-category" id="battleCategory"></div>
+          <div class="battle-hint">この頭文字×カテゴリで、他の人と被らない答えを！</div>
+        </div>
+        <div class="confirm-progress" id="inputDots"></div>
+        <div class="confirm-instruction">スマホを渡してください</div>
+        <div class="confirm-player" id="inputPlayer"></div>
+        <div class="answer-input-row">
+          <input type="text" id="answerInput" placeholder="答えを入力" onkeydown="if(event.key==='Enter')submitAnswer()">
+          <button class="btn btn-primary" onclick="submitAnswer()">決定</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reveal Phase -->
+    <div id="revealPhase" style="display:none;">
+      <div class="phase-section">
+        <div class="round-counter" id="revealRound"></div>
+        <div class="battle-topic">
+          <div class="battle-initial" id="revealInitial"></div>
+          <div class="battle-category" id="revealCategory"></div>
+        </div>
+        <div class="result-icon" id="resultIcon"></div>
+        <div class="reveal-list" id="revealList"></div>
+        <button class="btn btn-primary next-btn" onclick="nextRound()">次のラウンド →</button>
+      </div>
+    </div>
+
+    <div class="score-section" id="scoreboard" style="display:none;">
+      <h4>Score</h4><div class="score-list" id="scoreRows"></div>
+    </div>
+    <div class="log-section" id="answerLog" style="display:none;">
+      <div class="log-header"><h4>Log</h4><button class="clear-log-btn" onclick="clearAllLogs()">消去</button></div>
+      <div id="logEntries"></div>
+    </div>
+  </div>
+  <script src="../../js/auto-ruby.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
