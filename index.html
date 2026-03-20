@@ -52,6 +52,33 @@
       </div>
     </a>
 
+    <a href="games/master-game/index.html" class="game-card">
+      <div class="card-icon">👑</div>
+      <div class="card-body">
+        <h3>マスターゲーム</h3>
+        <p>マスターにYes/Noで質問してお題を当てろ！論理的に絞り込め！</p>
+      </div>
+      <div class="card-footer">
+        <span>2人〜</span>
+        <span class="badge">Play</span>
+      </div>
+    </a>
+
   </main>
+
+  <div style="text-align:center;margin:1rem 0 2rem;">
+    <button onclick="resetAll()" style="background:none;border:2px solid var(--surface2);color:var(--text-muted);padding:.4rem 1.2rem;border-radius:999px;font-size:.8rem;font-family:inherit;font-weight:600;cursor:pointer;">プレイヤー・スコアをリセット</button>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script>
+    function resetAll() {
+      if (!confirm('全ゲームのプレイヤーとスコアをリセットしますか？')) return;
+      ['partygames_players','wordslot_state','katakananashi_state','wordwolf_state','mastergame_state'].forEach(k => localStorage.removeItem(k));
+      const el = document.getElementById('toast');
+      el.textContent = 'リセットしました';
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 2000);
+    }
+  </script>
 </body>
 </html>

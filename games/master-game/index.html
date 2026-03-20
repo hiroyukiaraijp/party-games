@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>マスターゲーム - Party Games</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="toast" id="toast"></div>
+  <div class="particle-container" id="particles"></div>
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="title"><a href="../../index.html">Party Games</a> / <span>マスターゲーム</span></div>
+    <div class="top-bar-actions">
+      <button class="icon-btn" onclick="document.getElementById('helpModal').classList.add('show')" title="遊び方">?</button>
+    </div>
+  </div>
+
+  <!-- Help Modal -->
+  <div class="modal-overlay" id="helpModal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="document.getElementById('helpModal').classList.remove('show')">&times;</button>
+      <h3>遊び方</h3>
+      <ul>
+        <li>ランダムで<strong>マスター</strong>が1人決まり、お題が表示されます</li>
+        <li>他のプレイヤーはマスターに<strong>「はい」か「いいえ」で答えられる質問</strong>をします</li>
+        <li>マスターは「はい」「いいえ」ボタンで回答を記録します</li>
+        <li>お題が分かったら「推理する！」→ 回答者を選んで答えを入力</li>
+        <li>正解なら回答者+1pt！不正解なら質問を続行</li>
+        <li>誰も当てられなければマスター+1pt</li>
+      </ul>
+      <h3 style="margin-top:1rem;">鍛えられる力</h3>
+      <ul>
+        <li><strong>質問設計力</strong> — 効率よく絞り込む「はい/いいえ」質問を考える力</li>
+        <li><strong>論理的推論</strong> — 回答の積み重ねから答えを絞り込む演繹的思考</li>
+        <li><strong>カテゴリ思考</strong> — 物事を分類・階層化して考える力</li>
+        <li><strong>ワーキングメモリ</strong> — 既出の情報を保持しながら次の質問を考える力</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="game-page">
+
+    <!-- ====== Setup Phase ====== -->
+    <div id="setupPhase">
+      <div class="setup-section">
+        <h4>プレイヤー</h4>
+        <div class="player-bar">
+          <input type="text" id="playerNameInput" placeholder="名前" maxlength="10"
+                 onkeydown="if(event.key==='Enter')addPlayer()">
+          <button class="btn btn-primary btn-small" onclick="addPlayer()">追加</button>
+        </div>
+        <div class="player-tags" id="playerList"></div>
+
+        <div class="options-row">
+          <div class="option-group">
+            <label>カテゴリ</label>
+            <div class="option-pills" id="categoryPills">
+              <button class="option-pill selected" data-value="all" onclick="selectOption('category', this)">ミックス</button>
+              <button class="option-pill" data-value="things" onclick="selectOption('category', this)">モノ</button>
+              <button class="option-pill" data-value="people" onclick="selectOption('category', this)">人物</button>
+              <button class="option-pill" data-value="places" onclick="selectOption('category', this)">場所</button>
+            </div>
+          </div>
+          <div class="option-group">
+            <label>質問数上限</label>
+            <div class="option-pills" id="limitPills">
+              <button class="option-pill" data-value="10" onclick="selectOption('limit', this)">10問</button>
+              <button class="option-pill selected" data-value="20" onclick="selectOption('limit', this)">20問</button>
+              <button class="option-pill" data-value="0" onclick="selectOption('limit', this)">無制限</button>
+            </div>
+          </div>
+        </div>
+
+        <button class="start-btn" onclick="startGame()">👑 ゲーム開始！</button>
+      </div>
+    </div>
+
+    <!-- ====== Master Reveal Phase ====== -->
+    <div id="masterPhase" style="display:none;">
+      <div class="phase-section">
+        <div class="round-counter" id="masterRound"></div>
+        <div style="font-size:.9rem;color:var(--text-muted);margin-bottom:.3rem;">マスターは...</div>
+        <div class="master-badge" id="masterName"></div>
+
+        <div class="topic-card" id="topicCard" onclick="revealTopic()">
+          <span class="tap-icon">👑</span>
+          <span class="tap-text">マスターだけタップでお題を確認</span>
+        </div>
+
+        <div id="topicRevealed" style="display:none;">
+          <div class="topic-card revealed">
+            <div class="topic-category" id="topicCategory"></div>
+            <div class="topic-word" id="topicWord"></div>
+          </div>
+          <button class="btn btn-primary confirm-btn" onclick="startQuestions()">覚えた → 質問スタート！</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== Question Phase ====== -->
+    <div id="questionPhase" style="display:none;">
+      <div class="phase-section">
+        <div class="round-counter" id="questionRound"></div>
+        <div class="question-master">マスター: <span class="name" id="qMasterName"></span></div>
+        <div class="question-hint">「はい」か「いいえ」で答えられる質問をしよう！</div>
+
+        <div class="question-counter" id="questionCount">0</div>
+        <div class="question-counter-label" id="questionLimit">/ 20 問</div>
+
+        <div class="question-actions">
+          <button class="btn btn-yes" onclick="answerQuestion('yes')">⭕ はい</button>
+          <button class="btn btn-no" onclick="answerQuestion('no')">❌ いいえ</button>
+        </div>
+        <div class="question-actions" style="margin-top:.4rem;">
+          <button class="btn btn-guess" onclick="showGuessUI()">💡 推理する！</button>
+          <button class="btn btn-giveup" onclick="giveUp()">🏳️ ギブアップ</button>
+        </div>
+
+        <!-- Guess inline -->
+        <div id="guessArea" style="display:none;">
+          <div class="guess-section">
+            <h4>誰が推理する？</h4>
+            <div class="guesser-grid" id="guesserGrid"></div>
+            <div class="guess-input-row" id="guessInputRow" style="display:none;">
+              <input type="text" id="guessInput" placeholder="答えを入力"
+                     onkeydown="if(event.key==='Enter')submitGuess()">
+              <button class="btn btn-primary" onclick="submitGuess()">回答！</button>
+            </div>
+            <div class="guess-result" id="guessResult" style="display:none;"></div>
+            <button class="btn btn-secondary" onclick="cancelGuess()" style="margin-top:.3rem;padding:.3rem .8rem;font-size:.8rem;border-radius:10px;">戻る</button>
+          </div>
+        </div>
+
+        <div class="question-log" id="questionLog"></div>
+      </div>
+    </div>
+
+    <!-- ====== Result Phase ====== -->
+    <div id="resultPhase" style="display:none;">
+      <div class="phase-section result-section">
+        <div class="result-icon" id="resultIcon"></div>
+        <div class="result-title" id="resultTitle"></div>
+        <div class="result-answer" id="resultAnswer"></div>
+        <div class="result-details" id="resultDetails"></div>
+        <button class="btn btn-primary next-btn" onclick="nextRound()">次のラウンドへ →</button>
+      </div>
+    </div>
+
+    <!-- Scoreboard -->
+    <div class="score-section" id="scoreboard" style="display:none;">
+      <h4>Score</h4>
+      <div class="score-list" id="scoreRows"></div>
+    </div>
+
+    <!-- Log -->
+    <div class="log-section" id="answerLog" style="display:none;">
+      <div class="log-header">
+        <h4>Log</h4>
+        <button class="clear-log-btn" onclick="clearAllLogs()">消去</button>
+      </div>
+      <div id="logEntries"></div>
+    </div>
+
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
