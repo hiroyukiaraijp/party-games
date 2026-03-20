@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ワードウルフ - Party Games</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+  <!-- Particles -->
+  <div class="particle-container" id="particles"></div>
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="title"><a href="../../index.html">Party Games</a> / <span>ワードウルフ</span></div>
+    <div class="top-bar-actions">
+      <button class="icon-btn" onclick="document.getElementById('helpModal').classList.add('show')" title="遊び方">?</button>
+    </div>
+  </div>
+
+  <!-- Help Modal -->
+  <div class="modal-overlay" id="helpModal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="document.getElementById('helpModal').classList.remove('show')">&times;</button>
+      <h3>遊び方</h3>
+      <ul>
+        <li>全員にお題が配られますが、<strong>1〜2人だけ違うお題</strong>（ウルフ）です</li>
+        <li>お題について自由に話し合い、ウルフが誰か探りましょう</li>
+        <li>ウルフは自分のお題が違うことを悟られないよう振る舞います</li>
+        <li>議論後に投票。最多得票がウルフなら<strong>市民の勝利</strong></li>
+        <li>ウルフ以外が最多得票なら<strong>ウルフの勝利</strong></li>
+      </ul>
+      <h3 style="margin-top:1rem;">鍛えられる力</h3>
+      <ul>
+        <li><strong>社会的知性</strong> — 他者の知識や意図を推測する「心の理論」</li>
+        <li><strong>論理思考</strong> — 発言の断片から仮説を立てて検証する力</li>
+        <li><strong>注意力</strong> — 他者の反応や発言パターンの微細な変化を観察する力</li>
+        <li><strong>抑制制御</strong> — お題を直接言わず、曖昧に話す自制力</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="game-page">
+
+    <!-- ====== Setup Phase ====== -->
+    <div id="setupPhase">
+      <div class="setup-section">
+        <h4>プレイヤー</h4>
+        <div class="player-bar">
+          <input type="text" id="playerNameInput" placeholder="名前" maxlength="10"
+                 onkeydown="if(event.key==='Enter')addPlayer()">
+          <button class="btn btn-primary btn-small" onclick="addPlayer()">追加</button>
+        </div>
+        <div class="player-tags" id="playerList"></div>
+
+        <div class="options-row">
+          <div class="option-group">
+            <label>難易度</label>
+            <div class="option-pills" id="difficultyPills">
+              <button class="option-pill selected" data-value="easy" onclick="selectOption('difficulty', this)">かんたん</button>
+              <button class="option-pill" data-value="normal" onclick="selectOption('difficulty', this)">ふつう</button>
+              <button class="option-pill" data-value="hard" onclick="selectOption('difficulty', this)">むずかしい</button>
+            </div>
+          </div>
+          <div class="option-group">
+            <label>議論時間</label>
+            <div class="option-pills" id="timePills">
+              <button class="option-pill" data-value="120" onclick="selectOption('time', this)">2分</button>
+              <button class="option-pill selected" data-value="180" onclick="selectOption('time', this)">3分</button>
+              <button class="option-pill" data-value="300" onclick="selectOption('time', this)">5分</button>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn start-btn" onclick="startGame()">🐺 ゲーム開始！</button>
+      </div>
+    </div>
+
+    <!-- ====== Confirm Phase (pass-around) ====== -->
+    <div id="confirmPhase" style="display:none;">
+      <div class="phase-section">
+        <div class="round-counter" id="confirmRound"></div>
+        <div class="confirm-progress" id="confirmDots"></div>
+        <div class="confirm-instruction">スマホを渡してください</div>
+        <div class="confirm-player-name" id="confirmPlayerName"></div>
+
+        <div class="topic-card" id="confirmCard" onclick="revealMyTopic()">
+          <span class="tap-icon">🐺</span>
+          <span class="tap-text">タップでお題を確認</span>
+        </div>
+
+        <div id="confirmRevealed" style="display:none;">
+          <div class="topic-card" id="revealedCard">
+            <div class="role-icon" id="roleIcon"></div>
+            <div class="role-label" id="roleLabel"></div>
+            <div class="topic-word" id="myTopicWord"></div>
+            <div class="wolf-hint" id="wolfHint"></div>
+          </div>
+          <button class="btn btn-primary confirm-next-btn" onclick="confirmAndNext()">確認OK → 次の人へ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== Discussion Phase ====== -->
+    <div id="discussionPhase" style="display:none;">
+      <div class="phase-section">
+        <div class="round-counter" id="discussionRound"></div>
+        <div class="discussion-label">🗣️ 議論中！</div>
+        <div class="discussion-hint">お題について話し合い、ウルフを見つけよう</div>
+
+        <div class="timer-area" id="timerArea">
+          <svg viewBox="0 0 130 130">
+            <circle class="timer-bg" cx="65" cy="65" r="56"></circle>
+            <circle class="timer-fg" id="timerCircle" cx="65" cy="65" r="56"></circle>
+          </svg>
+          <div class="timer-text" id="timerText"></div>
+        </div>
+
+        <button class="btn btn-secondary end-discussion-btn" onclick="endDiscussion()">⏹ 議論終了 → 投票へ</button>
+      </div>
+    </div>
+
+    <!-- ====== Vote Phase ====== -->
+    <div id="votePhase" style="display:none;">
+      <div class="phase-section">
+        <div class="vote-progress" id="voteProgress"></div>
+        <div class="confirm-instruction">スマホを渡してください</div>
+        <div class="vote-player-name" id="votePlayerName"></div>
+        <div class="vote-instruction">ウルフだと思う人をタップ！</div>
+        <div class="vote-grid" id="voteGrid"></div>
+        <button class="btn btn-primary vote-confirm-btn" id="voteConfirmBtn" style="display:none;" onclick="confirmVoteAndNext()">投票する → 次の人へ</button>
+      </div>
+    </div>
+
+    <!-- ====== Result Phase ====== -->
+    <div id="resultPhase" style="display:none;">
+      <div class="phase-section result-section">
+        <div class="result-icon" id="resultIcon"></div>
+        <div class="result-title" id="resultTitle"></div>
+        <div class="result-wolf-reveal" id="resultWolfReveal"></div>
+        <div class="result-topics" id="resultTopics"></div>
+        <div class="vote-summary" id="voteSummary"></div>
+        <button class="btn btn-primary next-round-btn" onclick="nextRound()">次のラウンドへ →</button>
+      </div>
+    </div>
+
+    <!-- ====== Scoreboard ====== -->
+    <div class="score-section" id="scoreboard" style="display:none;">
+      <h4>Score</h4>
+      <div class="score-list" id="scoreRows"></div>
+    </div>
+
+    <!-- ====== Log ====== -->
+    <div class="log-section" id="answerLog" style="display:none;">
+      <div class="log-header">
+        <h4>Log</h4>
+        <button class="clear-log-btn" onclick="clearAllLogs()">消去</button>
+      </div>
+      <div id="logEntries"></div>
+    </div>
+
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
