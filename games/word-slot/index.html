@@ -2,128 +2,285 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ワードスロット - Party Games</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../css/style.css">
   <style>
-    .game-rules {
-      background: var(--surface);
-      border-radius: var(--radius);
-      padding: 1.2rem 1.5rem;
-      margin-bottom: 1.5rem;
-      font-size: .85rem;
-      color: var(--text-muted);
-      line-height: 1.8;
-    }
-    .game-rules summary {
-      cursor: pointer;
-      font-weight: 600;
-      color: var(--text);
-      font-size: .95rem;
-    }
-    .game-rules ul { margin: .5rem 0 0 1.2rem; }
+    body { overflow-x: hidden; }
 
-    .slot-area { flex-direction: column; }
-    .slot-row { display: flex; gap: 1.5rem; justify-content: center; }
-    .slot-hint {
-      font-size: 1.1rem;
+    /* --- Top Bar --- */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .5rem 1rem;
+      background: var(--surface);
+      border-bottom: 2px solid var(--primary);
+    }
+    .top-bar .title {
+      font-size: .85rem;
+      font-weight: 600;
       color: var(--text-muted);
-      margin-top: .5rem;
-      min-height: 1.5em;
+    }
+    .top-bar .title a { color: var(--text-muted); }
+    .top-bar .title span { color: var(--text); font-weight: 900; }
+    .top-bar-actions { display: flex; gap: .4rem; align-items: center; }
+    .icon-btn {
+      background: none;
+      border: 1px solid #555;
+      color: var(--text-muted);
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      font-size: .8rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: inherit;
+    }
+    .icon-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* --- Compact Game Container --- */
+    .game-page {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: .5rem .75rem;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      min-height: calc(100vh - 44px);
+    }
+
+    /* --- Player Setup (inline) --- */
+    .player-bar {
+      display: flex;
+      gap: .4rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .player-bar input {
+      padding: .3rem .6rem;
+      font-size: .85rem;
+      border-radius: 8px;
+      width: 100px;
+      min-width: 0;
+    }
+    .player-bar .btn { padding: .3rem .6rem; font-size: .8rem; }
+    .player-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .3rem;
+    }
+    .player-tags .player-tag { font-size: .75rem; padding: .15rem .5rem; }
+
+    /* --- Slot Area (compact) --- */
+    .slot-section {
+      text-align: center;
+    }
+    .round-info {
+      font-size: .75rem;
+      color: var(--text-muted);
+      margin-bottom: .2rem;
+    }
+    .slot-row {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      align-items: center;
+    }
+    .slot-box {
+      width: 100px;
+      height: 100px;
+      background: var(--surface);
+      border: 3px solid var(--primary);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      font-weight: 900;
+      position: relative;
+    }
+    .slot-box .slot-label {
+      position: absolute;
+      top: 3px; left: 6px;
+      font-size: .55rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+    .slot-box.spinning .slot-value {
+      animation: slotSpin .08s steps(1) infinite;
+    }
+    @keyframes slotSpin { 0%{opacity:1} 50%{opacity:.6} 100%{opacity:1} }
+
+    .slot-hint {
+      font-size: .95rem;
+      color: var(--text-muted);
+      margin-top: .3rem;
+      min-height: 1.3em;
     }
     .slot-hint strong { color: var(--primary); }
 
-    .controls { text-align: center; margin: 1.5rem 0; }
-    .controls .btn { min-width: 200px; }
+    .spin-btn {
+      margin-top: .4rem;
+      padding: .5rem 2rem;
+      font-size: 1rem;
+    }
 
+    /* --- Answer Section (always visible after first spin) --- */
     .answer-section {
       background: var(--surface);
       border-radius: var(--radius);
-      padding: 1.5rem;
-      margin-top: 1.5rem;
+      padding: .6rem .8rem;
     }
-    .answer-section h3 { margin-bottom: .8rem; }
     .answer-form {
       display: flex;
-      gap: .5rem;
+      gap: .4rem;
       flex-wrap: wrap;
     }
-    .answer-form select { flex: 0 1 auto; min-width: 0; max-width: 100%; }
-    .answer-form input[type="text"] { flex: 1 1 120px; min-width: 0; }
-    .answer-form .btn { flex-shrink: 0; }
-    .furigana-row {
-      display: flex;
-      gap: .5rem;
-      align-items: center;
-      margin-top: .5rem;
+    .answer-form select {
+      flex: 0 1 auto;
+      min-width: 0;
+      max-width: 100%;
+      padding: .4rem .5rem;
       font-size: .85rem;
     }
-    .furigana-row label { flex-shrink: 0; color: var(--text-muted); }
-    .furigana-row input { flex: 1; min-width: 0; font-size: .9rem; }
-    .furigana-row .char-count { flex-shrink: 0; color: var(--primary); font-weight: 700; min-width: 3em; text-align: right; }
-    @media (max-width: 480px) {
-      .answer-form { flex-direction: column; }
-      .answer-form select, .answer-form input[type="text"] { width: 100%; }
+    .answer-form input[type="text"] {
+      flex: 1 1 100px;
+      min-width: 0;
+      padding: .4rem .5rem;
+      font-size: .85rem;
     }
+    .answer-form .btn {
+      padding: .4rem .8rem;
+      font-size: .85rem;
+      flex-shrink: 0;
+    }
+    .furigana-row {
+      display: flex;
+      gap: .4rem;
+      align-items: center;
+      margin-top: .3rem;
+      font-size: .8rem;
+    }
+    .furigana-row label { flex-shrink: 0; color: var(--text-muted); }
+    .furigana-row input { flex: 1; min-width: 0; padding: .3rem .5rem; font-size: .8rem; }
+    .furigana-row .char-count { flex-shrink: 0; color: var(--primary); font-weight: 700; }
 
     .validation-result {
-      margin-top: .8rem;
-      padding: .6rem 1rem;
-      border-radius: var(--radius);
-      font-size: .9rem;
+      margin-top: .4rem;
+      padding: .4rem .6rem;
+      border-radius: 8px;
+      font-size: .8rem;
       display: none;
     }
     .validation-result.show { display: block; }
     .validation-result.ok { background: rgba(76,175,80,.15); border: 1px solid #4caf50; }
     .validation-result.ng { background: rgba(233,69,96,.15); border: 1px solid var(--primary); }
 
-    .round-info {
-      text-align: center;
-      font-size: .9rem;
+    @media (max-width: 400px) {
+      .answer-form { flex-direction: column; }
+      .answer-form select, .answer-form input[type="text"] { width: 100%; }
+    }
+
+    /* --- Scoreboard (compact horizontal) --- */
+    .score-section {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: .5rem .8rem;
+    }
+    .score-section h4 {
+      font-size: .7rem;
       color: var(--text-muted);
-      margin-bottom: .5rem;
+      margin-bottom: .3rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
     }
-
-    .timer-bar {
-      height: 4px;
-      background: var(--surface2);
-      border-radius: 2px;
-      margin-top: .5rem;
-      overflow: hidden;
+    .score-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .3rem .8rem;
     }
-    .timer-bar .fill {
-      height: 100%;
-      background: var(--primary);
-      transition: width .1s linear;
-      width: 100%;
-    }
-
-    /* Log entry actions */
-    .log-entry { position: relative; }
-    .log-actions {
+    .score-item {
+      font-size: .8rem;
       display: flex;
       gap: .3rem;
+      align-items: center;
+    }
+    .score-item .name { font-weight: 600; }
+    .score-item .pts { color: var(--primary); font-weight: 700; }
+
+    /* --- Log (compact) --- */
+    .log-section {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: .5rem .8rem;
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+    }
+    .log-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: .3rem;
+    }
+    .log-header h4 {
+      font-size: .7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .clear-log-btn {
+      background: none;
+      border: 1px solid #555;
+      color: var(--text-muted);
+      border-radius: 6px;
+      padding: .1rem .4rem;
+      font-size: .65rem;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .clear-log-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    .log-entry {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: .3rem;
+      padding: .25rem 0;
+      border-bottom: 1px solid #2a2a3a;
+      font-size: .75rem;
+      flex-wrap: wrap;
+    }
+    .log-entry:last-child { border-bottom: none; }
+    .log-actions {
+      display: flex;
+      gap: .2rem;
       flex-shrink: 0;
     }
     .log-actions button {
       background: none;
       border: 1px solid #555;
       color: var(--text-muted);
-      border-radius: 6px;
-      padding: .15rem .4rem;
-      font-size: .7rem;
+      border-radius: 4px;
+      padding: .1rem .3rem;
+      font-size: .6rem;
       cursor: pointer;
       font-family: inherit;
     }
     .log-actions button:hover { border-color: var(--primary); color: var(--primary); }
+    .log-entry .valid { color: #4caf50; }
+    .log-entry .invalid { color: var(--primary); }
+    .log-entry .reason { font-size: .65rem; color: var(--text-muted); }
 
-    /* Log edit form */
+    /* Log edit */
     .log-edit-form {
-      padding: .6rem 0;
+      padding: .4rem 0;
       border-bottom: 1px solid #333;
-      font-size: .85rem;
+      font-size: .8rem;
     }
     .log-edit-row {
       display: flex;
@@ -131,23 +288,21 @@
       align-items: center;
       flex-wrap: wrap;
     }
-    .log-edit-row + .log-edit-row { margin-top: .3rem; }
     .log-edit-form select, .log-edit-form input {
-      padding: .3rem .5rem;
-      font-size: .85rem;
+      padding: .2rem .4rem;
+      font-size: .8rem;
       border-radius: 6px;
       min-width: 0;
     }
-    .log-edit-form input { flex: 1; min-width: 80px; }
-    .log-edit-form select { flex: 0 1 auto; }
+    .log-edit-form input { flex: 1; min-width: 60px; }
     .log-edit-buttons {
       display: flex;
-      gap: .3rem;
-      margin-top: .4rem;
+      gap: .2rem;
+      margin-top: .3rem;
     }
     .log-edit-buttons button {
-      padding: .35rem .8rem;
-      font-size: .8rem;
+      padding: .2rem .6rem;
+      font-size: .7rem;
       border-radius: 6px;
       border: none;
       cursor: pointer;
@@ -157,60 +312,87 @@
     .log-edit-buttons .save-btn { background: #4caf50; color: #fff; }
     .log-edit-buttons .cancel-btn { background: #555; color: #fff; }
 
-    /* Clear all button */
-    .log-header {
-      display: flex;
-      justify-content: space-between;
+    /* --- Help Modal --- */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.7);
+      z-index: 100;
       align-items: center;
-      margin-bottom: .8rem;
+      justify-content: center;
+      padding: 1rem;
     }
-    .log-header h3 { margin-bottom: 0; }
-    .clear-log-btn {
+    .modal-overlay.show { display: flex; }
+    .modal-box {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      max-width: 400px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    .modal-box h3 { margin-bottom: .8rem; }
+    .modal-box ul { margin: 0 0 0 1.2rem; line-height: 1.8; font-size: .85rem; color: var(--text-muted); }
+    .modal-close {
+      position: absolute;
+      top: .5rem; right: .8rem;
       background: none;
-      border: 1px solid #555;
+      border: none;
       color: var(--text-muted);
-      border-radius: 6px;
-      padding: .2rem .6rem;
-      font-size: .75rem;
+      font-size: 1.2rem;
       cursor: pointer;
-      font-family: inherit;
     }
-    .clear-log-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* --- Mobile fine-tune --- */
+    @media (max-width: 480px) {
+      .slot-box { width: 85px; height: 85px; font-size: 1.8rem; }
+      .slot-row { gap: .7rem; }
+      .game-page { padding: .4rem .5rem; }
+    }
   </style>
 </head>
 <body>
-  <header class="site-header">
-    <a href="../../index.html"><h1>Party Games</h1></a>
-    <p class="subtitle">ワードスロット</p>
-  </header>
 
-  <div class="game-container">
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="title"><a href="../../index.html">Party Games</a> / <span>ワードスロット</span></div>
+    <div class="top-bar-actions">
+      <button class="icon-btn" onclick="document.getElementById('helpModal').classList.add('show')" title="遊び方">?</button>
+    </div>
+  </div>
 
-    <details class="game-rules">
-      <summary>遊び方</summary>
+  <!-- Help Modal -->
+  <div class="modal-overlay" id="helpModal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="document.getElementById('helpModal').classList.remove('show')">&times;</button>
+      <h3>遊び方</h3>
       <ul>
         <li>「スロット回す！」を押すと、<strong>文字数</strong>と<strong>頭文字</strong>がランダムに決まります</li>
         <li>条件に合う単語を最速で叫んだ人が勝ち！</li>
-        <li>回答者を選んで単語を入力すると、記録＆辞書チェックされます</li>
+        <li>回答者を選んで単語を入力 → 辞書チェックされます</li>
         <li>文字数「11+」は11文字以上ならOK</li>
         <li>辞書の単語、人名、作品名、ことわざなどOK。文章はNG</li>
+        <li>漢字で入力する場合はふりがなも入力してください（文字数カウントに使います）</li>
       </ul>
-    </details>
+    </div>
+  </div>
+
+  <div class="game-page">
 
     <!-- Player Setup -->
-    <div class="player-setup" id="playerSetup">
-      <h3>プレイヤー登録</h3>
-      <div class="input-row">
-        <input type="text" id="playerNameInput" placeholder="名前を入力" maxlength="10"
-               onkeydown="if(event.key==='Enter')addPlayer()">
-        <button class="btn btn-primary btn-small" onclick="addPlayer()">追加</button>
-      </div>
-      <div class="player-list" id="playerList"></div>
+    <div class="player-bar">
+      <input type="text" id="playerNameInput" placeholder="名前" maxlength="10"
+             onkeydown="if(event.key==='Enter')addPlayer()">
+      <button class="btn btn-primary btn-small" onclick="addPlayer()">追加</button>
+      <div class="player-tags" id="playerList"></div>
     </div>
 
-    <!-- Slot Machine -->
-    <div class="round-info" id="roundInfo"></div>
-    <div class="slot-area">
+    <!-- Slot -->
+    <div class="slot-section">
+      <div class="round-info" id="roundInfo"></div>
       <div class="slot-row">
         <div class="slot-box" id="slotNumber">
           <span class="slot-label">文字数</span>
@@ -222,28 +404,22 @@
         </div>
       </div>
       <div class="slot-hint" id="slotHint"></div>
+      <button class="btn btn-primary spin-btn" id="spinBtn" onclick="spin()">スロット回す！</button>
     </div>
 
-    <div class="controls">
-      <button class="btn btn-primary btn-large" id="spinBtn" onclick="spin()">
-        スロット回す！
-      </button>
-    </div>
-
-    <!-- Answer Section -->
+    <!-- Answer -->
     <div class="answer-section" id="answerSection" style="display:none;">
-      <h3>回答入力</h3>
       <div class="answer-form">
         <select id="answerPlayer">
-          <option value="" disabled selected>回答者を選択</option>
+          <option value="" disabled selected>回答者</option>
         </select>
         <input type="text" id="answerWord" placeholder="単語を入力"
                oninput="onWordInput()" onkeydown="if(event.key==='Enter')submitAnswer()">
         <button class="btn btn-primary" onclick="submitAnswer()">回答！</button>
       </div>
       <div class="furigana-row" id="furiganaRow" style="display:none;">
-        <label>ふりがな:</label>
-        <input type="text" id="answerReading" placeholder="ひらがなで入力"
+        <label>読み:</label>
+        <input type="text" id="answerReading" placeholder="ひらがな"
                oninput="onReadingInput()" onkeydown="if(event.key==='Enter')submitAnswer()">
         <span class="char-count" id="charCount"></span>
       </div>
@@ -251,16 +427,16 @@
     </div>
 
     <!-- Scoreboard -->
-    <div class="scoreboard" id="scoreboard" style="display:none;">
-      <h3>スコアボード</h3>
-      <div id="scoreRows"></div>
+    <div class="score-section" id="scoreboard" style="display:none;">
+      <h4>Score</h4>
+      <div class="score-list" id="scoreRows"></div>
     </div>
 
-    <!-- Answer Log -->
-    <div class="answer-log" id="answerLog" style="display:none;">
+    <!-- Log -->
+    <div class="log-section" id="answerLog" style="display:none;">
       <div class="log-header">
-        <h3>回答ログ</h3>
-        <button class="clear-log-btn" onclick="clearAllLogs()">全ログ消去</button>
+        <h4>Log</h4>
+        <button class="clear-log-btn" onclick="clearAllLogs()">消去</button>
       </div>
       <div id="logEntries"></div>
     </div>
