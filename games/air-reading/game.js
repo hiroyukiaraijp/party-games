@@ -95,13 +95,15 @@ function beginRound(){
 
 function updateInputUI(){
   const p=inputOrder[inputIndex];
-  $('inputPlayer').textContent=`${p} の番`;
-  $('slider').value=50;
-  $('sliderValue').textContent='50';
-  $('inputDots').innerHTML=inputOrder.map((_,i)=>{
-    const cls=i<inputIndex?'done':i===inputIndex?'current':'';
-    return `<div class="confirm-dot ${cls}"></div>`;
-  }).join('');
+  showBlindScreen('スマホを渡してください', p + ' の番', function() {
+    $('inputPlayer').textContent=`${p} の番`;
+    $('slider').value=50;
+    $('sliderValue').textContent='50';
+    $('inputDots').innerHTML=inputOrder.map((_,i)=>{
+      const cls=i<inputIndex?'done':i===inputIndex?'current':'';
+      return `<div class="confirm-dot ${cls}"></div>`;
+    }).join('');
+  });
 }
 
 function updateSlider(){

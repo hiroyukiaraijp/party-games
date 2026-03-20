@@ -179,26 +179,29 @@ function playerFailed() {
   }, 1500);
 }
 
-function endGame(winner) {
+function endGame() {
   showPhase('resultPhase');
 
-  if (winner) {
-    scores[winner] = (scores[winner] || 0) + 3; // bonus
-  }
-
   document.getElementById('resultIcon').textContent = '🔔';
-  document.getElementById('resultTitle').textContent = winner ? `${winner} が最後まで生き残った！` : 'ゲーム終了！';
+  document.getElementById('resultTitle').textContent = 'ゲーム終了！';
   let html = `チェイン長: <strong>${sequence.length}</strong><br>`;
-  if (winner) html += `<strong>${esc(winner)}</strong> にボーナス +3pt<br>`;
   html += `全員にチェイン分の得点が加算されました`;
+  if (typeof renderBestBadge === 'function') {
+    html += renderBestBadge('rhythm-relay', sequence.length);
+  }
   document.getElementById('resultDetails').innerHTML = html;
+
+  if (typeof renderGameRecommendation === 'function') {
+    const recEl = renderGameRecommendation('rhythm-relay');
+    if (recEl) document.getElementById('resultDetails').insertAdjacentHTML('beforeend', recEl);
+  }
 
   if (sequence.length >= 8) {
     const rect = document.getElementById('resultTitle').getBoundingClientRect();
     emitParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
   }
 
-  logs.unshift({ timestamp: new Date().toISOString(), round, chainLength: sequence.length, winner, playerCount: players.length });
+  logs.unshift({ timestamp: new Date().toISOString(), round, chainLength: sequence.length, playerCount: players.length });
   renderScoreboard(); renderLog(); saveState();
 }
 
@@ -217,7 +220,7 @@ function renderLog() {
   if (logs.length === 0) { $answerLog.style.display = 'none'; return; }
   $answerLog.style.display = '';
   $logEntries.innerHTML = logs.slice(0, 8).map(l =>
-    `<div class="log-entry"><span>R${l.round} チェイン${l.chainLength}</span><span>${l.winner ? '👑' + esc(l.winner) : '-'}</span></div>`
+    `<div class="log-entry"><span>R${l.round} チェイン${l.chainLength}</span><span>${l.playerCount}人</span></div>`
   ).join('');
 }
 function clearAllLogs() { showToast('リセットしました'); logs = []; round = 0; for (const p of players) scores[p] = 0; renderScoreboard(); renderLog(); saveState(); }

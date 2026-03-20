@@ -93,4 +93,17 @@ body { overflow-x: hidden; }
 .modal-box ul { margin: 0 0 0 1.2rem; line-height: 1.8; font-size: .85rem; color: var(--text-muted); }
 .modal-close { position: absolute; top: .5rem; right: .8rem; background: none; border: none; color: var(--text-muted); font-size: 1.4rem; cursor: pointer; }
 
+/* Shake animation for wrong answer */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-12px); }
+  40% { transform: translateX(10px); }
+  60% { transform: translateX(-8px); }
+  80% { transform: translateX(6px); }
+}
+.stroop-word.shake { animation: shake .4s ease; }
+
+/* Smooth transition for button flash */
+.color-btn { transition: transform .1s, background .15s; }
+
 @media (max-width: 480px) { .stroop-word { font-size: 3rem; } }
