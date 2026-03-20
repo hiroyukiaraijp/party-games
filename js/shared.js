@@ -107,3 +107,27 @@ function updateDDALevel(gameId, correct) {
   } catch {}
   return level;
 }
+
+// ========== 5. Session Player UI (ゲーム内プレイヤー管理) ==========
+// セッションメンバーからプレイヤーを選択/除外。新規追加は名前+生年月日が必要。
+// Usage: initSessionPlayerUI('playerList', 'playerNameInput', players, scores, callbacks)
+
+function getSessionMemberNames() {
+  try {
+    const sp = JSON.parse(localStorage.getItem('asobi_session_players') || '[]');
+    return sp.map(p => p.name);
+  } catch { return []; }
+}
+
+// Replace the game's addPlayer to use session-aware version
+function initSessionPlayers(playersRef, scoresRef) {
+  const sessionNames = getSessionMemberNames();
+  if (sessionNames.length > 0 && playersRef.length === 0) {
+    sessionNames.forEach(name => {
+      if (!playersRef.includes(name)) {
+        playersRef.push(name);
+        scoresRef[name] = scoresRef[name] || 0;
+      }
+    });
+  }
+}
