@@ -26,11 +26,11 @@
       <button class="modal-close" onclick="document.getElementById('helpModal').classList.remove('show')">&times;</button>
       <h3 data-ruby>遊び方</h3>
       <ul>
-        <li data-ruby>カテゴリに合う<strong>言葉</strong>を声に出して言い、ボタンをタップ！</li>
+        <li data-ruby>カテゴリに合う<strong>言葉</strong>を入力して送信！</li>
         <li data-ruby><strong>みんなで</strong>: 爆弾が爆発する前に次の人へ渡そう</li>
-        <li data-ruby>同じ言葉が出たら「ドカン！」ボタンで<strong>-1pt</strong></li>
+        <li data-ruby>同じ言葉を入力すると自動で<strong>-1pt</strong></li>
         <li data-ruby>爆発時に持っていた人も<strong>-1pt</strong></li>
-        <li data-ruby><strong>ソロ</strong>: 30秒で何個言えるかチャレンジ！</li>
+        <li data-ruby><strong>ソロ</strong>: 60秒で何個入力できるかチャレンジ！</li>
       </ul>
       <h3 data-ruby style="margin-top:1rem;">鍛えられる力</h3>
       <ul>
@@ -80,8 +80,10 @@
         <div class="solo-counter" id="soloCounter" style="display:none;">
           <span id="soloCount">0</span>
         </div>
-        <button class="tap-btn" id="tapBtn" onclick="onTap()">💣 タップ！</button>
-        <button class="boom-btn" id="boomBtn" onclick="onBoom()" style="display:none;">💥 ドカン！（被った）</button>
+        <form class="word-input-form" id="wordForm" onsubmit="onWordSubmit(event)" autocomplete="off">
+          <input type="text" id="wordInput" placeholder="ことばを入力…" enterkeyhint="send">
+          <button type="submit" class="tap-btn" id="tapBtn">送信</button>
+        </form>
       </div>
     </div>
 

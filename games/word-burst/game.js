@@ -68,7 +68,7 @@ let totalRounds = 3;
 let roundPlayers = [];
 let currentPlayerIndex = 0;
 let currentCategory = '';
-let wordsUsed = []; // displayed word tags
+let wordsUsed = []; // actual words typed
 let wordsPerPlayer = {}; // { name: count }
 let timerDuration = 0;
 let timerLeft = 0;
@@ -205,8 +205,9 @@ function startSoloRound() {
   currentCategory = pickCategory();
   soloCount = 0;
   soloTapTimes = [];
-  timerDuration = 30000;
-  timerLeft = 30;
+  wordsUsed = [];
+  timerDuration = 60000;
+  timerLeft = 60;
   roundStartTime = Date.now();
 
   gameActive = true;
@@ -219,16 +220,17 @@ function startSoloRound() {
   document.getElementById('wordTags').style.display = 'none';
   document.getElementById('soloCounter').style.display = '';
   document.getElementById('soloCount').textContent = '0';
-  document.getElementById('tapBtn').textContent = 'タップ！';
-  document.getElementById('boomBtn').style.display = 'none';
+  document.getElementById('tapBtn').textContent = '送信';
+  document.getElementById('wordInput').value = '';
+  document.getElementById('wordInput').disabled = false;
   document.getElementById('fuseFill').style.width = '100%';
   document.getElementById('fuseFill').className = 'fuse-fill';
-  document.getElementById('timerText').textContent = '残り 30秒';
+  document.getElementById('timerText').textContent = '残り 60秒';
 
   clearInterval(timerInterval);
   timerInterval = setInterval(() => {
     timerLeft--;
-    const pct = Math.max(0, (timerLeft / 30) * 100);
+    const pct = Math.max(0, (timerLeft / 60) * 100);
     document.getElementById('fuseFill').style.width = pct + '%';
     if (timerLeft <= 10) document.getElementById('fuseFill').className = 'fuse-fill danger';
     document.getElementById('timerText').textContent = `残り ${timerLeft}秒`;
@@ -243,6 +245,7 @@ function startSoloRound() {
 
 function endSoloRound() {
   gameActive = false;
+  document.getElementById('wordInput').disabled = true;
   const player = roundPlayers[0];
   scores[player] = (scores[player] || 0) + soloCount;
 
@@ -255,7 +258,7 @@ function endSoloRound() {
     timestamp: new Date().toISOString(), round,
     player, category: currentCategory,
     wordCount: soloCount, tapIntervals: soloTapTimes,
-    duration: 30000,
+    duration: 60000,
   });
 
   // Save play log
@@ -284,7 +287,7 @@ function startMultiRound() {
   wordsPerPlayer = {};
   for (const p of roundPlayers) wordsPerPlayer[p] = 0;
   currentPlayerIndex = 0;
-  timerDuration = 30000 + Math.floor(Math.random() * 30001); // 30-60s
+  timerDuration = 60000 + Math.floor(Math.random() * 60001); // 60-120s
   timerLeft = Math.ceil(timerDuration / 1000);
   roundStartTime = Date.now();
 
@@ -295,10 +298,11 @@ function startMultiRound() {
   document.getElementById('bombIcon').className = 'bomb';
   document.getElementById('currentPlayerName').textContent = roundPlayers[currentPlayerIndex];
   document.getElementById('wordTags').innerHTML = '';
-  document.getElementById('wordTags').style.display = '';
+  document.getElementById('wordTags').style.display = 'none';
   document.getElementById('soloCounter').style.display = 'none';
-  document.getElementById('tapBtn').textContent = '💣 タップ！';
-  document.getElementById('boomBtn').style.display = '';
+  document.getElementById('tapBtn').textContent = '送信';
+  document.getElementById('wordInput').value = '';
+  document.getElementById('wordInput').disabled = false;
   const totalSec = Math.ceil(timerDuration / 1000);
   document.getElementById('fuseFill').style.width = '100%';
   document.getElementById('fuseFill').className = 'fuse-fill';
@@ -325,15 +329,17 @@ function startMultiRound() {
 function multiExplode(isDuplicate) {
   gameActive = false;
   const explodedPlayer = roundPlayers[currentPlayerIndex];
-  scores[explodedPlayer] = (scores[explodedPlayer] || 0) - 1;
+  const penalty = isDuplicate ? -1 : -10;
+  scores[explodedPlayer] = (scores[explodedPlayer] || 0) + penalty;
 
   // Show explosion overlay
   playBuzz();
   const overlay = document.getElementById('explosionOverlay');
   document.getElementById('explosionPlayer').textContent = isDuplicate
-    ? `${explodedPlayer} - 被り！ -1pt`
-    : `${explodedPlayer} - 爆発！ -1pt`;
+    ? `${explodedPlayer} - 被り！ ${penalty}pt`
+    : `${explodedPlayer} - 爆発！ ${penalty}pt`;
   overlay.style.display = 'flex';
+  document.getElementById('wordInput').disabled = true;
 
   // Particles
   emitParticles(window.innerWidth / 2, window.innerHeight / 2);
@@ -343,6 +349,9 @@ function multiExplode(isDuplicate) {
     setTimeout(() => {
       overlay.style.display = 'none';
       gameActive = true;
+      document.getElementById('wordInput').disabled = false;
+      document.getElementById('wordInput').value = '';
+      document.getElementById('wordInput').focus();
       advanceMultiPlayer();
     }, 1500);
   } else {
@@ -391,10 +400,33 @@ function endMultiRound(explodedPlayer) {
   renderScoreboard(); renderLog(); saveState();
 }
 
-// ==================== TAP HANDLERS ====================
-function onTap() {
+// ==================== INPUT HANDLER ====================
+function onWordSubmit(e) {
+  e.preventDefault();
   if (!gameActive) return;
+
+  const $input = document.getElementById('wordInput');
+  const word = $input.value.trim();
+  if (!word) return;
+
+  // Normalize for duplicate check (lowercase, katakana→hiragana)
+  const normalized = word.toLowerCase().replace(/[\u30A1-\u30F6]/g, ch =>
+    String.fromCharCode(ch.charCodeAt(0) - 0x60)
+  );
+
+  const isDuplicate = wordsUsed.some(w => w.normalized === normalized);
+
   if (gameMode === 'solo') {
+    if (isDuplicate) {
+      // Shake input, don't count
+      $input.classList.add('shake');
+      setTimeout(() => $input.classList.remove('shake'), 300);
+      playBuzz();
+      showToast('もう出た言葉です！');
+      $input.value = '';
+      return;
+    }
+
     soloCount++;
     const now = Date.now();
     if (soloTapTimes.length > 0) {
@@ -402,33 +434,31 @@ function onTap() {
     } else {
       soloTapTimes.push(now - roundStartTime);
     }
+    wordsUsed.push({ word, normalized });
+
     document.getElementById('soloCount').textContent = soloCount;
     playBeep(600 + soloCount * 10, 60);
-    // Pulse animation
     const counter = document.getElementById('soloCount');
     counter.style.transform = 'scale(1.2)';
     setTimeout(() => { counter.style.transform = ''; }, 100);
   } else {
-    // Multi: record word for current player, advance
+    // Multi mode
     const player = roundPlayers[currentPlayerIndex];
+
+    if (isDuplicate) {
+      $input.value = '';
+      multiExplode(true);
+      return;
+    }
+
     wordsPerPlayer[player] = (wordsPerPlayer[player] || 0) + 1;
-    const wordNum = wordsUsed.length + 1;
-    wordsUsed.push(wordNum);
-    // Add word tag
-    const tag = document.createElement('span');
-    tag.className = 'word-tag';
-    tag.textContent = `${player}: #${wordNum}`;
-    document.getElementById('wordTags').appendChild(tag);
+    wordsUsed.push({ word, normalized });
     playBeep(800, 60);
     advanceMultiPlayer();
   }
-}
 
-function onBoom() {
-  // Only in multi mode: current player said a duplicate word
-  if (gameMode !== 'multi') return;
-  if (!gameActive) return;
-  multiExplode(true);
+  $input.value = '';
+  $input.focus();
 }
 
 // ==================== ROUND/FINAL RESULTS ====================

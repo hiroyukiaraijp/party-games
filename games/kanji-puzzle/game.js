@@ -366,7 +366,6 @@ function startProblem() {
     }
   }, 1000);
 
-  document.getElementById('answerInput').focus();
 }
 
 function scatterParts(parts) {

@@ -91,30 +91,50 @@ body { overflow-x: hidden; }
   background-clip: text;
 }
 
-/* --- Tap Button --- */
+/* --- Word Input Form --- */
+.word-input-form {
+  display: flex; gap: .4rem; margin-top: .8rem;
+}
+.word-input-form input {
+  flex: 1; padding: .8rem 1rem; font-size: 1.1rem; font-weight: 700;
+  border: 3px solid var(--surface2); border-radius: 16px;
+  background: var(--surface); color: var(--text);
+  font-family: inherit; outline: none;
+  transition: border-color .15s;
+}
+.word-input-form input:focus {
+  border-color: #EC4899;
+}
+.word-input-form input.shake {
+  animation: input-shake .3s ease;
+}
+@keyframes input-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+/* --- Tap Button (submit) --- */
 .tap-btn {
-  display: block; width: 100%; padding: 1.2rem; margin-top: .8rem;
-  font-size: 1.4rem; font-weight: 900; border: none; border-radius: 20px;
+  padding: .8rem 1.2rem; flex-shrink: 0;
+  font-size: 1.1rem; font-weight: 900; border: none; border-radius: 16px;
   background: linear-gradient(135deg, #EC4899, #F97316); color: #fff;
   cursor: pointer; font-family: inherit;
-  box-shadow: 0 6px 20px rgba(236,72,153,.3);
+  box-shadow: 0 4px 14px rgba(236,72,153,.3);
   transition: transform .1s;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
 .tap-btn:active { transform: scale(.95); }
 
-/* --- Boom Button --- */
-.boom-btn {
-  display: block; width: 100%; padding: .6rem; margin-top: .5rem;
-  font-size: .9rem; font-weight: 700; border: none; border-radius: 14px;
-  background: #fecaca; color: #dc2626;
-  cursor: pointer; font-family: inherit;
-  transition: transform .1s;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
+/* --- Duplicate flash --- */
+.word-tag.duplicate {
+  background: #fecaca; color: #dc2626; animation: dup-flash .5s ease;
 }
-.boom-btn:active { transform: scale(.95); }
+@keyframes dup-flash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .4; }
+}
 
 /* --- Explosion Overlay --- */
 .explosion-overlay {
