@@ -43,14 +43,14 @@
   <div class="game-page">
     <div id="setupPhase">
       <div class="setup-section">
-        <h4>プレイヤー</h4>
+        <h4 data-ruby>プレイヤー</h4>
         <div id="playerList"></div>
         <div class="options-row">
           <div class="option-group">
             <label>モード</label>
             <div class="option-pills" id="modePills">
-              <button class="option-pill" data-value="solo" onclick="selectOption('mode',this)">ソロ</button>
-              <button class="option-pill selected" data-value="multi" onclick="selectOption('mode',this)">みんなで</button>
+              <button class="option-pill" data-value="solo" onclick="selectOption('mode',this)" data-ruby>ソロ</button>
+              <button class="option-pill selected" data-value="multi" onclick="selectOption('mode',this)" data-ruby>みんなで</button>
             </div>
           </div>
           <div class="option-group">
@@ -97,7 +97,7 @@
         <div class="result-icon" id="roundResultIcon"></div>
         <div class="result-title" id="roundResultTitle"></div>
         <div class="result-details" id="roundResultDetails"></div>
-        <button class="btn btn-primary next-btn" id="nextRoundBtn" onclick="nextRound()">次のラウンドへ</button>
+        <button class="btn btn-primary next-btn" id="nextRoundBtn" onclick="nextRound()" data-ruby>次のラウンドへ</button>
       </div>
     </div>
 
@@ -108,7 +108,7 @@
         <div class="result-title" id="resultTitle"></div>
         <div class="result-details" id="resultDetails"></div>
         <div id="resultExtra"></div>
-        <button class="btn btn-primary next-btn" onclick="backToSetup()">もう1回！</button>
+        <button class="btn btn-primary next-btn" onclick="backToSetup()" data-ruby>もう1回！</button>
       </div>
     </div>
 
@@ -117,7 +117,7 @@
       <div class="score-list" id="scoreRows"></div>
     </div>
     <div class="log-section" id="answerLog" style="display:none;">
-      <div class="log-header"><h4>Log</h4><button class="clear-log-btn" onclick="clearAllLogs()">消去</button></div>
+      <div class="log-header"><h4>Log</h4><button class="clear-log-btn" onclick="clearAllLogs()" data-ruby>消去</button></div>
       <div id="logEntries"></div>
     </div>
   </div>

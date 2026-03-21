@@ -15,7 +15,7 @@
   <div class="particle-container" id="particles"></div>
 
   <div class="top-bar">
-    <div class="title"><a href="../../games.html">asobi.dev</a> / <span>カラーパニック</span></div>
+    <div class="title"><a href="../../games.html">asobi.dev</a> / <span data-ruby>カラーパニック</span></div>
     <div class="top-bar-actions">
       <button class="icon-btn" onclick="document.getElementById('helpModal').classList.add('show')">?</button>
     </div>
@@ -44,7 +44,7 @@
   <div class="game-page">
     <div id="setupPhase">
       <div class="setup-section">
-        <h4>プレイヤー</h4>
+        <h4 data-ruby>プレイヤー</h4>
         <div id="playerList"></div>
         <div class="options-row">
           <div class="option-group">
@@ -87,7 +87,7 @@
         <div class="result-title" id="resultTitle"></div>
         <div class="result-details" id="resultDetails"></div>
         <div id="resultExtra"></div>
-        <button class="btn btn-primary next-btn" onclick="nextRound()">もう1回！</button>
+        <button class="btn btn-primary next-btn" onclick="nextRound()" data-ruby>もう1回！</button>
       </div>
     </div>
 
@@ -96,7 +96,7 @@
       <div class="score-list" id="scoreRows"></div>
     </div>
     <div class="log-section" id="answerLog" style="display:none;">
-      <div class="log-header"><h4>Log</h4><button class="clear-log-btn" onclick="clearAllLogs()">消去</button></div>
+      <div class="log-header"><h4>Log</h4><button class="clear-log-btn" onclick="clearAllLogs()" data-ruby>消去</button></div>
       <div id="logEntries"></div>
     </div>
   </div>

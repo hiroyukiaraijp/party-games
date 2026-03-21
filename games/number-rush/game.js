@@ -361,11 +361,12 @@ function endPlayerRound(timeOver = false) {
   // Save play log with cognitive data
   savePlayLog('number-rush', Math.round(score), maxScore, {
     playMode: 'solo',
-    completionTime: Math.round(completionTime),
-    tapIntervals,
-    errorTaps,
-    gridSize: gridSize + 'x' + gridSize,
-    penaltyTime: Math.round(penaltyTime),
+    cognitive: {
+      medianRT: tapIntervals.length > 0 ? tapIntervals[Math.floor(tapIntervals.length / 2)] : Math.round(completionTime),
+      difficulty: getDDALevel('number-rush'),
+      completionTime: Math.round(completionTime),
+      errorTaps,
+    },
   });
 
   renderScoreboard(); renderLog(); saveState();
