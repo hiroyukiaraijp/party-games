@@ -137,6 +137,8 @@
       { id: 'puzzle-solver', icon: '🔍', name: 'ナゾトキ', min: 1, tags: ['think'], href: 'games/puzzle-solver/index.html' },
       { id: 'air-reading', icon: '🎯', name: '空気読みスケール', min: 3, tags: ['think'], href: 'games/air-reading/index.html' },
       { id: 'initial-battle', icon: '⚡', name: '頭文字バトル', min: 2, tags: ['lang'], href: 'games/initial-battle/index.html' },
+      { id: 'number-auction', icon: '🏷️', name: 'ナンバーオークション', min: 1, tags: ['think'], href: 'games/number-auction/index.html' },
+      { id: 'lab-panic', icon: '🧪', name: 'ラボパニック', min: 1, tags: ['think'], href: 'games/lab-panic/index.html' },
     ];
 
     const PLAY_COUNT_KEY = 'partygames_playcount';
@@ -192,7 +194,7 @@
 
     function resetSession() {
       if (!confirm('メンバーとセッション中のスコアをリセットしますか？\n（Firestoreの戦績データは残ります）')) return;
-      ['partygames_players','asobi_session_players','wordslot_state','katakananashi_state','wordwolf_state','mastergame_state','numberexpression_state','hintbridge_state','colorpanic_state','flashmemory_state','rhythmrelay_state','reversedictionary_state','puzzlesolver_state','airreading_state','initialbattle_state','partygames_playcount'].forEach(k => localStorage.removeItem(k));
+      ['partygames_players','asobi_session_players','wordslot_state','katakananashi_state','wordwolf_state','mastergame_state','numberexpression_state','hintbridge_state','colorpanic_state','flashmemory_state','rhythmrelay_state','reversedictionary_state','puzzlesolver_state','airreading_state','initialbattle_state','numberauction_state','labpanic_state','partygames_playcount'].forEach(k => localStorage.removeItem(k));
       const el = document.getElementById('toast');
       el.textContent = 'リセットしました。メンバーを再登録してください';
       el.classList.add('show');

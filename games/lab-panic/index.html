@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ラボパニック - asobi.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="toast" id="toast"></div>
+  <div class="particle-container" id="particles"></div>
+  <div class="top-bar">
+    <div class="title"><a href="../../games.html">asobi.dev</a> / <span>ラボパニック</span></div>
+    <div class="top-bar-actions"><button class="icon-btn" onclick="document.getElementById('helpModal').classList.add('show')">?</button></div>
+  </div>
+  <div class="modal-overlay" id="helpModal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="document.getElementById('helpModal').classList.remove('show')">&times;</button>
+      <h3 data-ruby>遊び方</h3>
+      <ul>
+        <li data-ruby>科学の実験問題が出題されます</li>
+        <li data-ruby>選択肢から答えを選ぶか、数値を予想します</li>
+        <li data-ruby><strong>選択問題</strong>: 正解で5pt</li>
+        <li data-ruby><strong>数値予想</strong>: ピッタリ10pt、10%以内7pt、25%以内4pt、参加1pt</li>
+        <li data-ruby>答え合わせで<strong>なるほど解説</strong>付き！</li>
+      </ul>
+      <h3 data-ruby style="margin-top:1rem;">鍛えられる力</h3>
+      <ul>
+        <li data-ruby><strong>科学的直感</strong> — 身の回りの現象を推理する力</li>
+        <li data-ruby><strong>数量感覚</strong> — 「だいたいこのくらい」と見積もる力</li>
+        <li data-ruby><strong>好奇心</strong> — 解説で新しい知識が増える！</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="game-page">
+    <!-- Setup Phase -->
+    <div id="setupPhase">
+      <div class="setup-section">
+        <h4>プレイヤー</h4>
+        <div id="playerList"></div>
+        <div class="options-row">
+          <div class="option-group">
+            <label>カテゴリー</label>
+            <div class="option-pills" id="catPills">
+              <button class="option-pill selected" data-value="mix" onclick="selectOption('cat',this)">ミックス</button>
+              <button class="option-pill" data-value="density" onclick="selectOption('cat',this)">重さ</button>
+              <button class="option-pill" data-value="speed" onclick="selectOption('cat',this)">速さ</button>
+              <button class="option-pill" data-value="creatures" onclick="selectOption('cat',this)">生き物</button>
+              <button class="option-pill" data-value="space" onclick="selectOption('cat',this)">宇宙</button>
+              <button class="option-pill" data-value="everyday" onclick="selectOption('cat',this)">日常</button>
+            </div>
+          </div>
+        </div>
+        <button class="start-btn" onclick="startGame()">🧪 スタート！</button>
+      </div>
+    </div>
+
+    <!-- Experiment Phase (show question) -->
+    <div id="experimentPhase" style="display:none;">
+      <div class="phase-section">
+        <div class="round-counter" id="expRound"></div>
+        <div class="experiment-card" id="experimentCard">
+          <div class="exp-category" id="expCategory"></div>
+          <div class="exp-visual" id="expVisual"></div>
+          <div class="exp-question" id="expQuestion" data-ruby></div>
+        </div>
+        <button class="predict-submit" onclick="goToPredict()">予想する！</button>
+      </div>
+    </div>
+
+    <!-- Predict Phase (blind screen + input) -->
+    <div id="predictPhase" style="display:none;">
+      <div class="phase-section">
+        <div class="round-counter" id="predictRound"></div>
+        <div style="font-size:.85rem;font-weight:700;margin-bottom:.3rem;" id="predictPlayer"></div>
+        <div class="experiment-card" style="min-height:auto;padding:.6rem;">
+          <div class="exp-question" id="predictQuestion" style="font-size:.85rem;" data-ruby></div>
+        </div>
+        <div id="predictInput"></div>
+        <div class="predict-timer" id="predictTimer"></div>
+        <button class="predict-submit" id="predictSubmitBtn" onclick="submitPrediction()">決定！</button>
+      </div>
+    </div>
+
+    <!-- Result Phase -->
+    <div id="resultPhase" style="display:none;">
+      <div class="phase-section result-section">
+        <div class="round-counter" id="resultRound"></div>
+        <div style="font-size:.8rem;color:var(--text-muted);">正解は...</div>
+        <div class="result-answer" id="resultAnswer"></div>
+        <div class="result-bar" id="resultBar"></div>
+        <div class="explain-box" id="explainBox">
+          <div class="explain-label">なるほど解説</div>
+          <div class="explain-text" id="explainText" data-ruby></div>
+        </div>
+        <div class="result-details" id="resultDetails"></div>
+        <button class="btn btn-primary next-btn" id="nextBtn" onclick="nextRound()">次の実験 →</button>
+      </div>
+    </div>
+
+    <div class="score-section" id="scoreboard" style="display:none;">
+      <h4>Score</h4><div class="score-list" id="scoreRows"></div>
+    </div>
+    <div class="log-section" id="answerLog" style="display:none;">
+      <div class="log-header"><h4>Log</h4><button class="clear-log-btn" onclick="clearAllLogs()">消去</button></div>
+      <div id="logEntries"></div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../../js/firebase-config.js"></script>
+  <script src="../../js/profile.js"></script>
+  <script src="../../js/auto-ruby.js"></script>
+  <script src="../../js/shared.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

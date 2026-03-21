@@ -31,6 +31,8 @@ const GAME_DOMAIN_MAP = {
   'puzzle-solver':       { LOG: 5, ATT: 3, CRE: 2 },
   'air-reading':         { SOC: 5, CRE: 2 },
   'initial-battle':      { LNG: 4, CRE: 4, SPD: 2 },
+  'number-auction':      { LOG: 5, SPD: 3, SOC: 2 },
+  'lab-panic':           { LOG: 4, SPA: 3, ATT: 2, CRE: 1 },
 };
 
 // ---- User ID generation ----

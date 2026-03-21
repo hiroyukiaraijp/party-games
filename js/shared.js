@@ -72,6 +72,8 @@ function renderGameRecommendation(currentGameId) {
     {id:'puzzle-solver',icon:'🔍',name:'ナゾトキ',href:'../puzzle-solver/index.html'},
     {id:'air-reading',icon:'🎯',name:'空気読みスケール',href:'../air-reading/index.html'},
     {id:'initial-battle',icon:'⚡',name:'頭文字バトル',href:'../initial-battle/index.html'},
+    {id:'number-auction',icon:'🏷️',name:'ナンバーオークション',href:'../number-auction/index.html'},
+    {id:'lab-panic',icon:'🧪',name:'ラボパニック',href:'../lab-panic/index.html'},
   ];
   const others = allGames.filter(g => g.id !== currentGameId);
   const pick = others[Math.floor(Math.random() * others.length)];

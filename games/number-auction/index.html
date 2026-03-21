@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ナンバーオークション - asobi.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="toast" id="toast"></div>
+  <div class="particle-container" id="particles"></div>
+  <div class="top-bar">
+    <div class="title"><a href="../../games.html">asobi.dev</a> / <span>ナンバーオークション</span></div>
+    <div class="top-bar-actions"><button class="icon-btn" onclick="document.getElementById('helpModal').classList.add('show')">?</button></div>
+  </div>
+  <div class="modal-overlay" id="helpModal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="document.getElementById('helpModal').classList.remove('show')">&times;</button>
+      <h3 data-ruby>遊び方</h3>
+      <ul>
+        <li data-ruby>数式が<strong>3秒だけ</strong>表示されます。計算禁止！直感で覚えて</li>
+        <li data-ruby>数式が消えたら<strong>10秒以内</strong>に答えを予想して入札</li>
+        <li data-ruby><strong>正解以下で最も近い人</strong>が得点！</li>
+        <li data-ruby>正解を超えたらアウト（オーバービッド）</li>
+        <li data-ruby>ピッタリ正解なら得点2倍！</li>
+      </ul>
+      <h3 data-ruby style="margin-top:1rem;">鍛えられる力</h3>
+      <ul>
+        <li data-ruby><strong>数量感覚</strong> — 計算せずに「だいたいこのくらい」と見積もる力</li>
+        <li data-ruby><strong>処理速度</strong> — 一瞬の表示から情報をキャッチする力</li>
+        <li data-ruby><strong>戦略的思考</strong> — 攻めるか安全に行くかの判断力</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="game-page">
+    <div id="setupPhase">
+      <div class="setup-section">
+        <h4>プレイヤー</h4>
+        <div id="playerList"></div>
+        <div class="options-row">
+          <div class="option-group">
+            <label>難易度</label>
+            <div class="option-pills" id="diffPills">
+              <button class="option-pill selected" data-value="easy" onclick="selectOption('diff',this)">やさしい</button>
+              <button class="option-pill" data-value="normal" onclick="selectOption('diff',this)">ふつう</button>
+              <button class="option-pill" data-value="hard" onclick="selectOption('diff',this)">むずかしい</button>
+            </div>
+          </div>
+        </div>
+        <button class="start-btn" onclick="startGame()">🏷️ スタート！</button>
+      </div>
+    </div>
+
+    <!-- Expression Phase (3 sec flash) -->
+    <div id="exprPhase" style="display:none;">
+      <div class="phase-section">
+        <div class="round-counter" id="exprRound"></div>
+        <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:.3rem;">計算禁止！直感で覚えろ！</div>
+        <div class="expr-display" id="exprDisplay"></div>
+        <div class="expr-timer" id="exprTimer"></div>
+      </div>
+    </div>
+
+    <!-- Bid Phase -->
+    <div id="bidPhase" style="display:none;">
+      <div class="phase-section">
+        <div class="round-counter" id="bidRound"></div>
+        <div style="font-size:.85rem;font-weight:700;margin-bottom:.3rem;" id="bidPlayer"></div>
+        <div style="font-size:.7rem;color:var(--text-muted);">正解以下で最も近い数を入札！</div>
+        <div class="bid-area">
+          <input type="number" class="bid-input" id="bidInput" inputmode="numeric" onkeydown="if(event.key==='Enter')submitBid()">
+          <div class="bid-timer" id="bidTimer"></div>
+        </div>
+        <button class="bid-submit" onclick="submitBid()">入札する！</button>
+      </div>
+    </div>
+
+    <!-- Result Phase -->
+    <div id="resultPhase" style="display:none;">
+      <div class="phase-section result-section">
+        <div class="round-counter" id="resultRound"></div>
+        <div style="font-size:.8rem;color:var(--text-muted);">正解は...</div>
+        <div class="result-answer" id="resultAnswer"></div>
+        <div class="result-bar" id="resultBar"></div>
+        <div class="result-details" id="resultDetails"></div>
+        <button class="btn btn-primary next-btn" id="nextBtn" onclick="nextRound()">次の問題 →</button>
+      </div>
+    </div>
+
+    <div class="score-section" id="scoreboard" style="display:none;">
+      <h4>Score</h4><div class="score-list" id="scoreRows"></div>
+    </div>
+    <div class="log-section" id="answerLog" style="display:none;">
+      <div class="log-header"><h4>Log</h4><button class="clear-log-btn" onclick="clearAllLogs()">消去</button></div>
+      <div id="logEntries"></div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../../js/firebase-config.js"></script>
+  <script src="../../js/profile.js"></script>
+  <script src="../../js/auto-ruby.js"></script>
+  <script src="../../js/shared.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
