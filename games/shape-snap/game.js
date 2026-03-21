@@ -241,6 +241,7 @@ function startSoloRound() {
   soloScore = 0;
   soloTotal = 0;
   timerLeft = SOLO_TIME;
+  window._cognitiveLog = [];
 
   showPhase('gamePhase');
   showToast(`${currentPlayer} の番！`, 1500);
@@ -354,6 +355,7 @@ function endSoloRound() {
 function startMultiRound() {
   round++;
   multiQuestion = 0;
+  window._cognitiveLog = [];
   showPhase('multiGamePhase');
   nextMultiQuestionDisplay();
 }
@@ -484,9 +486,15 @@ function endMultiRound() {
     emitParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
   }
 
+  const multiCogLog = window._cognitiveLog || [];
+  const multiRts = multiCogLog.map(e => e.timeToAnswer);
   savePlayLog('shape-snap', winnerScore, MULTI_QUESTIONS, {
-    playMode: 'centerpiece',
-    cognitive: { difficulty: getDDALevel('shape-snap') }
+    playMode: 'multi',
+    cognitive: {
+      medianRT: median(multiRts),
+      rtSD: stddev(multiRts),
+      difficulty: getDDALevel('shape-snap'),
+    }
   });
   renderScoreboard(); renderLog(); saveState();
 }

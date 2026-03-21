@@ -192,12 +192,14 @@ function showResult(){
       const pts=isPerfect?10:5;
       scores[w.name]=(scores[w.name]||0)+pts;
     }
-    const diffLevel = difficulty === 'hard' ? 3 : difficulty === 'normal' ? 2 : 1;
-    savePlayLog('number-auction',winners[0].diff===0?10:5,10, {
-      playMode: 'centerpiece',
-      cognitive: { difficulty: diffLevel }
-    });
   }
+
+  const diffLevel = difficulty === 'hard' ? 3 : difficulty === 'normal' ? 2 : 1;
+  const logScore = allTied ? 0 : (winners[0].diff===0 ? 10 : 5);
+  savePlayLog('number-auction', logScore, 10, {
+    playMode: 'centerpiece',
+    cognitive: { difficulty: diffLevel }
+  });
 
   // Result bar visualization
   const maxVal=Math.max(currentAnswer*1.3,...entries.map(e=>e.bid));

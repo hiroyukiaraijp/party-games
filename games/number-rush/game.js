@@ -274,15 +274,28 @@ function updateTimer() {
   if (!gameRunning) return;
   const elapsed = performance.now() - startTime + penaltyTime;
   document.getElementById('timerDisplay').textContent = (elapsed / 1000).toFixed(3);
+
+  // Time-over check
+  const config = getGridConfig();
+  if (elapsed / 1000 >= config.maxTime) {
+    endPlayerRound(true);
+    return;
+  }
+
   timerRAF = requestAnimationFrame(updateTimer);
 }
 
-function endPlayerRound() {
+function endPlayerRound(timeOver = false) {
   gameRunning = false;
   if (timerRAF) cancelAnimationFrame(timerRAF);
 
+  const config = getGridConfig();
+  const maxTime = config.maxTime;
+
   const rawTime = performance.now() - startTime;
-  const completionTime = rawTime + penaltyTime;
+  let completionTime = rawTime + penaltyTime;
+  // Cap at maxTime if time-over
+  if (timeOver) completionTime = maxTime * 1000;
   const completionSec = completionTime / 1000;
 
   // Final timer display
@@ -295,8 +308,6 @@ function endPlayerRound() {
   }
 
   // Score conversion
-  const config = getGridConfig();
-  const maxTime = config.maxTime;
   const maxScore = maxTime;
   const score = Math.max(0, Math.round((maxTime - completionSec) * 10) / 10);
 
@@ -317,11 +328,17 @@ function endPlayerRound() {
 
   // Show result
   showPhase('resultPhase');
-  const icon = completionSec < maxTime * 0.4 ? '🔥' : completionSec < maxTime * 0.7 ? '🎉' : '👍';
+  const icon = timeOver ? '⏰' : completionSec < maxTime * 0.4 ? '🔥' : completionSec < maxTime * 0.7 ? '🎉' : '👍';
   document.getElementById('resultIcon').textContent = icon;
-  document.getElementById('resultTitle').textContent = `${currentPlayer}: ${completionSec.toFixed(3)}秒`;
+  document.getElementById('resultTitle').textContent = timeOver
+    ? `${currentPlayer}: タイムオーバー！`
+    : `${currentPlayer}: ${completionSec.toFixed(3)}秒`;
 
   let detailsHTML = `グリッド: <strong>${gridSize}x${gridSize}</strong> (${gridMax}マス)<br>`;
+  if (timeOver) {
+    const tapped = nextNumber - 1;
+    detailsHTML += `タップ数: <strong>${tapped}/${gridMax}</strong> (残り${gridMax - tapped})<br>`;
+  }
   detailsHTML += `生タイム: <strong>${(rawTime / 1000).toFixed(3)}秒</strong><br>`;
   if (errorTaps > 0) {
     detailsHTML += `誤タップ: <strong>${errorTaps}回</strong> (+${(penaltyTime / 1000).toFixed(1)}秒ペナルティ)<br>`;

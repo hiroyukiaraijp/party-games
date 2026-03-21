@@ -370,7 +370,11 @@ function endMultiRound(explodedPlayer) {
   // Save play log
   savePlayLog('word-burst', totalWords, totalWords + 5, {
     playMode: 'centerpiece',
-    cognitive: { difficulty: getDDALevel('word-burst') }
+    cognitive: {
+      difficulty: getDDALevel('word-burst'),
+      wordsPerPlayer: { ...wordsPerPlayer },
+      totalWords,
+    }
   });
 
   if (round < totalRounds) {

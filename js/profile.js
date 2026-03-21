@@ -212,7 +212,7 @@ function calculateProfileFromLogs(logs) {
     // Play mode confidence
     const modeConf = log.playMode ? (PLAY_MODE_CONFIDENCE[log.playMode] || 0.5) : 0.5;
 
-    // Recency: exponential decay, half-life 30 days
+    // Recency: exponential decay, time constant 30 days (half-life ≈ 20.8 days)
     const logTime = new Date(log.createdAt || log.timestamp || 0).getTime();
     const ageDays = logTime > 0 ? (now - logTime) / 86400000 : 15;
     const recency = Math.exp(-ageDays / 30);

@@ -562,7 +562,7 @@ function endSet() {
 
   logs.unshift({ timestamp: new Date().toISOString(), round, correct: setCorrect, total: setTotal, pct, solveTime: median(solveTimes), hintsUsed: currentHintIndex + 1 });
   savePlayLog('where-is-it', setCorrect, setTotal, {
-    playMode: 'solo',
+    playMode: players.length <= 1 ? 'solo' : 'passplay',
     cognitive: { medianRT: median(solveTimes), rtSD: stddev(solveTimes), difficulty: getDDALevel('where-is-it') || 1 }
   });
   renderScoreboard(); renderLog(); saveState();

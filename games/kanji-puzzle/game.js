@@ -499,7 +499,7 @@ function onCorrect(player) {
   });
 
   savePlayLog('kanji-puzzle', pts, SCORE_NO_HINT, {
-    playMode: 'solo',
+    playMode: players.length <= 1 ? 'solo' : 'centerpiece',
     cognitive: { medianRT: median(answerRTs), rtSD: stddev(answerRTs), difficulty: getDDALevel('kanji-puzzle') || 1 }
   });
   renderScoreboard(); renderLog(); saveState();
