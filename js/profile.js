@@ -98,7 +98,7 @@ async function loginOrRegister(name, birthday) {
 }
 
 // ---- Firestore: Play Logs ----
-async function savePlayLogToFirestore(userId, gameId, score, maxScore, withPlayers, cognitive) {
+async function savePlayLogToFirestore(userId, gameId, score, maxScore, withPlayers, cognitive, playMode) {
   const db = initFirebase();
   if (!db) return;
   const pct = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
@@ -113,6 +113,7 @@ async function savePlayLogToFirestore(userId, gameId, score, maxScore, withPlaye
     createdAt: new Date().toISOString(),
   };
   if (cognitive) data.cognitive = cognitive;
+  if (playMode) data.playMode = playMode;
   await db.collection('playlogs').add(data);
 }
 
@@ -142,7 +143,7 @@ function savePlayLog(gameId, score, maxScore, extra) {
       if (p.userId) {
         try {
           if (typeof initFirebase === 'function') initFirebase();
-          savePlayLogToFirestore(p.userId, gameId, score, maxScore, playerNames, cognitive).catch(e => {
+          savePlayLogToFirestore(p.userId, gameId, score, maxScore, playerNames, cognitive, playMode).catch(e => {
             console.warn('Firestore write failed for', p.name, ':', e.message);
           });
         } catch (e) {
@@ -154,7 +155,7 @@ function savePlayLog(gameId, score, maxScore, extra) {
     // No session players but have a session - save for self
     try {
       if (typeof initFirebase === 'function') initFirebase();
-      savePlayLogToFirestore(session.userId, gameId, score, maxScore, [session.name], cognitive).catch(e => {
+      savePlayLogToFirestore(session.userId, gameId, score, maxScore, [session.name], cognitive, playMode).catch(e => {
         console.warn('Firestore write failed:', e.message);
       });
     } catch (e) {

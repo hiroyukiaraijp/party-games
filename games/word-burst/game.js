@@ -78,6 +78,7 @@ let roundStartTime = 0;
 // Solo state
 let soloCount = 0;
 let soloTapTimes = [];
+let gameActive = false;
 
 // DOM
 const $setupPhase = document.getElementById('setupPhase');
@@ -208,6 +209,7 @@ function startSoloRound() {
   timerLeft = 30;
   roundStartTime = Date.now();
 
+  gameActive = true;
   showPhase('gamePhase');
   document.getElementById('categoryLabel').textContent = currentCategory;
   document.getElementById('bombIcon').className = 'bomb';
@@ -240,6 +242,7 @@ function startSoloRound() {
 }
 
 function endSoloRound() {
+  gameActive = false;
   const player = roundPlayers[0];
   scores[player] = (scores[player] || 0) + soloCount;
 
@@ -256,7 +259,7 @@ function endSoloRound() {
   });
 
   // Save play log
-  savePlayLog('word-burst', soloCount, 20, {
+  savePlayLog('word-burst', soloCount, Math.max(soloCount, 20), {
     playMode: 'solo',
     cognitive: {
       medianRT: soloTapTimes.length ? median(soloTapTimes) : 0,
@@ -285,6 +288,7 @@ function startMultiRound() {
   timerLeft = Math.ceil(timerDuration / 1000);
   roundStartTime = Date.now();
 
+  gameActive = true;
   showPhase('gamePhase');
   document.getElementById('categoryLabel').textContent = currentCategory;
   document.getElementById('bombIcon').style.display = '';
@@ -319,6 +323,7 @@ function startMultiRound() {
 }
 
 function multiExplode(isDuplicate) {
+  gameActive = false;
   const explodedPlayer = roundPlayers[currentPlayerIndex];
   scores[explodedPlayer] = (scores[explodedPlayer] || 0) - 1;
 
@@ -337,6 +342,7 @@ function multiExplode(isDuplicate) {
     // Duplicate: resume after explosion, move to next player
     setTimeout(() => {
       overlay.style.display = 'none';
+      gameActive = true;
       advanceMultiPlayer();
     }, 1500);
   } else {
@@ -387,6 +393,7 @@ function endMultiRound(explodedPlayer) {
 
 // ==================== TAP HANDLERS ====================
 function onTap() {
+  if (!gameActive) return;
   if (gameMode === 'solo') {
     soloCount++;
     const now = Date.now();
@@ -420,6 +427,7 @@ function onTap() {
 function onBoom() {
   // Only in multi mode: current player said a duplicate word
   if (gameMode !== 'multi') return;
+  if (!gameActive) return;
   multiExplode(true);
 }
 
@@ -477,7 +485,7 @@ function showFinalResult() {
     extraHTML += renderGameRecommendation('word-burst');
     document.getElementById('resultExtra').innerHTML = extraHTML;
 
-    if (scores[winner] >= 0) {
+    if ((scores[winner] || 0) > 0) {
       const rect = document.getElementById('resultTitle').getBoundingClientRect();
       emitParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
     }

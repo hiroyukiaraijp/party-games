@@ -488,8 +488,8 @@ function endMultiRound() {
 
   const multiCogLog = window._cognitiveLog || [];
   const multiRts = multiCogLog.map(e => e.timeToAnswer);
-  savePlayLog('shape-snap', winnerScore, MULTI_QUESTIONS, {
-    playMode: 'multi',
+  savePlayLog('shape-snap', Math.max(0, winnerScore), MULTI_QUESTIONS, {
+    playMode: 'centerpiece',
     cognitive: {
       medianRT: median(multiRts),
       rtSD: stddev(multiRts),

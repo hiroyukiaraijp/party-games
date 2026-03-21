@@ -432,7 +432,7 @@ function submitOrder() {
     $title.textContent = 'パーフェクト！全問正解！';
     const rect = $title.getBoundingClientRect();
     emitParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
-  } else if (scoreAwarded > 0) {
+  } else if (correctPairs > 0) {
     $icon.textContent = '👍';
     $title.textContent = `${correctPairs}/${totalPairs}ペア正解！`;
   } else {
@@ -465,7 +465,7 @@ function submitOrder() {
     timestamp: new Date().toISOString(),
     round, theme: currentTheme,
     playerCount: players.length, numberRange,
-    correctPairs, totalPairs, scoreAwarded,
+    correctPairs, totalPairs,
   });
 
   savePlayLog('number-expression', correctPairs, totalPairs, {
@@ -494,7 +494,7 @@ function renderLog() {
   $answerLog.style.display = '';
   $logEntries.innerHTML = logs.slice(0, 8).map(l => {
     const icon = l.correctPairs === l.totalPairs ? '🎉' : `${l.correctPairs}/${l.totalPairs}`;
-    return `<div class="log-entry"><span>R${l.round}「${esc(l.theme)}」</span><span>${icon} +${l.scoreAwarded}pt</span></div>`;
+    return `<div class="log-entry"><span>R${l.round}「${esc(l.theme)}」</span><span>${icon}</span></div>`;
   }).join('');
 }
 function clearAllLogs() {

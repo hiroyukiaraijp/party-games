@@ -240,6 +240,7 @@ function showResult(){
     emitParticles(rect.left+rect.width/2,rect.top+rect.height/2);
   }
 
+  const winner = allTied ? null : winners.map(w => w.name).join(' & ');
   logs.unshift({timestamp:new Date().toISOString(),round,expr:currentExpr,answer:currentAnswer,winner,bids:{...bids}});
   $('nextBtn').textContent=round>=totalRounds?'結果を見る →':'次の問題 →';
   renderScoreboard();saveState();

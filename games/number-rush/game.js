@@ -360,6 +360,7 @@ function endPlayerRound(timeOver = false) {
 
   // Save play log with cognitive data
   savePlayLog('number-rush', Math.round(score), maxScore, {
+    playMode: 'solo',
     completionTime: Math.round(completionTime),
     tapIntervals,
     errorTaps,
