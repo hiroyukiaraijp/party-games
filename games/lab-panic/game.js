@@ -246,22 +246,27 @@ function calcScore(q,prediction){
   if(q.type==='choice'){
     return prediction===q.answer?5:0;
   }
-  // slider or number: distance-based scoring
+  // slider or number: distance-based scoring (no participation points)
   const answer=q.answer;
   const diff=Math.abs(prediction-answer);
   const pct=answer!==0?diff/Math.abs(answer):diff;
   if(diff===0) return 10;
-  if(pct<=0.10) return 7;
-  if(pct<=0.25) return 4;
-  return 1; // participation
+  if(pct<=0.05) return 8;
+  if(pct<=0.10) return 6;
+  if(pct<=0.20) return 4;
+  if(pct<=0.35) return 2;
+  if(pct<=0.50) return 1;
+  return 0;
 }
 
 function getScoreLabel(pts){
   if(pts===10) return '🎯 ピッタリ! +10pt';
-  if(pts===7) return '👏 惜しい! +7pt';
+  if(pts===8) return '🔥 超惜しい! +8pt';
+  if(pts===6) return '👏 惜しい! +6pt';
   if(pts===5) return '✅ 正解! +5pt';
   if(pts===4) return '👍 まあまあ! +4pt';
-  if(pts===1) return '💪 参加 +1pt';
+  if(pts===2) return '🤔 遠い +2pt';
+  if(pts===1) return '😅 ギリギリ +1pt';
   return '❌ 残念! +0pt';
 }
 
