@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>漢字バラバラ - asobi.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="toast" id="toast"></div>
+  <div class="particle-container" id="particles"></div>
+
+  <div class="top-bar">
+    <div class="title"><a href="../../games.html">asobi.dev</a> / <span>漢字バラバラ</span></div>
+    <div class="top-bar-actions">
+      <button class="icon-btn" onclick="document.getElementById('helpModal').classList.add('show')">?</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="helpModal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="document.getElementById('helpModal').classList.remove('show')">&times;</button>
+      <h3 data-ruby>遊び方</h3>
+      <ul>
+        <li data-ruby>バラバラになった<strong>漢字のパーツ</strong>が画面に散らばります</li>
+        <li data-ruby>パーツを組み合わせて、元の漢字や熟語を当ててください</li>
+        <li data-ruby>回答者を選んで答えを入力（漢字でもひらがなでもOK）</li>
+        <li data-ruby>ヒントなしで正解すると<strong>10pt</strong>、ヒント1つで<strong>7pt</strong>、ヒント2つで<strong>4pt</strong></li>
+        <li data-ruby>不正解は<strong>-2pt</strong>。時間切れは0pt</li>
+      </ul>
+      <h3 data-ruby style="margin-top:1rem;">鍛えられる力</h3>
+      <ul>
+        <li data-ruby><strong>空間認識</strong> &#8212; バラバラのパーツを頭の中で組み立てる力</li>
+        <li data-ruby><strong>漢字知識</strong> &#8212; 部首や構成要素から漢字を推測する力</li>
+        <li data-ruby><strong>処理速度</strong> &#8212; 制限時間内に素早く判断する力</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="game-page">
+
+    <!-- Setup Phase -->
+    <div id="setupPhase">
+      <div class="setup-section">
+        <h4>プレイヤー</h4>
+        <div id="playerList"></div>
+        <div class="options-row">
+          <div class="option-group">
+            <label>難易度</label>
+            <div class="option-pills" id="diffPills">
+              <button class="option-pill selected" data-value="easy" onclick="selectOption('diff',this)">やさしい</button>
+              <button class="option-pill" data-value="normal" onclick="selectOption('diff',this)">ふつう</button>
+              <button class="option-pill" data-value="hard" onclick="selectOption('diff',this)">むずかしい</button>
+            </div>
+          </div>
+          <div class="option-group">
+            <label>カテゴリ</label>
+            <div class="option-pills" id="catPills">
+              <button class="option-pill selected" data-value="mix" onclick="selectOption('cat',this)">ミックス</button>
+              <button class="option-pill" data-value="single" onclick="selectOption('cat',this)">漢字1文字</button>
+              <button class="option-pill" data-value="jukugo" onclick="selectOption('cat',this)">二字熟語</button>
+              <button class="option-pill" data-value="yoji" onclick="selectOption('cat',this)">四字熟語</button>
+            </div>
+          </div>
+        </div>
+        <button class="start-btn" onclick="startGame()">漢字バラバラ スタート！</button>
+      </div>
+    </div>
+
+    <!-- Puzzle Phase -->
+    <div id="puzzlePhase" style="display:none;">
+      <div class="phase-section">
+        <div class="question-info" id="questionInfo"></div>
+        <div class="question-number" id="questionNumber"></div>
+        <div class="parts-display" id="partsDisplay"></div>
+        <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
+        <div class="timer-text" id="timerText"></div>
+        <div class="hint-box" id="hintBox"></div>
+        <div class="player-select-row" id="playerSelectRow"></div>
+        <div class="answer-row">
+          <input type="text" id="answerInput" placeholder="答えを入力" onkeydown="if(event.key==='Enter')submitAnswer()">
+          <button class="btn btn-primary" onclick="submitAnswer()">回答！</button>
+        </div>
+        <div class="feedback" id="feedback"></div>
+        <div class="assembled-display" id="assembledDisplay"></div>
+        <div class="reading-display" id="readingDisplay"></div>
+        <div class="explain-display" id="explainDisplay"></div>
+      </div>
+    </div>
+
+    <!-- Result Phase -->
+    <div id="resultPhase" style="display:none;">
+      <div class="phase-section result-section">
+        <div class="result-icon" id="resultIcon"></div>
+        <div class="result-title" id="resultTitle"></div>
+        <div class="result-details" id="resultDetails"></div>
+        <div class="result-ranking" id="resultRanking"></div>
+        <div id="resultExtra"></div>
+        <button class="btn btn-primary next-btn" onclick="backToSetup()">もう1回！</button>
+      </div>
+    </div>
+
+    <!-- Scoreboard -->
+    <div class="score-section" id="scoreboard" style="display:none;">
+      <h4>Score</h4>
+      <div class="score-list" id="scoreRows"></div>
+    </div>
+
+    <!-- Log -->
+    <div class="log-section" id="answerLog" style="display:none;">
+      <div class="log-header">
+        <h4>Log</h4>
+        <button class="clear-log-btn" onclick="clearAllLogs()">消去</button>
+      </div>
+      <div id="logEntries"></div>
+    </div>
+
+  </div>
+
+  <script src="../../js/auto-ruby.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../../js/firebase-config.js"></script>
+  <script src="../../js/profile.js"></script>
+  <script src="../../js/shared.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
