@@ -215,7 +215,15 @@ function rubyText(text) {
   return isRubyEnabled() ? addRuby(text) : _escH(text);
 }
 
-// Auto-apply on load
+// Auto-apply on load + observe DOM changes for dynamic content
 document.addEventListener('DOMContentLoaded', () => {
   applyRuby();
+
+  // Watch for dynamically added/changed [data-ruby] elements
+  if (isRubyEnabled()) {
+    const observer = new MutationObserver(() => {
+      applyRuby();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
 });
