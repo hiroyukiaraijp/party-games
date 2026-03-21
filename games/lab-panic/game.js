@@ -394,7 +394,7 @@ function endGame(){
 function renderScoreboard(){
   if(players.length===0){$scoreboard.style.display='none';return;}
   $scoreboard.style.display='';
-  const sorted=[...players].sort((a,b)=>(scores[b]||0)-(scores[a]||0));
+  const sorted=getActivePlayers(players).sort((a,b)=>(scores[b]||0)-(scores[a]||0));
   $scoreRows.innerHTML=sorted.map((p,i)=>{
     const medal=i===0&&scores[p]>0?'👑':'';
     return `<span class="score-item"><span class="name">${medal}${esc(p)}</span><span class="pts">${scores[p]||0}</span></span>`;

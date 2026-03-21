@@ -28,17 +28,17 @@ const PROBLEMS = [
   {d:'easy',cat:'single',answer:'空',reading:'そら',parts:['穴','工'],hints:['穴かんむりと工','見上げると広がるもの'],explain:'穴＋工＝空（そら）'},
   {d:'easy',cat:'single',answer:'体',reading:'からだ',parts:['亻','本'],hints:['にんべんと本','人間の「からだ」'],explain:'亻＋本＝体（からだ）'},
 
-  // ===== easy / jukugo (10) =====
-  {d:'easy',cat:'jukugo',answer:'天気',reading:'てんき',parts:['天','気'],hints:['空の様子を表す言葉','「てんき」と読む'],explain:'天＋気＝天気（てんき）'},
-  {d:'easy',cat:'jukugo',answer:'学校',reading:'がっこう',parts:['学','校'],hints:['勉強する場所','「がっこう」と読む'],explain:'学＋校＝学校（がっこう）'},
-  {d:'easy',cat:'jukugo',answer:'先生',reading:'せんせい',parts:['先','生'],hints:['教えてくれる人','「せんせい」と読む'],explain:'先＋生＝先生（せんせい）'},
-  {d:'easy',cat:'jukugo',answer:'日本',reading:'にほん',parts:['日','本'],hints:['私たちの国','「にほん」と読む'],explain:'日＋本＝日本（にほん）'},
-  {d:'easy',cat:'jukugo',answer:'元気',reading:'げんき',parts:['元','気'],hints:['健康で活発なこと','「げんき」と読む'],explain:'元＋気＝元気（げんき）'},
-  {d:'easy',cat:'jukugo',answer:'友達',reading:'ともだち',parts:['友','達'],hints:['一緒に遊ぶ人','「ともだち」と読む'],explain:'友＋達＝友達（ともだち）'},
-  {d:'easy',cat:'jukugo',answer:'花火',reading:'はなび',parts:['花','火'],hints:['夏の夜空に咲く','「はなび」と読む'],explain:'花＋火＝花火（はなび）'},
-  {d:'easy',cat:'jukugo',answer:'音楽',reading:'おんがく',parts:['音','楽'],hints:['聞いて楽しむもの','「おんがく」と読む'],explain:'音＋楽＝音楽（おんがく）'},
-  {d:'easy',cat:'jukugo',answer:'水泳',reading:'すいえい',parts:['水','泳'],hints:['プールでやるスポーツ','「すいえい」と読む'],explain:'水＋泳＝水泳（すいえい）'},
-  {d:'easy',cat:'jukugo',answer:'食事',reading:'しょくじ',parts:['食','事'],hints:['ごはんを食べること','「しょくじ」と読む'],explain:'食＋事＝食事（しょくじ）'},
+  // ===== easy / jukugo (10) — パーツ分解版 =====
+  {d:'easy',cat:'jukugo',answer:'花火',reading:'はなび',parts:['艹','化','火'],hints:['夏の夜空に咲く','草かんむり＋化＝？'],explain:'艹＋化＝花、＋火→花火（はなび）'},
+  {d:'easy',cat:'jukugo',answer:'明日',reading:'あした',parts:['日','月','日'],hints:['次の日のこと','日＋月で1文字、残りの日で2文字目'],explain:'日＋月＝明、＋日→明日（あした）'},
+  {d:'easy',cat:'jukugo',answer:'休日',reading:'きゅうじつ',parts:['亻','木','日'],hints:['仕事をしない日','人偏＋木で1文字目'],explain:'亻＋木＝休、＋日→休日（きゅうじつ）'},
+  {d:'easy',cat:'jukugo',answer:'岩山',reading:'いわやま',parts:['山','石','山'],hints:['ゴツゴツした山','山＋石で1文字目、もう1つの山で2文字目'],explain:'山＋石＝岩、＋山→岩山（いわやま）'},
+  {d:'easy',cat:'jukugo',answer:'男子',reading:'だんし',parts:['田','力','子'],hints:['少年のこと','田＋力で1文字目'],explain:'田＋力＝男、＋子→男子（だんし）'},
+  {d:'easy',cat:'jukugo',answer:'空気',reading:'くうき',parts:['穴','工','気'],hints:['目に見えないもの','穴＋工で1文字目'],explain:'穴＋工＝空、＋気→空気（くうき）'},
+  {d:'easy',cat:'jukugo',answer:'体力',reading:'たいりょく',parts:['亻','本','力'],hints:['元気に動ける力','人偏＋本で1文字目'],explain:'亻＋本＝体、＋力→体力（たいりょく）'},
+  {d:'easy',cat:'jukugo',answer:'森林',reading:'しんりん',parts:['木','木','木','木','木'],hints:['木がたくさん生えた場所','木が5つ！3つと2つに分けて'],explain:'木×3＝森、木×2＝林→森林（しんりん）'},
+  {d:'easy',cat:'jukugo',answer:'思考',reading:'しこう',parts:['田','心','老','丂'],hints:['頭を使って考えること','田＋心で1文字目'],explain:'田＋心＝思、老＋丂＝考→思考（しこう）'},
+  {d:'easy',cat:'jukugo',answer:'炎天',reading:'えんてん',parts:['火','火','天'],hints:['真夏の暑い空','火＋火で1文字目'],explain:'火＋火＝炎、＋天→炎天（えんてん）'},
 
   // ===== normal / single (15) =====
   {d:'normal',cat:'single',answer:'語',reading:'ご',parts:['言','五','口'],hints:['言葉に関係する漢字','「かたる」「ご」と読む'],explain:'言＋五＋口＝語（ご）'},
@@ -57,53 +57,53 @@ const PROBLEMS = [
   {d:'normal',cat:'single',answer:'鉄',reading:'てつ',parts:['金','失'],hints:['金へんの漢字','とても硬い金属'],explain:'金＋失＝鉄（てつ）'},
   {d:'normal',cat:'single',answer:'解',reading:'とく',parts:['角','刀','牛'],hints:['角と刀と牛','問題を解くこと'],explain:'角＋刀＋牛＝解（とく）'},
 
-  // ===== normal / jukugo (15) =====
-  {d:'normal',cat:'jukugo',answer:'地震',reading:'じしん',parts:['地','震'],hints:['大地が揺れる自然現象','「じしん」と読む'],explain:'地＋震＝地震（じしん）'},
-  {d:'normal',cat:'jukugo',answer:'宇宙',reading:'うちゅう',parts:['宇','宙'],hints:['星や惑星がある場所','「うちゅう」と読む'],explain:'宇＋宙＝宇宙（うちゅう）'},
-  {d:'normal',cat:'jukugo',answer:'台風',reading:'たいふう',parts:['台','風'],hints:['夏から秋にやってくる','「たいふう」と読む'],explain:'台＋風＝台風（たいふう）'},
-  {d:'normal',cat:'jukugo',answer:'努力',reading:'どりょく',parts:['努','力'],hints:['がんばること','「どりょく」と読む'],explain:'努＋力＝努力（どりょく）'},
-  {d:'normal',cat:'jukugo',answer:'約束',reading:'やくそく',parts:['約','束'],hints:['守らなければならないもの','「やくそく」と読む'],explain:'約＋束＝約束（やくそく）'},
-  {d:'normal',cat:'jukugo',answer:'勉強',reading:'べんきょう',parts:['勉','強'],hints:['学校でやること','「べんきょう」と読む'],explain:'勉＋強＝勉強（べんきょう）'},
-  {d:'normal',cat:'jukugo',answer:'感動',reading:'かんどう',parts:['感','動'],hints:['心が揺さぶられること','「かんどう」と読む'],explain:'感＋動＝感動（かんどう）'},
-  {d:'normal',cat:'jukugo',answer:'冒険',reading:'ぼうけん',parts:['冒','険'],hints:['危険を冒して挑むこと','「ぼうけん」と読む'],explain:'冒＋険＝冒険（ぼうけん）'},
-  {d:'normal',cat:'jukugo',answer:'幸福',reading:'こうふく',parts:['幸','福'],hints:['とても嬉しい状態','「こうふく」と読む'],explain:'幸＋福＝幸福（こうふく）'},
-  {d:'normal',cat:'jukugo',answer:'問題',reading:'もんだい',parts:['問','題'],hints:['テストに出るもの','「もんだい」と読む'],explain:'問＋題＝問題（もんだい）'},
-  {d:'normal',cat:'jukugo',answer:'自然',reading:'しぜん',parts:['自','然'],hints:['山や川などの景色','「しぜん」と読む'],explain:'自＋然＝自然（しぜん）'},
-  {d:'normal',cat:'jukugo',answer:'健康',reading:'けんこう',parts:['健','康'],hints:['病気でないこと','「けんこう」と読む'],explain:'健＋康＝健康（けんこう）'},
-  {d:'normal',cat:'jukugo',answer:'科学',reading:'かがく',parts:['科','学'],hints:['実験や研究をする分野','「かがく」と読む'],explain:'科＋学＝科学（かがく）'},
-  {d:'normal',cat:'jukugo',answer:'記憶',reading:'きおく',parts:['記','憶'],hints:['覚えていること','「きおく」と読む'],explain:'記＋憶＝記憶（きおく）'},
-  {d:'normal',cat:'jukugo',answer:'未来',reading:'みらい',parts:['未','来'],hints:['これから先のこと','「みらい」と読む'],explain:'未＋来＝未来（みらい）'},
+  // ===== normal / jukugo (15) — パーツ分解版 =====
+  {d:'normal',cat:'jukugo',answer:'時計',reading:'とけい',parts:['日','寺','言','十'],hints:['時刻を知る道具','日＋寺で1文字目、言＋十で2文字目'],explain:'日＋寺＝時、言＋十＝計→時計（とけい）'},
+  {d:'normal',cat:'jukugo',answer:'新聞',reading:'しんぶん',parts:['立','木','斤','門','耳'],hints:['毎朝届くニュース','立＋木＋斤で1文字目、門＋耳で2文字目'],explain:'立＋木＋斤＝新、門＋耳＝聞→新聞（しんぶん）'},
+  {d:'normal',cat:'jukugo',answer:'教室',reading:'きょうしつ',parts:['孝','攵','宀','至'],hints:['勉強する部屋','孝＋攵で1文字目、うかんむり＋至で2文字目'],explain:'孝＋攵＝教、宀＋至＝室→教室（きょうしつ）'},
+  {d:'normal',cat:'jukugo',answer:'話題',reading:'わだい',parts:['言','舌','日','頁'],hints:['みんなが語ること','言＋舌で1文字目、日＋頁で2文字目'],explain:'言＋舌＝話、日＋頁＝題→話題（わだい）'},
+  {d:'normal',cat:'jukugo',answer:'鉄橋',reading:'てっきょう',parts:['金','失','木','喬'],hints:['金属でできた橋','金＋失で1文字目、木＋喬で2文字目'],explain:'金＋失＝鉄、木＋喬＝橋→鉄橋（てっきょう）'},
+  {d:'normal',cat:'jukugo',answer:'湖畔',reading:'こはん',parts:['氵','胡','田','半'],hints:['湖のほとり','さんずい＋胡で1文字目、田＋半で2文字目'],explain:'氵＋胡＝湖、田＋半＝畔→湖畔（こはん）'},
+  {d:'normal',cat:'jukugo',answer:'清流',reading:'せいりゅう',parts:['氵','青','氵','㐬'],hints:['きれいな川の流れ','さんずいが2つ！'],explain:'氵＋青＝清、氵＋㐬＝流→清流（せいりゅう）'},
+  {d:'normal',cat:'jukugo',answer:'悲鳴',reading:'ひめい',parts:['非','心','口','鳥'],hints:['驚いて叫ぶ声','非＋心で1文字目、口＋鳥で2文字目'],explain:'非＋心＝悲、口＋鳥＝鳴→悲鳴（ひめい）'},
+  {d:'normal',cat:'jukugo',answer:'想像',reading:'そうぞう',parts:['相','心','亻','象'],hints:['頭の中で思い描くこと','相＋心で1文字目、人偏＋象で2文字目'],explain:'相＋心＝想、亻＋象＝像→想像（そうぞう）'},
+  {d:'normal',cat:'jukugo',answer:'銅像',reading:'どうぞう',parts:['金','同','亻','象'],hints:['金属でできた人の形','金＋同で1文字目、人偏＋象で2文字目'],explain:'金＋同＝銅、亻＋象＝像→銅像（どうぞう）'},
+  {d:'normal',cat:'jukugo',answer:'頭脳',reading:'ずのう',parts:['豆','頁','月','凶'],hints:['考える力のこと','豆＋頁で1文字目、月＋凶で2文字目'],explain:'豆＋頁＝頭、月＋凶＝脳→頭脳（ずのう）'},
+  {d:'normal',cat:'jukugo',answer:'雪国',reading:'ゆきぐに',parts:['雨','ヨ','囗','玉'],hints:['冬に雪が多い地域','雨＋ヨで1文字目、囗＋玉で2文字目'],explain:'雨＋ヨ＝雪、囗＋玉＝国→雪国（ゆきぐに）'},
+  {d:'normal',cat:'jukugo',answer:'親切',reading:'しんせつ',parts:['立','木','見','刀','七'],hints:['やさしくすること','立＋木＋見で1文字目、七＋刀で2文字目'],explain:'立＋木＋見＝親、七＋刀＝切→親切（しんせつ）'},
+  {d:'normal',cat:'jukugo',answer:'歌声',reading:'うたごえ',parts:['可','可','欠','士','尸'],hints:['歌っている声','可×2＋欠で1文字目'],explain:'可＋可＋欠＝歌、士＋尸＝声→歌声（うたごえ）'},
+  {d:'normal',cat:'jukugo',answer:'算数',reading:'さんすう',parts:['竹','目','廾','米','女'],hints:['小学校の教科','竹＋目＋廾で1文字目、米＋女で2文字目'],explain:'竹＋目＋廾＝算、米＋女→数→算数（さんすう）'},
 
-  // ===== hard / jukugo (10) =====
-  {d:'hard',cat:'jukugo',answer:'挑戦',reading:'ちょうせん',parts:['挑','戦'],hints:['難しいことに立ち向かう','「ちょうせん」と読む'],explain:'挑＋戦＝挑戦（ちょうせん）'},
-  {d:'hard',cat:'jukugo',answer:'憧憬',reading:'しょうけい',parts:['憧','憬'],hints:['心からあこがれること','「しょうけい」と読む'],explain:'憧＋憬＝憧憬（しょうけい）'},
-  {d:'hard',cat:'jukugo',answer:'覚悟',reading:'かくご',parts:['覚','悟'],hints:['心の準備をすること','「かくご」と読む'],explain:'覚＋悟＝覚悟（かくご）'},
-  {d:'hard',cat:'jukugo',answer:'矛盾',reading:'むじゅん',parts:['矛','盾'],hints:['つじつまが合わないこと','「むじゅん」と読む'],explain:'矛＋盾＝矛盾（むじゅん）'},
-  {d:'hard',cat:'jukugo',answer:'曖昧',reading:'あいまい',parts:['曖','昧'],hints:['はっきりしないこと','「あいまい」と読む'],explain:'曖＋昧＝曖昧（あいまい）'},
-  {d:'hard',cat:'jukugo',answer:'葛藤',reading:'かっとう',parts:['葛','藤'],hints:['心の中で迷い悩むこと','「かっとう」と読む'],explain:'葛＋藤＝葛藤（かっとう）'},
-  {d:'hard',cat:'jukugo',answer:'威厳',reading:'いげん',parts:['威','厳'],hints:['堂々とした雰囲気','「いげん」と読む'],explain:'威＋厳＝威厳（いげん）'},
-  {d:'hard',cat:'jukugo',answer:'繊細',reading:'せんさい',parts:['繊','細'],hints:['細やかで敏感なこと','「せんさい」と読む'],explain:'繊＋細＝繊細（せんさい）'},
-  {d:'hard',cat:'jukugo',answer:'憂鬱',reading:'ゆううつ',parts:['憂','鬱'],hints:['気分が沈むこと','「ゆううつ」と読む'],explain:'憂＋鬱＝憂鬱（ゆううつ）'},
-  {d:'hard',cat:'jukugo',answer:'邂逅',reading:'かいこう',parts:['邂','逅'],hints:['思いがけず出会うこと','「かいこう」と読む'],explain:'邂＋逅＝邂逅（かいこう）'},
+  // ===== hard / jukugo (10) — パーツ分解版 =====
+  {d:'hard',cat:'jukugo',answer:'挑戦',reading:'ちょうせん',parts:['扌','兆','戈','単'],hints:['難しいことに立ち向かう','扌＋兆で1文字目、戈＋単で2文字目'],explain:'扌＋兆＝挑、戈＋単＝戦→挑戦（ちょうせん）'},
+  {d:'hard',cat:'jukugo',answer:'矛盾',reading:'むじゅん',parts:['矛','目','十','丿','厂'],hints:['つじつまが合わないこと','1文字目はそのまま、2文字目は5パーツの組み合わせ'],explain:'矛＋目＋十＋丿＋厂＝盾→矛盾（むじゅん）'},
+  {d:'hard',cat:'jukugo',answer:'感想',reading:'かんそう',parts:['咸','心','相','心'],hints:['思ったことを述べる','心が2つ！'],explain:'咸＋心＝感、相＋心＝想→感想（かんそう）'},
+  {d:'hard',cat:'jukugo',answer:'解答',reading:'かいとう',parts:['角','刀','牛','竹','合'],hints:['問題に対する正解','角＋刀＋牛で1文字目、竹＋合で2文字目'],explain:'角＋刀＋牛＝解、竹＋合＝答→解答（かいとう）'},
+  {d:'hard',cat:'jukugo',answer:'議論',reading:'ぎろん',parts:['言','義','言','侖'],hints:['意見を交わし合うこと','言が2つ！'],explain:'言＋義＝議、言＋侖＝論→議論（ぎろん）'},
+  {d:'hard',cat:'jukugo',answer:'記録',reading:'きろく',parts:['言','己','金','录'],hints:['書き残すこと','言＋己で1文字目、金＋录で2文字目'],explain:'言＋己＝記、金＋录＝録→記録（きろく）'},
+  {d:'hard',cat:'jukugo',answer:'説明',reading:'せつめい',parts:['言','兌','日','月'],hints:['わかりやすく伝える','言＋兌で1文字目、日＋月で2文字目'],explain:'言＋兌＝説、日＋月＝明→説明（せつめい）'},
+  {d:'hard',cat:'jukugo',answer:'鏡花',reading:'きょうか',parts:['金','竟','艹','化'],hints:['はかない美しさのたとえ','金＋竟で1文字目、草かんむり＋化で2文字目'],explain:'金＋竟＝鏡、艹＋化＝花→鏡花（きょうか）'},
+  {d:'hard',cat:'jukugo',answer:'繊細',reading:'せんさい',parts:['糸','戔','糸','田'],hints:['細やかで敏感なこと','糸が2つ！'],explain:'糸＋戔＝繊、糸＋田＝細→繊細（せんさい）'},
+  {d:'hard',cat:'jukugo',answer:'葛藤',reading:'かっとう',parts:['艹','曷','艹','滕'],hints:['心の中で迷い悩む','草かんむりが2つ！'],explain:'艹＋曷＝葛、艹＋滕＝藤→葛藤（かっとう）'},
 
-  // ===== hard / yoji (10) =====
-  {d:'hard',cat:'yoji',answer:'一石二鳥',reading:'いっせきにちょう',parts:['一','石','二','鳥'],hints:['1つのことで2つの利益','「いっせきにちょう」と読む'],explain:'一＋石＋二＋鳥＝一石二鳥（いっせきにちょう）'},
-  {d:'hard',cat:'yoji',answer:'四面楚歌',reading:'しめんそか',parts:['四','面','楚','歌'],hints:['周りが全部敵だらけ','「しめんそか」と読む'],explain:'四＋面＋楚＋歌＝四面楚歌（しめんそか）'},
-  {d:'hard',cat:'yoji',answer:'弱肉強食',reading:'じゃくにくきょうしょく',parts:['弱','肉','強','食'],hints:['強い者が弱い者を食べる','自然界の掟'],explain:'弱＋肉＋強＋食＝弱肉強食（じゃくにくきょうしょく）'},
-  {d:'hard',cat:'yoji',answer:'以心伝心',reading:'いしんでんしん',parts:['以','心','伝','心'],hints:['言葉なしで気持ちが伝わる','「いしんでんしん」と読む'],explain:'以＋心＋伝＋心＝以心伝心（いしんでんしん）'},
-  {d:'hard',cat:'yoji',answer:'起死回生',reading:'きしかいせい',parts:['起','死','回','生'],hints:['絶望的な状況から立ち直る','「きしかいせい」と読む'],explain:'起＋死＋回＋生＝起死回生（きしかいせい）'},
-  {d:'hard',cat:'yoji',answer:'七転八起',reading:'しちてんはっき',parts:['七','転','八','起'],hints:['何度倒れても立ち上がる','「しちてんはっき」と読む'],explain:'七＋転＋八＋起＝七転八起（しちてんはっき）'},
-  {d:'hard',cat:'yoji',answer:'温故知新',reading:'おんこちしん',parts:['温','故','知','新'],hints:['古いことから新しいことを学ぶ','「おんこちしん」と読む'],explain:'温＋故＋知＋新＝温故知新（おんこちしん）'},
-  {d:'hard',cat:'yoji',answer:'花鳥風月',reading:'かちょうふうげつ',parts:['花','鳥','風','月'],hints:['自然の美しい景色','「かちょうふうげつ」と読む'],explain:'花＋鳥＋風＋月＝花鳥風月（かちょうふうげつ）'},
-  {d:'hard',cat:'yoji',answer:'十人十色',reading:'じゅうにんといろ',parts:['十','人','十','色'],hints:['みんなそれぞれ違う','「じゅうにんといろ」と読む'],explain:'十＋人＋十＋色＝十人十色（じゅうにんといろ）'},
-  {d:'hard',cat:'yoji',answer:'自業自得',reading:'じごうじとく',parts:['自','業','自','得'],hints:['自分の行いの結果は自分に返る','「じごうじとく」と読む'],explain:'自＋業＋自＋得＝自業自得（じごうじとく）'},
+  // ===== hard / yoji (10) — パーツ分解版 =====
+  {d:'hard',cat:'yoji',answer:'一石二鳥',reading:'いっせきにちょう',parts:['一','口','丆','二','鳥'],hints:['1つのことで2つの利益','口＋丆で2文字目'],explain:'一、口＋丆＝石、二、鳥→一石二鳥（いっせきにちょう）'},
+  {d:'hard',cat:'yoji',answer:'花鳥風月',reading:'かちょうふうげつ',parts:['艹','化','鳥','几','虫','月'],hints:['自然の美しい景色','草かんむり＋化で1文字目、几＋虫で3文字目'],explain:'艹＋化＝花、鳥、几＋虫＝風、月→花鳥風月（かちょうふうげつ）'},
+  {d:'hard',cat:'yoji',answer:'以心伝心',reading:'いしんでんしん',parts:['以','心','亻','云','心'],hints:['言葉なしで心が通じる','心が2つ！人偏＋云で3文字目'],explain:'以、心、亻＋云＝伝、心→以心伝心（いしんでんしん）'},
+  {d:'hard',cat:'yoji',answer:'温故知新',reading:'おんこちしん',parts:['氵','昷','古','矢','口','立','木','斤'],hints:['古いことから新しいことを学ぶ','さんずい＋昷で1文字目、立＋木＋斤で4文字目'],explain:'氵＋昷＝温、古、矢＋口＝知、立＋木＋斤＝新→温故知新'},
+  {d:'hard',cat:'yoji',answer:'起死回生',reading:'きしかいせい',parts:['走','己','歹','匕','囗','丿','生'],hints:['絶望から立ち直る','走＋己で1文字目、歹＋匕で2文字目'],explain:'走＋己＝起、歹＋匕＝死、囗＋丿＝回、生→起死回生'},
+  {d:'hard',cat:'yoji',answer:'弱肉強食',reading:'じゃくにくきょうしょく',parts:['弓','冫','冫','内','弓','虫','食'],hints:['強い者が弱い者を食べる','弓が2つ！'],explain:'弓＋冫冫＝弱、内→肉、弓＋虫＝強、食→弱肉強食'},
+  {d:'hard',cat:'yoji',answer:'七転八起',reading:'しちてんはっき',parts:['七','車','云','八','走','己'],hints:['何度倒れても立ち上がる','車＋云で2文字目、走＋己で4文字目'],explain:'七、車＋云＝転、八、走＋己＝起→七転八起'},
+  {d:'hard',cat:'yoji',answer:'十人十色',reading:'じゅうにんといろ',parts:['十','人','十','⺈','巾'],hints:['みんなそれぞれ違う','十が2つ！⺈＋巾で4文字目'],explain:'十、人、十、⺈＋巾＝色→十人十色（じゅうにんといろ）'},
+  {d:'hard',cat:'yoji',answer:'自業自得',reading:'じごうじとく',parts:['自','木','丷','一','自','彳','寸','日'],hints:['自分の行いの結果が返る','自が2つ！'],explain:'自、木＋丷＋一＝業、自、彳＋寸＋日＝得→自業自得'},
+  {d:'hard',cat:'yoji',answer:'四面楚歌',reading:'しめんそか',parts:['囗','儿','面','林','疋','可','可','欠'],hints:['周りが全部敵だらけ','可が2つ！林＋疋で3文字目'],explain:'囗＋儿＝四、面、林＋疋＝楚、可＋可＋欠＝歌→四面楚歌'},
 ];
 
 // --- Constants ---
 const STORAGE_KEY = 'kanjipuzzle_state';
 const SHARED_PLAYERS_KEY = 'partygames_players';
 const PARTICLE_EMOJIS = ['🎉', '✨', '⭐', '🌟', '💫', '🎊', '🔥'];
-const TIMER_MAP = { easy: 20, normal: 15, hard: 12 };
+const TIMER_MAP = { easy: 40, normal: 30, hard: 24 };
 const HINT1_TIME = 5; // seconds after start
 const HINT2_TIME = 10;
 const QUESTIONS_PER_ROUND = 8;
@@ -613,7 +613,7 @@ function backToSetup() {
 function renderScoreboard() {
   if (players.length === 0) { $scoreboard.style.display = 'none'; return; }
   $scoreboard.style.display = '';
-  const sorted = [...players].sort((a, b) => (scores[b] || 0) - (scores[a] || 0));
+  const sorted = getActivePlayers(players).sort((a, b) => (scores[b] || 0) - (scores[a] || 0));
   $scoreRows.innerHTML = sorted.map((p, i) => {
     const medal = i === 0 && (scores[p] || 0) > 0 ? '👑' : '';
     return `<span class="score-item"><span class="name">${medal}${esc(p)}</span><span class="pts">${scores[p] || 0}</span></span>`;
