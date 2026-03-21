@@ -277,6 +277,7 @@ let solveTimes = [];
 let answerOrder = [];
 let answerIndex = 0;
 let playerAnswers = {};
+let allPlayerAnswers = []; // per-question answers for final results
 
 const $ = id => document.getElementById(id);
 const $setupPhase = $('setupPhase'), $hintPhase = $('hintPhase');
@@ -320,6 +321,7 @@ function startGame() {
   round++;
   setCorrect = 0; setTotal = 0;
   solveTimes = [];
+  allPlayerAnswers = [];
 
   // Build problem pool
   let pool = PROBLEMS.filter(p => {
@@ -530,6 +532,7 @@ function nextStep() {
     // All players answered - record result and move to next question
     const anyCorrect = Object.values(playerAnswers).some(a => a.correct);
     currentProblem._result = anyCorrect ? 'correct' : 'wrong';
+    allPlayerAnswers.push({ answer: currentProblem.answer, results: Object.assign({}, playerAnswers) });
     if (anyCorrect) setCorrect++;
     setTotal++;
 
@@ -547,11 +550,34 @@ function endSet() {
   $('resultIcon').textContent = pct >= 80 ? '🎉' : pct >= 50 ? '👍' : '🌍';
   $('resultTitle').textContent = `${setCorrect} / ${setTotal} 問正解！（${pct}%）`;
 
+  const activePlayers = getActivePlayers(players);
+  const isMulti = activePlayers.length > 1;
   let details = '';
-  currentProblems.forEach(q => {
-    const icon = q._result === 'correct' ? '⭕' : '❌';
-    details += `${icon} ${esc(q.answer)}<br>`;
-  });
+
+  if (isMulti) {
+    // Multiplayer: show per-player results for each question
+    allPlayerAnswers.forEach(function (qa, i) {
+      details += '<div style="margin-bottom:.5rem;">';
+      details += '<div style="font-weight:700;margin-bottom:.15rem;">Q' + (i + 1) + '. ' + esc(qa.answer) + '</div>';
+      activePlayers.forEach(function (p) {
+        var r = qa.results[p];
+        if (r) {
+          var icon = r.correct ? '<span style="color:#10b981;">⭕</span>' : '<span style="color:#ef4444;">❌</span>';
+          details += '<div style="font-size:.8rem;padding-left:.5rem;">' + icon + ' ' + esc(p);
+          if (r.correct) details += ' +' + r.pts + 'pt';
+          else details += ' (' + esc(r.chosen) + ')';
+          details += '</div>';
+        }
+      });
+      details += '</div>';
+    });
+  } else {
+    // Solo: simple list
+    currentProblems.forEach(function (q) {
+      var icon = q._result === 'correct' ? '⭕' : '❌';
+      details += icon + ' ' + esc(q.answer) + '<br>';
+    });
+  }
   details += renderGameRecommendation('where-is-it');
   $('resultDetails').innerHTML = details;
 
