@@ -61,14 +61,25 @@
       </div>
     </div>
 
-    <!-- Result Phase -->
+    <!-- Result Phase (per player) -->
     <div id="resultPhase" style="display:none;">
       <div class="phase-section result-section">
         <div class="result-icon" id="resultIcon"></div>
         <div class="result-title" id="resultTitle"></div>
         <div class="result-details" id="resultDetails"></div>
         <div id="resultExtra"></div>
-        <button class="btn btn-primary next-btn" onclick="nextRound()" data-ruby>もう1回！</button>
+        <button class="btn btn-primary next-btn" id="nextBtn" onclick="nextRound()" data-ruby>もう1回！</button>
+      </div>
+    </div>
+
+    <!-- Final Ranking Phase -->
+    <div id="finalPhase" style="display:none;">
+      <div class="phase-section result-section">
+        <div class="result-icon" id="finalIcon"></div>
+        <div class="result-title" id="finalTitle"></div>
+        <div id="finalRanking"></div>
+        <div id="finalExtra"></div>
+        <button class="btn btn-primary next-btn" onclick="backToSetup()" data-ruby>もう1回！</button>
       </div>
     </div>
 

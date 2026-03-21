@@ -151,8 +151,10 @@ function renderPlayers() {
   });
 }
 
+const $finalPhase = document.getElementById('finalPhase');
+
 function showPhase(id) {
-  [$setupPhase, $gamePhase, $resultPhase].forEach(el => el.style.display = 'none');
+  [$setupPhase, $gamePhase, $resultPhase, $finalPhase].forEach(el => { if (el) el.style.display = 'none'; });
   document.getElementById(id).style.display = '';
 }
 
@@ -369,6 +371,17 @@ function endPlayerRound(timeOver = false) {
     },
   });
 
+  // Update button text based on whether more players remain
+  const isLastPlayer = playerIndex >= roundPlayers.length - 1;
+  const $nextBtn = document.getElementById('nextBtn');
+  if (roundPlayers.length > 1 && !isLastPlayer) {
+    $nextBtn.textContent = '次のプレイヤーへ';
+  } else if (roundPlayers.length > 1) {
+    $nextBtn.textContent = 'ランキングを見る';
+  } else {
+    $nextBtn.textContent = 'もう1回！';
+  }
+
   renderScoreboard(); renderLog(); saveState();
 }
 
@@ -376,9 +389,39 @@ function nextRound() {
   playerIndex++;
   if (playerIndex < roundPlayers.length) {
     startPlayerRound();
+  } else if (roundPlayers.length > 1) {
+    showFinalRanking();
   } else {
     showPhase('setupPhase');
   }
+}
+
+function showFinalRanking() {
+  showPhase('finalPhase');
+  const sorted = getActivePlayers(players).sort((a, b) => (scores[b] || 0) - (scores[a] || 0));
+  const winner = sorted[0];
+  const topScore = scores[winner] || 0;
+
+  document.getElementById('finalIcon').textContent = '🏆';
+  document.getElementById('finalTitle').textContent = `${esc(winner)} の勝ち！`;
+
+  document.getElementById('finalRanking').innerHTML = sorted.map((p, i) => {
+    const medal = i === 0 ? '👑 ' : i === 1 ? '🥈 ' : i === 2 ? '🥉 ' : '';
+    return `<div style="display:flex;justify-content:space-between;padding:.3rem .5rem;font-size:.9rem;"><span>${medal}${esc(p)}</span><strong>${scores[p] || 0}pt</strong></div>`;
+  }).join('');
+
+  let extraHTML = renderBestBadge('number-rush', topScore);
+  extraHTML += renderGameRecommendation('number-rush');
+  document.getElementById('finalExtra').innerHTML = extraHTML;
+
+  if (topScore > 0) {
+    const rect = document.getElementById('finalTitle').getBoundingClientRect();
+    emitParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
+  }
+}
+
+function backToSetup() {
+  showPhase('setupPhase');
 }
 
 function renderScoreboard() {
