@@ -19,6 +19,7 @@ let level = 0;
 let playerIndex = 0;
 let pattern = [];
 let selectedCells = new Set();
+let patternHiddenAt = 0;
 
 const $setupPhase = document.getElementById('setupPhase');
 const $showPhaseEl = document.getElementById('showPhaseEl');
@@ -108,6 +109,7 @@ function startLevel() {
 
   // Hide after showTime
   setTimeout(() => {
+    patternHiddenAt = Date.now();
     startAnswerPhase(size);
   }, showTime);
 }
@@ -122,6 +124,7 @@ function startAnswerPhase(size) {
 }
 
 function submitAnswer() {
+  const answerRT = Date.now() - patternHiddenAt;
   const player = roundPlayers[playerIndex];
   const [size] = LEVELS[Math.min(level, LEVELS.length - 1)];
   const patternSet = new Set(pattern);
@@ -157,8 +160,15 @@ function submitAnswer() {
       emitParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
     }
 
-    logs.unshift({ timestamp: new Date().toISOString(), round, player, level: level + 1, gridSize: size, litCount: pattern.length, correctCount, perfect, pts });
-    savePlayLog('flash-memory', correctCount, pattern.length);
+    logs.unshift({ timestamp: new Date().toISOString(), round, player, level: level + 1, gridSize: size, litCount: pattern.length, correctCount, perfect, pts, answerRT });
+    savePlayLog('flash-memory', pts, pattern.length + 2, {
+      playMode: players.length <= 1 ? 'solo' : 'passplay',
+      cognitive: {
+        medianRT: answerRT,
+        difficulty: level + 1,
+        spanAtFailure: perfect ? null : level + 1,
+      }
+    });
 
     // Determine next step
     const $btn = document.getElementById('nextBtn');

@@ -502,7 +502,10 @@ function finishSubmit(player, word, reading, valid, reason, dictResult, reaction
   if (valid) {
     scores[player] = (scores[player] || 0) + 1;
     lastAnswerer = player;
-    savePlayLog('word-slot', 1, 1);
+    savePlayLog('word-slot', 1, 1, {
+      playMode: players.length <= 1 ? 'solo' : 'passplay',
+      cognitive: { medianRT: reactionMs, difficulty: 1 }
+    });
     // Particle effect from validation result
     const rect = $validationResult.getBoundingClientRect();
     emitParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);

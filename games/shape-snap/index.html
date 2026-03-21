@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>かたちスナップ - asobi.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="toast" id="toast"></div>
+  <div class="particle-container" id="particles"></div>
+
+  <div class="top-bar">
+    <div class="title"><a href="../../games.html">asobi.dev</a> / <span data-ruby>かたちスナップ</span></div>
+    <div class="top-bar-actions">
+      <button class="icon-btn" onclick="document.getElementById('helpModal').classList.add('show')">?</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="helpModal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="document.getElementById('helpModal').classList.remove('show')">&times;</button>
+      <h3 data-ruby>遊び方</h3>
+      <ul>
+        <li data-ruby>画面上部に<strong>お手本の図形</strong>が表示されます</li>
+        <li data-ruby>下の4つの選択肢から、お手本を<strong>回転させたもの</strong>を見つけよう！</li>
+        <li data-ruby>鏡像（裏返し）に注意！回転だけが正解です</li>
+        <li data-ruby>ソロ: 60秒で何問正解できるかチャレンジ！</li>
+        <li data-ruby>みんなで: 口頭で答えを叫んで、正解者にポイント！</li>
+      </ul>
+      <h3 data-ruby style="margin-top:1rem;">鍛えられる力</h3>
+      <ul>
+        <li data-ruby><strong>空間認識</strong> — 図形の回転を頭の中でイメージする力</li>
+        <li data-ruby><strong>処理速度</strong> — 素早く正しい判断を下す力</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="game-page">
+    <div id="setupPhase">
+      <div class="setup-section">
+        <h4>プレイヤー</h4>
+        <div id="playerList"></div>
+        <div class="options-row">
+          <div class="option-group">
+            <label>モード</label>
+            <div class="option-pills" id="modePills">
+              <button class="option-pill selected" data-value="solo" onclick="selectOption('playMode',this)" data-ruby>ソロ</button>
+              <button class="option-pill" data-value="multi" onclick="selectOption('playMode',this)" data-ruby>みんなで</button>
+            </div>
+          </div>
+        </div>
+        <button class="start-btn" onclick="startGame()">🔷 スタート！</button>
+      </div>
+    </div>
+
+    <!-- Game Phase (Solo) -->
+    <div id="gamePhase" style="display:none;">
+      <div class="phase-section">
+        <div class="game-timer" id="timerDisplay"></div>
+        <div class="game-score" data-ruby>スコア: <span id="scoreDisplay">0</span></div>
+        <div class="shape-label" data-ruby>お手本</div>
+        <div class="shape-reference" id="referenceShape"></div>
+        <div class="shape-label" data-ruby>同じ形はどれ？</div>
+        <div class="shape-choices" id="shapeChoices"></div>
+      </div>
+    </div>
+
+    <!-- Game Phase (Multi) -->
+    <div id="multiGamePhase" style="display:none;">
+      <div class="phase-section">
+        <div class="multi-progress" id="multiProgress"></div>
+        <div class="shape-label" data-ruby>お手本</div>
+        <div class="shape-reference" id="multiReferenceShape"></div>
+        <div class="shape-label" data-ruby>同じ形はどれ？</div>
+        <div class="shape-choices" id="multiShapeChoices"></div>
+        <button class="btn btn-primary reveal-btn" id="revealBtn" onclick="revealAnswer()" data-ruby>答え合わせ</button>
+      </div>
+    </div>
+
+    <!-- Answerer Phase (multi: who got it right?) -->
+    <div id="answererPhase" style="display:none;">
+      <div class="phase-section">
+        <div class="answerer-label" data-ruby>正解者を選んでください（複数OK）</div>
+        <div class="answerer-grid" id="answererGrid"></div>
+        <div class="wrong-section">
+          <div class="answerer-label" data-ruby>不正解者（-1pt）</div>
+          <div class="answerer-grid" id="wrongGrid"></div>
+        </div>
+        <button class="btn btn-primary next-q-btn" onclick="nextMultiQuestion()" data-ruby>次の問題</button>
+      </div>
+    </div>
+
+    <!-- Result Phase -->
+    <div id="resultPhase" style="display:none;">
+      <div class="phase-section result-section">
+        <div class="result-icon" id="resultIcon"></div>
+        <div class="result-title" id="resultTitle"></div>
+        <div class="result-details" id="resultDetails"></div>
+        <div id="resultExtra"></div>
+        <button class="btn btn-primary next-btn" onclick="nextRound()" data-ruby>もう1回！</button>
+      </div>
+    </div>
+
+    <div class="score-section" id="scoreboard" style="display:none;">
+      <h4>Score</h4>
+      <div class="score-list" id="scoreRows"></div>
+    </div>
+    <div class="log-section" id="answerLog" style="display:none;">
+      <div class="log-header"><h4>Log</h4><button class="clear-log-btn" onclick="clearAllLogs()" data-ruby>消去</button></div>
+      <div id="logEntries"></div>
+    </div>
+  </div>
+  <script src="../../js/auto-ruby.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../../js/firebase-config.js"></script>
+  <script src="../../js/profile.js"></script>
+  <script src="../../js/shared.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

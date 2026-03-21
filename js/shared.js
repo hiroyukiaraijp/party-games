@@ -76,6 +76,9 @@ function renderGameRecommendation(currentGameId) {
     {id:'lab-panic',icon:'🧪',name:'ラボパニック',href:'../lab-panic/index.html'},
     {id:'kanji-puzzle',icon:'🀄',name:'漢字バラバラ',href:'../kanji-puzzle/index.html'},
     {id:'where-is-it',icon:'🗺️',name:'どこでしょう？',href:'../where-is-it/index.html'},
+    {id:'number-rush',icon:'🔢',name:'ナンバーラッシュ',href:'../number-rush/index.html'},
+    {id:'shape-snap',icon:'🔷',name:'かたちスナップ',href:'../shape-snap/index.html'},
+    {id:'word-burst',icon:'💣',name:'ことばバースト',href:'../word-burst/index.html'},
   ];
   const others = allGames.filter(g => g.id !== currentGameId);
   const pick = others[Math.floor(Math.random() * others.length)];

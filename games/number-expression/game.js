@@ -468,7 +468,10 @@ function submitOrder() {
     correctPairs, totalPairs, scoreAwarded,
   });
 
-  savePlayLog('number-expression', correctPairs, totalPairs);
+  savePlayLog('number-expression', correctPairs, totalPairs, {
+    playMode: 'centerpiece',
+    cognitive: { difficulty: 1 }
+  });
   renderScoreboard(); renderLog(); saveState();
 }
 

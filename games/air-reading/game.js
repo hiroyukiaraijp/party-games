@@ -185,8 +185,14 @@ function showResult(){
     emitParticles(rect.left+rect.width/2,rect.top+rect.height/2);
   }
 
-  logs.unshift({timestamp:new Date().toISOString(),round,topic:currentTopic.q,winner,avg});
-  savePlayLog('air-reading', 1, 1);
+  const playerAnswers = {};
+  for (const [name, val] of Object.entries(answers)) { playerAnswers[name] = val; }
+  const winner = allTied ? '(ドロー)' : winners.map(w => w.name).join(' & ');
+  logs.unshift({timestamp:new Date().toISOString(),round,topic:currentTopic.q,winner,avg,playerAnswers});
+  savePlayLog('air-reading', 1, 1, {
+    playMode: 'centerpiece',
+    cognitive: { difficulty: 1 }
+  });
   renderScoreboard();renderLog();saveState();
 }
 

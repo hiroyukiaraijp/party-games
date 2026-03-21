@@ -1,4 +1,6 @@
 /* ===== Where Is It (どこでしょう？) ===== */
+function median(arr) { if (!arr.length) return 0; const s = [...arr].sort((a,b) => a-b); const m = Math.floor(s.length/2); return s.length % 2 ? s[m] : (s[m-1]+s[m])/2; }
+function stddev(arr) { if (arr.length < 2) return 0; const m = arr.reduce((a,b) => a+b, 0) / arr.length; return Math.sqrt(arr.reduce((s,v) => s + (v-m)**2, 0) / arr.length); }
 
 // ========== Problem Data ==========
 const PROBLEMS = [
@@ -270,6 +272,8 @@ let setCorrect = 0;
 let setTotal = 0;
 let currentHintIndex = 0;
 let currentProblem = null;
+let puzzleStartAt = 0;
+let solveTimes = [];
 let answerOrder = [];
 let answerIndex = 0;
 let playerAnswers = {};
@@ -315,6 +319,7 @@ function startGame() {
   if (getActivePlayers(players).length < 1) { showToast('プレイヤーを1人以上登録してください'); return; }
   round++;
   setCorrect = 0; setTotal = 0;
+  solveTimes = [];
 
   // Build problem pool
   let pool = PROBLEMS.filter(p => {
@@ -348,6 +353,7 @@ function showQuestion() {
   currentProblem = currentProblems[questionIndex];
   currentHintIndex = 0;
   playerAnswers = {};
+  puzzleStartAt = Date.now();
 
   $('questionNum').textContent = `${questionIndex + 1} / ${currentProblems.length}`;
   const catLabel = { geography: '地理', history: '歴史', culture: '文化' }[currentProblem.cat] || '';
@@ -459,6 +465,9 @@ function selectChoice(btn, chosen) {
   const buttons = $('choiceGrid').querySelectorAll('.choice-btn');
   if (btn.classList.contains('correct') || btn.classList.contains('wrong')) return;
 
+  const solveTime = Date.now() - puzzleStartAt;
+  solveTimes.push(solveTime);
+
   const isCorrect = chosen === currentProblem.answer;
   const currentPlayer = answerOrder[answerIndex];
 
@@ -551,8 +560,11 @@ function endSet() {
     emitParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
   }
 
-  logs.unshift({ timestamp: new Date().toISOString(), round, correct: setCorrect, total: setTotal, pct });
-  savePlayLog('where-is-it', setCorrect, setTotal);
+  logs.unshift({ timestamp: new Date().toISOString(), round, correct: setCorrect, total: setTotal, pct, solveTime: median(solveTimes), hintsUsed: currentHintIndex + 1 });
+  savePlayLog('where-is-it', setCorrect, setTotal, {
+    playMode: 'solo',
+    cognitive: { medianRT: median(solveTimes), rtSD: stddev(solveTimes), difficulty: getDDALevel('where-is-it') || 1 }
+  });
   renderScoreboard(); renderLog(); saveState();
 }
 

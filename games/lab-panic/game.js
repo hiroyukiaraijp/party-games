@@ -349,7 +349,11 @@ function showResult(){
 
   // Save max possible score for play log
   const maxPossible=currentQ.type==='choice'?5:10;
-  savePlayLog('lab-panic',bestPts,maxPossible);
+  const labDifficulty=currentQ.d==='hard'?3:currentQ.d==='normal'?2:1;
+  savePlayLog('lab-panic',bestPts,maxPossible, {
+    playMode: 'centerpiece',
+    cognitive: { difficulty: labDifficulty }
+  });
 
   logs.unshift({timestamp:new Date().toISOString(),round,q:currentQ.q,answer:currentQ.type==='choice'?currentQ.choices[currentQ.answer]:currentQ.answer,predictions:{...predictions}});
   $('nextBtn').textContent=round>=totalRounds?'結果を見る →':'次の実験 →';

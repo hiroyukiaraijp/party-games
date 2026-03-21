@@ -35,6 +35,9 @@ const GAME_DOMAIN_MAP = {
   'lab-panic':           { LOG: 4, SPA: 3, ATT: 2, CRE: 1 },
   'kanji-puzzle':        { LNG: 5, SPA: 4, SPD: 3, MEM: 2 },
   'where-is-it':         { LOG: 4, MEM: 3, SPA: 4, SOC: 2 },
+  'number-rush':         { SPD: 5, ATT: 5, SPA: 2 },
+  'shape-snap':          { SPA: 5, LOG: 3, SPD: 3 },
+  'word-burst':          { CRE: 5, LNG: 4, SPD: 2 },
 };
 
 // ---- User ID generation ----
@@ -95,11 +98,11 @@ async function loginOrRegister(name, birthday) {
 }
 
 // ---- Firestore: Play Logs ----
-async function savePlayLogToFirestore(userId, gameId, score, maxScore, withPlayers) {
+async function savePlayLogToFirestore(userId, gameId, score, maxScore, withPlayers, cognitive) {
   const db = initFirebase();
   if (!db) return;
   const pct = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
-  await db.collection('playlogs').add({
+  const data = {
     userId,
     gameId,
     score: score || 0,
@@ -108,7 +111,9 @@ async function savePlayLogToFirestore(userId, gameId, score, maxScore, withPlaye
     withPlayers: withPlayers || [],
     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
     createdAt: new Date().toISOString(),
-  });
+  };
+  if (cognitive) data.cognitive = cognitive;
+  await db.collection('playlogs').add(data);
 }
 
 async function getPlayLogsForUser(userId) {
@@ -128,6 +133,8 @@ function savePlayLog(gameId, score, maxScore, extra) {
   const session = getSession();
   const sessionPlayers = getSessionPlayers();
   const playerNames = sessionPlayers.map(p => p.name);
+  const cognitive = extra && extra.cognitive ? extra.cognitive : null;
+  const playMode = extra && extra.playMode ? extra.playMode : null;
 
   // Try Firestore for logged-in session players
   if (sessionPlayers.length > 0) {
@@ -135,7 +142,7 @@ function savePlayLog(gameId, score, maxScore, extra) {
       if (p.userId) {
         try {
           if (typeof initFirebase === 'function') initFirebase();
-          savePlayLogToFirestore(p.userId, gameId, score, maxScore, playerNames).catch(e => {
+          savePlayLogToFirestore(p.userId, gameId, score, maxScore, playerNames, cognitive).catch(e => {
             console.warn('Firestore write failed for', p.name, ':', e.message);
           });
         } catch (e) {
@@ -147,7 +154,7 @@ function savePlayLog(gameId, score, maxScore, extra) {
     // No session players but have a session - save for self
     try {
       if (typeof initFirebase === 'function') initFirebase();
-      savePlayLogToFirestore(session.userId, gameId, score, maxScore, [session.name]).catch(e => {
+      savePlayLogToFirestore(session.userId, gameId, score, maxScore, [session.name], cognitive).catch(e => {
         console.warn('Firestore write failed:', e.message);
       });
     } catch (e) {
@@ -155,38 +162,73 @@ function savePlayLog(gameId, score, maxScore, extra) {
     }
   }
 
-  // Always save to localStorage as fallback
+  // Always save to localStorage as fallback (includes cognitive data)
   try {
     const logs = JSON.parse(localStorage.getItem('asobi_playlogs') || '[]');
     const userId = session?.userId || (sessionPlayers[0]?.userId) || 'anonymous';
-    logs.push({ userId, gameId, score, maxScore, pct: maxScore > 0 ? Math.round((score / maxScore) * 100) : 0, timestamp: new Date().toISOString() });
+    const entry = { userId, gameId, score, maxScore, pct: maxScore > 0 ? Math.round((score / maxScore) * 100) : 0, createdAt: new Date().toISOString() };
+    if (cognitive) entry.cognitive = cognitive;
+    if (playMode) entry.playMode = playMode;
+    logs.push(entry);
     if (logs.length > 500) logs.splice(0, logs.length - 500);
     localStorage.setItem('asobi_playlogs', JSON.stringify(logs));
   } catch {}
 }
 
-// ---- Profile Calculation ----
+// ---- Profile Calculation (Enhanced with cognitive data) ----
+// Play mode confidence weights
+const PLAY_MODE_CONFIDENCE = { solo: 1.0, centerpiece: 0.8, passplay: 0.5, host: 0.3 };
+
 function calculateProfileFromLogs(logs) {
   if (!logs || logs.length === 0) return null;
 
   const domainScores = {};
-  const domainCounts = {};
-  COG_DOMAINS.forEach(d => { domainScores[d.id] = 0; domainCounts[d.id] = 0; });
+  const domainWeights = {};
+  COG_DOMAINS.forEach(d => { domainScores[d.id] = 0; domainWeights[d.id] = 0; });
 
+  const now = Date.now();
   for (const log of logs) {
     const weights = GAME_DOMAIN_MAP[log.gameId];
     if (!weights) continue;
-    const pct = (log.pct || 0) / 100;
-    for (const [domain, weight] of Object.entries(weights)) {
-      domainScores[domain] += pct * weight;
-      domainCounts[domain] += weight;
+
+    // Base score from pct
+    let baseScore = (log.pct || 0) / 100;
+    const cog = log.cognitive;
+
+    // Enhance with cognitive data if available
+    if (cog) {
+      // Difficulty adjustment: higher DDA level = same pct counts more
+      if (cog.difficulty && cog.difficulty > 1) {
+        baseScore *= (1 + (cog.difficulty - 1) * 0.05);
+      }
+      // Consistency bonus: low RT variability = stable ability
+      if (cog.rtSD && cog.medianRT && cog.medianRT > 0) {
+        const cv = cog.rtSD / cog.medianRT;
+        baseScore *= (0.8 + 0.2 * Math.max(0, 1 - cv));
+      }
+    }
+    baseScore = Math.min(baseScore, 1.0);
+
+    // Play mode confidence
+    const modeConf = log.playMode ? (PLAY_MODE_CONFIDENCE[log.playMode] || 0.5) : 0.5;
+
+    // Recency: exponential decay, half-life 30 days
+    const logTime = new Date(log.createdAt || log.timestamp || 0).getTime();
+    const ageDays = logTime > 0 ? (now - logTime) / 86400000 : 15;
+    const recency = Math.exp(-ageDays / 30);
+
+    const effectiveWeight = modeConf * recency;
+
+    for (const [domain, domainWeight] of Object.entries(weights)) {
+      domainScores[domain] += baseScore * domainWeight * effectiveWeight;
+      domainWeights[domain] += domainWeight * effectiveWeight;
     }
   }
 
   const profile = {};
   COG_DOMAINS.forEach(d => {
-    profile[d.id] = domainCounts[d.id] > 0
-      ? Math.round((domainScores[d.id] / domainCounts[d.id]) * 100)
+    profile[d.id] = domainWeights[d.id] > 0
+      ? Math.round((domainScores[d.id] / domainWeights[d.id]) * 100)
       : 0;
   });
   return profile;
@@ -251,14 +293,14 @@ function getAdvice(profile) {
   const top = sorted[0], bottom = sorted[sorted.length - 1];
 
   const gameRecs = {
-    LNG: ['ワードスロット', '逆引き辞書クイズ', 'カタカナーシ'],
-    LOG: ['ナゾトキ', 'マスターゲーム', 'ワードウルフ'],
+    LNG: ['ワードスロット', '逆引き辞書クイズ', 'ことばバースト'],
+    LOG: ['ナゾトキ', 'マスターゲーム', 'かたちスナップ'],
     MEM: ['フラッシュメモリー', 'リズムリレー'],
-    SPD: ['カラーパニック', 'ワードスロット'],
-    CRE: ['数字deコトバ', '頭文字バトル'],
+    SPD: ['カラーパニック', 'ナンバーラッシュ'],
+    CRE: ['ことばバースト', '数字deコトバ', '頭文字バトル'],
     SOC: ['ワードウルフ', '空気読みスケール', '連想ブリッジ'],
-    SPA: ['フラッシュメモリー'],
-    ATT: ['カラーパニック', 'リズムリレー'],
+    SPA: ['かたちスナップ', 'フラッシュメモリー'],
+    ATT: ['ナンバーラッシュ', 'カラーパニック', 'リズムリレー'],
   };
 
   const strengthen = `${top.icon} ${top.name}が得意！${(gameRecs[top.id] || []).join('・')}でさらに伸ばそう`;

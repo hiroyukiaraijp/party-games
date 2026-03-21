@@ -609,7 +609,11 @@ function showResult() {
     result,
   });
 
-  savePlayLog('word-wolf', wolfDetected ? 1 : 0, 1);
+  const difficultyLevel = difficulty === 'hard' ? 3 : difficulty === 'normal' ? 2 : 1;
+  savePlayLog('word-wolf', wolfDetected ? 1 : 0, 1, {
+    playMode: 'host',
+    cognitive: { difficulty: difficultyLevel }
+  });
   renderScoreboard();
   renderLog();
   saveState();

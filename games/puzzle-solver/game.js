@@ -1,4 +1,6 @@
 /* ===== Puzzle Solver (ナゾトキ) ===== */
+function median(arr) { if (!arr.length) return 0; const s = [...arr].sort((a,b) => a-b); const m = Math.floor(s.length/2); return s.length % 2 ? s[m] : (s[m-1]+s[m])/2; }
+function stddev(arr) { if (arr.length < 2) return 0; const m = arr.reduce((a,b) => a+b, 0) / arr.length; return Math.sqrt(arr.reduce((s,v) => s + (v-m)**2, 0) / arr.length); }
 
 const PUZZLES = {
   cipher: [
@@ -120,6 +122,7 @@ let usedPuzzles=new Set();
 
 let currentPuzzles=[],puzzleIndex=0,setCorrect=0,setTotal=0;
 let hintsUsed=0,answered=false,puzzleStartTime=0;
+let solveTimes=[];
 let escapeStepIndex=0,escapeCompleted=false;
 let currentEscape=null;
 
@@ -151,7 +154,7 @@ function showPhase(id){[$setupPhase,$puzzlePhase,$resultPhase].forEach(e=>e.styl
 function startGame(){
   syncActivePlayers(players,scores);
   if(getActivePlayers(players).length<1){showToast('プレイヤーを1人以上登録してください');return;}
-  round++; setCorrect=0; setTotal=0;
+  round++; setCorrect=0; setTotal=0; solveTimes=[];
 
   // Build puzzle pool
   let pool=[];
@@ -276,6 +279,8 @@ function submitAnswer(){
       if(escapeStepIndex>=currentEscape.steps.length){
         // Escape completed!
         escapeCompleted=true;
+        const solveTime=Date.now()-puzzleStartTime;
+        solveTimes.push(solveTime);
         const pts=Math.max(0,(SCORE_BASE[currentEscape.d]||3)-hintsUsed+3);
         for(const pl of players)scores[pl]=(scores[pl]||0)+pts;
         setCorrect++;setTotal++;
@@ -289,7 +294,9 @@ function submitAnswer(){
     }
 
     // Normal puzzle
-    const elapsed=(Date.now()-puzzleStartTime)/1000;
+    const solveTime=Date.now()-puzzleStartTime;
+    solveTimes.push(solveTime);
+    const elapsed=solveTime/1000;
     const base=SCORE_BASE[p.data.d]||3;
     const pts=Math.max(0,base-hintsUsed);
     for(const pl of players)scores[pl]=(scores[pl]||0)+pts;
@@ -359,8 +366,11 @@ function endSet(){
 
   if(pct>=80){const r=$('resultTitle').getBoundingClientRect();emitParticles(r.left+r.width/2,r.top+r.height/2);}
 
-  logs.unshift({timestamp:new Date().toISOString(),round,correct:setCorrect,total:setTotal,pct});
-  savePlayLog('puzzle-solver', setCorrect, setTotal);
+  logs.unshift({timestamp:new Date().toISOString(),round,correct:setCorrect,total:setTotal,pct,solveTime:median(solveTimes),hintsUsed});
+  savePlayLog('puzzle-solver', setCorrect, setTotal, {
+    playMode: 'solo',
+    cognitive: { medianRT: median(solveTimes), difficulty: getDDALevel('puzzle-solver') || 1 }
+  });
   renderScoreboard();renderLog();saveState();
 }
 

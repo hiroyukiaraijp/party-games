@@ -192,7 +192,11 @@ function showResult(){
       const pts=isPerfect?10:5;
       scores[w.name]=(scores[w.name]||0)+pts;
     }
-    savePlayLog('number-auction',winners[0].diff===0?10:5,10);
+    const diffLevel = difficulty === 'hard' ? 3 : difficulty === 'normal' ? 2 : 1;
+    savePlayLog('number-auction',winners[0].diff===0?10:5,10, {
+      playMode: 'centerpiece',
+      cognitive: { difficulty: diffLevel }
+    });
   }
 
   // Result bar visualization

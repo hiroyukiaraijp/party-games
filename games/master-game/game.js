@@ -426,7 +426,11 @@ function showResultScreen(result, guesser) {
     elapsedMs: Date.now() - roundStartTime,
   });
 
-  savePlayLog('master-game', result === 'solved' ? 1 : 0, 1);
+  const elapsedMs = Date.now() - roundStartTime;
+  savePlayLog('master-game', result === 'solved' ? 1 : 0, 1, {
+    playMode: 'host',
+    cognitive: { medianRT: questionCount > 0 ? elapsedMs / questionCount : elapsedMs, difficulty: 1 }
+  });
   renderScoreboard();
   renderLog();
   saveState();

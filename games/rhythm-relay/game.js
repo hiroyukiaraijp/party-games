@@ -18,6 +18,11 @@ let phase = 'idle';      // idle | replay | add
 let playerOrder = [];
 let turnIndex = 0;
 let inputLocked = false;
+let playbackEndAt = 0;
+let tapTimes = [];
+let lastFailedAt = null;
+
+function median(arr) { if (!arr.length) return 0; const s = [...arr].sort((a,b) => a-b); const m = Math.floor(s.length/2); return s.length % 2 ? s[m] : (s[m-1]+s[m])/2; }
 
 const $setupPhase = document.getElementById('setupPhase');
 const $gamePhase = document.getElementById('gamePhase');
@@ -97,11 +102,15 @@ function startTurn() {
   document.getElementById('turnPlayer').textContent = player;
   document.getElementById('chainDisplay').textContent = sequence.length;
 
+  tapTimes = [];
+  lastFailedAt = null;
+
   if (sequence.length === 0) {
     // First move: just add
     phase = 'add';
     inputIndex = 0;
     inputLocked = false;
+    playbackEndAt = Date.now();
     document.getElementById('phaseLabel').textContent = '好きな色を1つタップ！';
   } else {
     // Replay existing sequence first
@@ -112,6 +121,7 @@ function startTurn() {
 
     // Play back sequence for reference
     playbackSequence(() => {
+      playbackEndAt = Date.now();
       inputLocked = false;
       document.getElementById('phaseLabel').textContent = `再現してください (${sequence.length}個) → 新しく1つ追加`;
     });
@@ -130,6 +140,7 @@ function playbackSequence(callback) {
 function onSimonTap(colorIndex) {
   if (inputLocked) return;
 
+  tapTimes.push(Date.now());
   flashButton(colorIndex, 200);
 
   if (phase === 'replay') {
@@ -164,6 +175,7 @@ function onSimonTap(colorIndex) {
 
 function playerFailed() {
   const player = playerOrder[turnIndex];
+  lastFailedAt = inputIndex;
   playBuzz();
   inputLocked = true;
   scores[player] = (scores[player] || 0) - 2;
@@ -202,8 +214,17 @@ function endGame() {
     emitParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
   }
 
-  logs.unshift({ timestamp: new Date().toISOString(), round, chainLength: sequence.length, playerCount: players.length });
-  savePlayLog('rhythm-relay', sequence.length, 20);
+  const tapIntervals = [];
+  for (let i = 1; i < tapTimes.length; i++) tapIntervals.push(tapTimes[i] - tapTimes[i - 1]);
+
+  logs.unshift({ timestamp: new Date().toISOString(), round, chainLength: sequence.length, playerCount: players.length, failedAt: lastFailedAt, tapIntervals });
+  savePlayLog('rhythm-relay', sequence.length, 20, {
+    playMode: players.length <= 1 ? 'solo' : 'centerpiece',
+    cognitive: {
+      medianRT: median(tapIntervals),
+      difficulty: sequence.length,
+    }
+  });
   renderScoreboard(); renderLog(); saveState();
 }
 

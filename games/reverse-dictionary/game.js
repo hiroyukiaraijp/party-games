@@ -1,5 +1,8 @@
 /* ===== Reverse Dictionary Quiz (逆引き辞書クイズ) ===== */
 // QUESTIONS is loaded from questions.js (1050+ questions)
+function median(arr) { if (!arr.length) return 0; const s = [...arr].sort((a,b) => a-b); const m = Math.floor(s.length/2); return s.length % 2 ? s[m] : (s[m-1]+s[m])/2; }
+function stddev(arr) { if (arr.length < 2) return 0; const m = arr.reduce((a,b) => a+b, 0) / arr.length; return Math.sqrt(arr.reduce((s,v) => s + (v-m)**2, 0) / arr.length); }
+
 const STORAGE_KEY = 'reversedictionary_state';
 const SHARED_PLAYERS_KEY = 'partygames_players';
 const PARTICLE_EMOJIS = ['🎉', '✨', '⭐', '🌟', '💫', '📖'];
@@ -19,6 +22,8 @@ let setCorrect = 0;
 let setTotal = 0;
 let hintUsed = false;
 let answered = false;
+let questionShownAt = 0;
+let questionRTs = [];
 
 const $setupPhase = document.getElementById('setupPhase');
 const $quizPhase = document.getElementById('quizPhase');
@@ -57,6 +62,7 @@ function startGame() {
   if (getActivePlayers(players).length < 1) { showToast('プレイヤーを1人以上登録してください'); return; }
   round++;
   setCorrect = 0; setTotal = 0;
+  questionRTs = [];
 
   // Build question pool
   let pool;
@@ -80,6 +86,7 @@ function showQuestion() {
   if (questionIndex >= currentQuestions.length) { endSet(); return; }
   const q = currentQuestions[questionIndex];
   hintUsed = false; answered = false;
+  questionShownAt = Date.now();
 
   document.getElementById('questionNum').textContent = `${questionIndex + 1} / ${currentQuestions.length}`;
   document.getElementById('defCategory').textContent = q.word ? '' : ''; // category from finding
@@ -132,6 +139,8 @@ function submitAnswer() {
   const answers = [q.reading, q.word, ...(q.alt || [])].map(normalize);
   const isCorrect = answers.includes(norm);
 
+  const questionRT = Date.now() - questionShownAt;
+  questionRTs.push(questionRT);
   answered = true;
   document.getElementById('answerInput').disabled = true;
   const fb = document.getElementById('feedback');
@@ -165,6 +174,8 @@ function submitAnswer() {
 
 function skipQuestion() {
   if (answered) return;
+  const questionRT = Date.now() - questionShownAt;
+  questionRTs.push(questionRT);
   const q = currentQuestions[questionIndex];
   q._result = 'wrong';
   setTotal++;
@@ -199,8 +210,11 @@ function endSet() {
     emitParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
   }
 
-  logs.unshift({ timestamp: new Date().toISOString(), round, correct: setCorrect, total: setTotal, pct });
-  savePlayLog('reverse-dictionary', setCorrect, setTotal);
+  logs.unshift({ timestamp: new Date().toISOString(), round, correct: setCorrect, total: setTotal, pct, questionRT: median(questionRTs) });
+  savePlayLog('reverse-dictionary', setCorrect, setTotal, {
+    playMode: 'solo',
+    cognitive: { medianRT: median(questionRTs), rtSD: stddev(questionRTs), difficulty: getDDALevel('reverse-dictionary') || 1 }
+  });
   renderScoreboard(); renderLog(); saveState();
 }
 

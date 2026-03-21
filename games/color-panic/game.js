@@ -11,6 +11,10 @@ const EXTRA_COLORS = [
   { name: 'だいだい', hex: '#f97316', shape: '◇' },  // DDA level 7+
 ];
 
+// Statistical helpers for RT analysis
+function median(arr) { if (!arr.length) return 0; const s = [...arr].sort((a,b) => a-b); const m = Math.floor(s.length/2); return s.length % 2 ? s[m] : (s[m-1]+s[m])/2; }
+function stddev(arr) { if (arr.length < 2) return 0; const m = arr.reduce((a,b) => a+b, 0) / arr.length; return Math.sqrt(arr.reduce((s,v) => s + (v-m)**2, 0) / arr.length); }
+
 function getActiveColors() {
   const level = getDDALevel('color-panic');
   if (level >= 7) return [...BASE_COLORS, ...EXTRA_COLORS];
@@ -46,6 +50,13 @@ let roundMode = 'color';
 let timerLeft = 0;
 let timerInterval = null;
 let questionCount = 0;
+
+// RT (Reaction Time) tracking for Stroop effect measurement
+let questionShownAt = 0;
+let currentIsCongruent = false;
+let congruentRTs = [];
+let incongruentRTs = [];
+let allRTs = [];
 
 // DOM
 const $setupPhase = document.getElementById('setupPhase');
@@ -143,6 +154,7 @@ function startPlayerRound() {
   currentPlayer = roundPlayers[playerIndex];
   round++;
   currentScore = 0; combo = 0; maxCombo = 0; questionCount = 0;
+  congruentRTs = []; incongruentRTs = []; allRTs = [];
   timerLeft = ROUND_TIME;
 
   showPhase('gamePhase');
@@ -166,14 +178,23 @@ function startPlayerRound() {
 }
 
 function nextQuestion() {
-  // Pick random word and color (ensure they differ for stroop effect)
+  // Pick random word and color; ~30% congruent trials for Stroop effect measurement
   const colors = getActiveColors();
   const wordColor = colors[Math.floor(Math.random() * colors.length)];
   let displayColor;
-  do { displayColor = colors[Math.floor(Math.random() * colors.length)]; } while (displayColor.name === wordColor.name);
+  if (Math.random() < 0.3) {
+    // Congruent: word meaning matches display color
+    displayColor = wordColor;
+    currentIsCongruent = true;
+  } else {
+    // Incongruent: ensure they differ
+    do { displayColor = colors[Math.floor(Math.random() * colors.length)]; } while (displayColor.name === wordColor.name);
+    currentIsCongruent = false;
+  }
 
   roundMode = gameMode === 'mix' ? (Math.random() < 0.5 ? 'color' : 'meaning') : gameMode;
   correctAnswer = roundMode === 'color' ? displayColor.name : wordColor.name;
+  questionShownAt = Date.now();
 
   document.getElementById('stroopMode').textContent = roundMode === 'color' ? '🎨 文字の色を答えろ！' : '📝 文字の意味を答えろ！';
   const $word = document.getElementById('stroopWord');
@@ -186,6 +207,10 @@ function nextQuestion() {
 }
 
 function answer(colorName, btnEl) {
+  const rt = Date.now() - questionShownAt;
+  allRTs.push(rt);
+  if (currentIsCongruent) { congruentRTs.push(rt); } else { incongruentRTs.push(rt); }
+
   questionCount++;
   const isCorrect = colorName === correctAnswer;
 
@@ -219,10 +244,14 @@ function answer(colorName, btnEl) {
 function endPlayerRound() {
   scores[currentPlayer] = (scores[currentPlayer] || 0) + currentScore;
 
+  const stroopEffect = median(incongruentRTs) - median(congruentRTs);
   logs.unshift({
     timestamp: new Date().toISOString(), round,
     player: currentPlayer, score: currentScore, questions: questionCount,
     maxCombo, mode: gameMode,
+    congruentRTs: [...congruentRTs],
+    incongruentRTs: [...incongruentRTs],
+    stroopEffect,
   });
 
   showPhase('resultPhase');
@@ -241,7 +270,16 @@ function endPlayerRound() {
     emitParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
   }
 
-  savePlayLog('color-panic', currentScore, 30);
+  const maxScore = 30;
+  savePlayLog('color-panic', currentScore, maxScore, {
+    playMode: players.length <= 1 ? 'solo' : 'centerpiece',
+    cognitive: {
+      medianRT: median(allRTs),
+      rtSD: stddev(allRTs),
+      stroopEffect: median(incongruentRTs) - median(congruentRTs),
+      difficulty: getDDALevel('color-panic'),
+    }
+  });
   renderScoreboard(); renderLog(); saveState();
 }
 

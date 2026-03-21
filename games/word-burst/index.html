@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ことばバースト - asobi.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="toast" id="toast"></div>
+  <div class="particle-container" id="particles"></div>
+
+  <div class="top-bar">
+    <div class="title"><a href="../../games.html">asobi.dev</a> / <span data-ruby>ことばバースト</span></div>
+    <div class="top-bar-actions">
+      <button class="icon-btn" onclick="document.getElementById('helpModal').classList.add('show')">?</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="helpModal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="document.getElementById('helpModal').classList.remove('show')">&times;</button>
+      <h3 data-ruby>遊び方</h3>
+      <ul>
+        <li data-ruby>カテゴリに合う<strong>言葉</strong>を声に出して言い、ボタンをタップ！</li>
+        <li data-ruby><strong>みんなで</strong>: 爆弾が爆発する前に次の人へ渡そう</li>
+        <li data-ruby>同じ言葉が出たら「ドカン！」ボタンで<strong>-1pt</strong></li>
+        <li data-ruby>爆発時に持っていた人も<strong>-1pt</strong></li>
+        <li data-ruby><strong>ソロ</strong>: 30秒で何個言えるかチャレンジ！</li>
+      </ul>
+      <h3 data-ruby style="margin-top:1rem;">鍛えられる力</h3>
+      <ul>
+        <li data-ruby><strong>創造力</strong> — カテゴリから素早く言葉を思いつく力</li>
+        <li data-ruby><strong>語彙力</strong> — 豊富な語彙から引き出す力</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="game-page">
+    <div id="setupPhase">
+      <div class="setup-section">
+        <h4>プレイヤー</h4>
+        <div id="playerList"></div>
+        <div class="options-row">
+          <div class="option-group">
+            <label>モード</label>
+            <div class="option-pills" id="modePills">
+              <button class="option-pill" data-value="solo" onclick="selectOption('mode',this)">ソロ</button>
+              <button class="option-pill selected" data-value="multi" onclick="selectOption('mode',this)">みんなで</button>
+            </div>
+          </div>
+          <div class="option-group">
+            <label>ラウンド</label>
+            <div class="option-pills" id="roundPills">
+              <button class="option-pill" data-value="1" onclick="selectOption('rounds',this)">1</button>
+              <button class="option-pill selected" data-value="3" onclick="selectOption('rounds',this)">3</button>
+              <button class="option-pill" data-value="5" onclick="selectOption('rounds',this)">5</button>
+            </div>
+          </div>
+        </div>
+        <button class="start-btn" onclick="startGame()">💣 スタート！</button>
+      </div>
+    </div>
+
+    <!-- Game Phase -->
+    <div id="gamePhase" style="display:none;">
+      <div class="phase-section">
+        <div class="category-label" id="categoryLabel"></div>
+        <div class="bomb-area">
+          <div class="bomb" id="bombIcon">💣</div>
+          <div class="fuse-bar"><div class="fuse-fill" id="fuseFill"></div></div>
+          <div class="timer-text" id="timerText"></div>
+        </div>
+        <div class="current-player" id="currentPlayerName"></div>
+        <div class="word-tags" id="wordTags"></div>
+        <div class="solo-counter" id="soloCounter" style="display:none;">
+          <span id="soloCount">0</span>
+        </div>
+        <button class="tap-btn" id="tapBtn" onclick="onTap()">💣 タップ！</button>
+        <button class="boom-btn" id="boomBtn" onclick="onBoom()" style="display:none;">💥 ドカン！（被った）</button>
+      </div>
+    </div>
+
+    <!-- Explosion Overlay -->
+    <div class="explosion-overlay" id="explosionOverlay" style="display:none;">
+      <div class="explosion-text">💥 ドカーン！</div>
+      <div class="explosion-player" id="explosionPlayer"></div>
+    </div>
+
+    <!-- Round Result Phase -->
+    <div id="roundResultPhase" style="display:none;">
+      <div class="phase-section result-section">
+        <div class="result-icon" id="roundResultIcon"></div>
+        <div class="result-title" id="roundResultTitle"></div>
+        <div class="result-details" id="roundResultDetails"></div>
+        <button class="btn btn-primary next-btn" id="nextRoundBtn" onclick="nextRound()">次のラウンドへ</button>
+      </div>
+    </div>
+
+    <!-- Final Result Phase -->
+    <div id="resultPhase" style="display:none;">
+      <div class="phase-section result-section">
+        <div class="result-icon" id="resultIcon"></div>
+        <div class="result-title" id="resultTitle"></div>
+        <div class="result-details" id="resultDetails"></div>
+        <div id="resultExtra"></div>
+        <button class="btn btn-primary next-btn" onclick="backToSetup()">もう1回！</button>
+      </div>
+    </div>
+
+    <div class="score-section" id="scoreboard" style="display:none;">
+      <h4>Score</h4>
+      <div class="score-list" id="scoreRows"></div>
+    </div>
+    <div class="log-section" id="answerLog" style="display:none;">
+      <div class="log-header"><h4>Log</h4><button class="clear-log-btn" onclick="clearAllLogs()">消去</button></div>
+      <div id="logEntries"></div>
+    </div>
+  </div>
+  <script src="../../js/auto-ruby.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../../js/firebase-config.js"></script>
+  <script src="../../js/profile.js"></script>
+  <script src="../../js/shared.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

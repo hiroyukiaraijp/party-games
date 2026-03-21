@@ -1,4 +1,6 @@
 /* ===== Kanji Puzzle (漢字バラバラ) ===== */
+function median(arr) { if (!arr.length) return 0; const s = [...arr].sort((a,b) => a-b); const m = Math.floor(s.length/2); return s.length % 2 ? s[m] : (s[m-1]+s[m])/2; }
+function stddev(arr) { if (arr.length < 2) return 0; const m = arr.reduce((a,b) => a+b, 0) / arr.length; return Math.sqrt(arr.reduce((s,v) => s + (v-m)**2, 0) / arr.length); }
 
 // --- Problem Data ---
 // d: difficulty, cat: category, answer: correct answer, reading: hiragana reading
@@ -129,6 +131,8 @@ let hintInterval = null;
 let answered = false;
 let selectedPlayer = null;
 let lastAnswerer = null;
+let questionShownAt = 0;
+let answerRTs = [];
 
 // DOM
 const $setupPhase = document.getElementById('setupPhase');
@@ -278,6 +282,7 @@ function startGame() {
   round++;
   roundProblems = selectProblems();
   currentProblemIndex = 0;
+  answerRTs = [];
 
   if (roundProblems.length === 0) {
     showToast('該当する問題がありません。カテゴリを変更してください');
@@ -297,6 +302,7 @@ function startProblem() {
   currentProblem = roundProblems[currentProblemIndex];
   answered = false;
   hintsShown = 0;
+  questionShownAt = Date.now();
 
   // Reset UI
   document.getElementById('answerInput').value = '';
@@ -453,6 +459,8 @@ function submitAnswer() {
 }
 
 function onCorrect(player) {
+  const answerRT = Date.now() - questionShownAt;
+  answerRTs.push(answerRT);
   answered = true;
   clearInterval(timerInterval);
   clearInterval(hintInterval);
@@ -487,9 +495,13 @@ function onCorrect(player) {
     timestamp: new Date().toISOString(), round,
     player, answer: currentProblem.answer, correct: true,
     hints: hintsShown, pts, difficulty: currentProblem.d, cat: currentProblem.cat,
+    answerRT,
   });
 
-  savePlayLog('kanji-puzzle', pts, SCORE_NO_HINT);
+  savePlayLog('kanji-puzzle', pts, SCORE_NO_HINT, {
+    playMode: 'solo',
+    cognitive: { medianRT: median(answerRTs), rtSD: stddev(answerRTs), difficulty: getDDALevel('kanji-puzzle') || 1 }
+  });
   renderScoreboard(); renderLog(); saveState();
 
   // Next problem after delay
@@ -500,6 +512,7 @@ function onCorrect(player) {
 }
 
 function onWrong(player, input) {
+  const answerRT = Date.now() - questionShownAt;
   scores[player] = (scores[player] || 0) + SCORE_WRONG;
   lastAnswerer = player;
 
@@ -517,6 +530,7 @@ function onWrong(player, input) {
     timestamp: new Date().toISOString(), round,
     player, answer: currentProblem.answer, userAnswer: input, correct: false,
     hints: hintsShown, pts: SCORE_WRONG, difficulty: currentProblem.d, cat: currentProblem.cat,
+    answerRT,
   });
 
   // Clear input for retry (don't end the question)
