@@ -161,11 +161,8 @@ function startPlayerRound() {
   showPhase('gamePhase');
   showToast(`${currentPlayer} の番！`, 1500);
 
-  // Fix color pool for the entire round to prevent button/question mismatch
   roundColors = getActiveColors();
-  document.getElementById('colorButtons').innerHTML = roundColors.map(c =>
-    `<button class="color-btn" style="background:${c.hex}" data-color="${c.name}" onclick="answer('${c.name}',this)">${c.shape} ${c.name}</button>`
-  ).join('');
+  renderColorButtons();
 
   nextQuestion();
 
@@ -178,7 +175,22 @@ function startPlayerRound() {
   }, 1000);
 }
 
+function renderColorButtons() {
+  document.getElementById('colorButtons').innerHTML = roundColors.map(c =>
+    `<button class="color-btn" style="background:${c.hex}" data-color="${c.name}" onclick="answer('${c.name}',this)">${c.shape} ${c.name}</button>`
+  ).join('');
+}
+
+function syncRoundColors() {
+  const newColors = getActiveColors();
+  if (newColors.length !== roundColors.length) {
+    roundColors = newColors;
+    renderColorButtons();
+  }
+}
+
 function nextQuestion() {
+  syncRoundColors();
   // Pick random word and color; ~30% congruent trials for Stroop effect measurement
   const colors = roundColors;
   const wordColor = colors[Math.floor(Math.random() * colors.length)];
