@@ -29,7 +29,7 @@ function _escBS(s) { const d = document.createElement('div'); d.textContent = s;
 // Usage: updateBestScore('colorpanic', 25); getBestScore('colorpanic');
 const BEST_SCORE_KEY = 'partygames_best';
 function getBestScores() {
-  try { return JSON.parse(localStorage.getItem(BEST_SCORE_KEY)) || {}; } catch { return {}; }
+  try { return JSON.parse(localStorage.getItem(BEST_SCORE_KEY)) || {}; } catch (e) { return {}; }
 }
 function getBestScore(gameId) {
   return getBestScores()[gameId] || 0;
@@ -38,7 +38,7 @@ function updateBestScore(gameId, score) {
   const bests = getBestScores();
   if (score > (bests[gameId] || 0)) {
     bests[gameId] = score;
-    try { localStorage.setItem(BEST_SCORE_KEY, JSON.stringify(bests)); } catch {}
+    try { localStorage.setItem(BEST_SCORE_KEY, JSON.stringify(bests)); } catch (e) {}
     return true; // new best!
   }
   return false;
@@ -92,7 +92,7 @@ function renderGameRecommendation(currentGameId) {
 // Staircase method: 3-down/1-up targeting ~79% accuracy
 const DDA_KEY_PREFIX = 'partygames_dda_';
 function getDDALevel(gameId) {
-  try { return parseInt(localStorage.getItem(DDA_KEY_PREFIX + gameId)) || 1; } catch { return 1; }
+  try { return parseInt(localStorage.getItem(DDA_KEY_PREFIX + gameId)) || 1; } catch (e) { return 1; }
 }
 function updateDDALevel(gameId, correct) {
   const key = DDA_KEY_PREFIX + gameId;
@@ -113,7 +113,7 @@ function updateDDALevel(gameId, correct) {
   try {
     localStorage.setItem(key, String(level));
     localStorage.setItem(key + '_streak', String(streak));
-  } catch {}
+  } catch (e) {}
   return level;
 }
 
@@ -121,7 +121,7 @@ function updateDDALevel(gameId, correct) {
 // セッションメンバーが最初からセット。除外/復帰が可能。新規追加は名前+生年月日。
 
 function getSessionMembers() {
-  try { return JSON.parse(localStorage.getItem('asobi_session_players') || '[]'); } catch { return []; }
+  try { return JSON.parse(localStorage.getItem('asobi_session_players') || '[]'); } catch (e) { return []; }
 }
 function getSessionMemberNames() {
   return getSessionMembers().map(p => p.name);

@@ -94,14 +94,14 @@ function saveSharedPlayers() { try { localStorage.setItem(SHARED_PLAYERS_KEY, JS
 
 // DDA time tracking
 function getDDATimes() {
-  try { return JSON.parse(localStorage.getItem(DDA_TIMES_KEY)) || []; } catch { return []; }
+  try { return JSON.parse(localStorage.getItem(DDA_TIMES_KEY)) || []; } catch (e) { return []; }
 }
 function saveDDATime(timeMs) {
   const times = getDDATimes();
   times.push(timeMs);
   // Keep last 10
   if (times.length > 10) times.splice(0, times.length - 10);
-  try { localStorage.setItem(DDA_TIMES_KEY, JSON.stringify(times)); } catch {}
+  try { localStorage.setItem(DDA_TIMES_KEY, JSON.stringify(times)); } catch (e) {}
 }
 function updateDDAByTime(completionMs) {
   const times = getDDATimes();
@@ -131,7 +131,7 @@ function updateDDAByTime(completionMs) {
     }
   }
 
-  try { localStorage.setItem(key, String(level)); } catch {}
+  try { localStorage.setItem(key, String(level)); } catch (e) {}
   return level;
 }
 

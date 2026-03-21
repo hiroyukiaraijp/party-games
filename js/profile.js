@@ -47,7 +47,7 @@ function makeUserId(name, birthday) {
 
 // ---- Session (localStorage - current device only) ----
 function getSession() {
-  try { return JSON.parse(localStorage.getItem(CURRENT_SESSION_KEY)); } catch { return null; }
+  try { return JSON.parse(localStorage.getItem(CURRENT_SESSION_KEY)); } catch (e) { return null; }
 }
 function setSession(user) {
   localStorage.setItem(CURRENT_SESSION_KEY, JSON.stringify(user));
@@ -56,7 +56,7 @@ function clearSession() {
   localStorage.removeItem(CURRENT_SESSION_KEY);
 }
 function getSessionPlayers() {
-  try { return JSON.parse(localStorage.getItem(SESSION_PLAYERS_KEY)) || []; } catch { return []; }
+  try { return JSON.parse(localStorage.getItem(SESSION_PLAYERS_KEY)) || []; } catch (e) { return []; }
 }
 function setSessionPlayers(players) {
   localStorage.setItem(SESSION_PLAYERS_KEY, JSON.stringify(players));
@@ -166,14 +166,14 @@ function savePlayLog(gameId, score, maxScore, extra) {
   // Always save to localStorage as fallback (includes cognitive data)
   try {
     const logs = JSON.parse(localStorage.getItem('asobi_playlogs') || '[]');
-    const userId = session?.userId || (sessionPlayers[0]?.userId) || 'anonymous';
+    const userId = (session && session.userId) || (sessionPlayers[0] && sessionPlayers[0].userId) || 'anonymous';
     const entry = { userId, gameId, score, maxScore, pct: maxScore > 0 ? Math.round((score / maxScore) * 100) : 0, createdAt: new Date().toISOString() };
     if (cognitive) entry.cognitive = cognitive;
     if (playMode) entry.playMode = playMode;
     logs.push(entry);
     if (logs.length > 500) logs.splice(0, logs.length - 500);
     localStorage.setItem('asobi_playlogs', JSON.stringify(logs));
-  } catch {}
+  } catch (e) {}
 }
 
 // ---- Profile Calculation (Enhanced with cognitive data) ----
