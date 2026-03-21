@@ -191,8 +191,9 @@ function isRubyEnabled() {
 }
 
 // Apply ruby to all elements with data-ruby attribute
+var _rubyObserverPaused = false;
 function applyRuby() {
-  if (!isRubyEnabled()) return;
+  if (!isRubyEnabled() || _rubyObserverPaused) return;
   document.querySelectorAll('[data-ruby]').forEach(el => {
     if (el._rubyApplied) return;
     el._rubyApplied = true;
@@ -203,11 +204,13 @@ function applyRuby() {
 
 // Remove ruby from all elements
 function removeRuby() {
+  _rubyObserverPaused = true;
   document.querySelectorAll('[data-ruby]').forEach(el => {
     if (!el._rubyApplied) return;
     el._rubyApplied = false;
     el.textContent = el._originalText || el.textContent;
   });
+  _rubyObserverPaused = false;
 }
 
 // For dynamically rendered content: call this with the text to get ruby HTML if enabled

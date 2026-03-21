@@ -303,7 +303,6 @@ function startMultiRound() {
   document.getElementById('tapBtn').textContent = '送信';
   document.getElementById('wordInput').value = '';
   document.getElementById('wordInput').disabled = false;
-  const totalSec = Math.ceil(timerDuration / 1000);
   document.getElementById('fuseFill').style.width = '100%';
   document.getElementById('fuseFill').className = 'fuse-fill';
   document.getElementById('timerText').textContent = '';
@@ -345,7 +344,8 @@ function multiExplode(isDuplicate) {
   emitParticles(window.innerWidth / 2, window.innerHeight / 2);
 
   if (isDuplicate) {
-    // Duplicate: resume after explosion, move to next player
+    // Pause timer during duplicate explosion overlay
+    clearInterval(timerInterval);
     setTimeout(() => {
       overlay.style.display = 'none';
       gameActive = true;
@@ -353,6 +353,22 @@ function multiExplode(isDuplicate) {
       document.getElementById('wordInput').value = '';
       document.getElementById('wordInput').focus();
       advanceMultiPlayer();
+      // Resume timer
+      timerInterval = setInterval(() => {
+        timerLeft--;
+        const totalSec = Math.ceil(timerDuration / 1000);
+        const pct = Math.max(0, (timerLeft / totalSec) * 100);
+        document.getElementById('fuseFill').style.width = pct + '%';
+        if (pct <= 30) {
+          document.getElementById('fuseFill').className = 'fuse-fill danger';
+          document.getElementById('bombIcon').className = 'bomb danger';
+        }
+        if (timerLeft <= 10) playBeep(800, 100);
+        if (timerLeft <= 0) {
+          clearInterval(timerInterval);
+          multiExplode(false);
+        }
+      }, 1000);
     }, 1500);
   } else {
     // Timer explosion: end round

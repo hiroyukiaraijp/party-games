@@ -173,6 +173,9 @@ function startGame() {
   if (getActivePlayers(players).length < 1) { showToast('プレイヤーを1人以上登録してください'); return; }
   roundPlayers = getActivePlayers(players);
   playerIndex = 0;
+  // Reset scores for new game
+  for (var i = 0; i < roundPlayers.length; i++) scores[roundPlayers[i]] = 0;
+  renderScoreboard();
   startPlayerRound();
 }
 
@@ -403,7 +406,7 @@ function showFinalRanking() {
   const topScore = scores[winner] || 0;
 
   document.getElementById('finalIcon').textContent = '🏆';
-  document.getElementById('finalTitle').textContent = `${esc(winner)} の勝ち！`;
+  document.getElementById('finalTitle').textContent = `${winner} の勝ち！`;
 
   document.getElementById('finalRanking').innerHTML = sorted.map((p, i) => {
     const medal = i === 0 ? '👑 ' : i === 1 ? '🥈 ' : i === 2 ? '🥉 ' : '';
