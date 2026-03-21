@@ -116,6 +116,14 @@
       const alertEl = document.getElementById('step1Alert');
 
       try {
+        // Clear previous session data (game states, old players)
+        ['partygames_players','asobi_session_players',
+         'wordslot_state','katakananashi_state','wordwolf_state','mastergame_state',
+         'numberexpression_state','hintbridge_state','colorpanic_state','flashmemory_state',
+         'rhythmrelay_state','reversedictionary_state','puzzlesolver_state',
+         'airreading_state','initialbattle_state','partygames_playcount'
+        ].forEach(k => localStorage.removeItem(k));
+
         initFirebase();
         const result = await loginOrRegister(name, bday);
         myUser = result.user;
