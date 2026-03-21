@@ -50,6 +50,7 @@ let roundMode = 'color';
 let timerLeft = 0;
 let timerInterval = null;
 let questionCount = 0;
+let roundColors = []; // Fixed color pool for the duration of a round
 
 // RT (Reaction Time) tracking for Stroop effect measurement
 let questionShownAt = 0;
@@ -160,9 +161,9 @@ function startPlayerRound() {
   showPhase('gamePhase');
   showToast(`${currentPlayer} の番！`, 1500);
 
-  // Render color buttons with shape characters for accessibility
-  const activeColors = getActiveColors();
-  document.getElementById('colorButtons').innerHTML = activeColors.map(c =>
+  // Fix color pool for the entire round to prevent button/question mismatch
+  roundColors = getActiveColors();
+  document.getElementById('colorButtons').innerHTML = roundColors.map(c =>
     `<button class="color-btn" style="background:${c.hex}" data-color="${c.name}" onclick="answer('${c.name}',this)">${c.shape} ${c.name}</button>`
   ).join('');
 
@@ -179,7 +180,7 @@ function startPlayerRound() {
 
 function nextQuestion() {
   // Pick random word and color; ~30% congruent trials for Stroop effect measurement
-  const colors = getActiveColors();
+  const colors = roundColors;
   const wordColor = colors[Math.floor(Math.random() * colors.length)];
   let displayColor;
   if (Math.random() < 0.3) {
