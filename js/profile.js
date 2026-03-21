@@ -33,6 +33,8 @@ const GAME_DOMAIN_MAP = {
   'initial-battle':      { LNG: 4, CRE: 4, SPD: 2 },
   'number-auction':      { LOG: 5, SPD: 3, SOC: 2 },
   'lab-panic':           { LOG: 4, SPA: 3, ATT: 2, CRE: 1 },
+  'kanji-puzzle':        { LNG: 5, SPA: 4, SPD: 3, MEM: 2 },
+  'where-is-it':         { LOG: 4, MEM: 3, SPA: 4, SOC: 2 },
 };
 
 // ---- User ID generation ----
