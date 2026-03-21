@@ -256,7 +256,6 @@ function endGame(){
     const medal=i===0?'👑':'';
     return `${medal}<strong>${esc(p)}</strong>: ${scores[p]||0}pt`;
   }).join('<br>');
-  details+=renderBestBadge('number-auction',scores[sorted[0]]||0);
   details+=renderGameRecommendation('number-auction');
   $('resultDetails').innerHTML=details;
   $('nextBtn').textContent='もう1回！';
