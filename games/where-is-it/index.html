@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>どこでしょう？ - asobi.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="toast" id="toast"></div>
+  <div class="particle-container" id="particles"></div>
+
+  <div class="top-bar">
+    <div class="title"><a href="../../games.html">asobi.dev</a> / <span>どこでしょう？</span></div>
+    <div class="top-bar-actions"><button class="icon-btn" onclick="document.getElementById('helpModal').classList.add('show')">?</button></div>
+  </div>
+
+  <div class="modal-overlay" id="helpModal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="document.getElementById('helpModal').classList.remove('show')">&times;</button>
+      <h3 data-ruby>遊び方</h3>
+      <ul>
+        <li data-ruby>ヒントが1つずつ表示されます</li>
+        <li data-ruby><strong>「答える！」</strong>で4択が出現。正解を選んでください</li>
+        <li data-ruby><strong>早く答えるほど高得点！</strong>（ヒント1=10pt, 2=8pt, 3=6pt, 4=4pt, 5=2pt）</li>
+        <li data-ruby>不正解は0ptです</li>
+        <li data-ruby>複数人プレイでは全員が同じヒントを見て、それぞれ答えます</li>
+      </ul>
+      <h3 data-ruby style="margin-top:1rem;">鍛えられる力</h3>
+      <ul>
+        <li data-ruby><strong>推論力</strong> -- 断片的なヒントから答えを導く力</li>
+        <li data-ruby><strong>地理・歴史知識</strong> -- 日本と世界の知識</li>
+        <li data-ruby><strong>判断力</strong> -- いつ答えるか、リスクとリターンの判断</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="game-page">
+    <!-- Setup Phase -->
+    <div id="setupPhase">
+      <div class="setup-section">
+        <h4>プレイヤー</h4>
+        <div id="playerList"></div>
+        <div class="options-row">
+          <div class="option-group">
+            <label>エリア</label>
+            <div class="option-pills" id="rangePills">
+              <button class="option-pill selected" data-value="mix" onclick="selectOption('range',this)">ミックス</button>
+              <button class="option-pill" data-value="japan" onclick="selectOption('range',this)">日本</button>
+              <button class="option-pill" data-value="world" onclick="selectOption('range',this)">世界</button>
+            </div>
+          </div>
+          <div class="option-group">
+            <label>カテゴリ</label>
+            <div class="option-pills" id="categoryPills">
+              <button class="option-pill selected" data-value="all" onclick="selectOption('category',this)">ミックス</button>
+              <button class="option-pill" data-value="geography" onclick="selectOption('category',this)">地理</button>
+              <button class="option-pill" data-value="history" onclick="selectOption('category',this)">歴史</button>
+              <button class="option-pill" data-value="culture" onclick="selectOption('category',this)">文化</button>
+            </div>
+          </div>
+        </div>
+        <button class="start-btn" onclick="startGame()">🌍 スタート！</button>
+      </div>
+    </div>
+
+    <!-- Hint Phase -->
+    <div id="hintPhase" style="display:none;">
+      <div class="phase-section">
+        <div class="question-num" id="questionNum"></div>
+        <div class="progress-bar" id="progressBar"></div>
+        <div class="hint-meta" id="hintMeta"></div>
+        <div class="points-badge" id="pointsBadge"></div>
+        <div class="hint-area" id="hintArea"></div>
+        <div class="action-row" id="actionRow">
+          <button class="more-hint-btn" id="moreHintBtn" onclick="revealNextHint()">もう1ヒント</button>
+          <button class="answer-btn" onclick="goToAnswer()">答える！</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Answer Phase -->
+    <div id="answerPhase" style="display:none;">
+      <div class="phase-section">
+        <div class="question-num" id="answerQuestionNum"></div>
+        <div class="hint-area" id="answerHintArea"></div>
+        <div id="answerPlayerName" style="font-size:1.1rem;font-weight:900;margin:.3rem 0;"></div>
+        <div class="choice-grid" id="choiceGrid"></div>
+        <div id="answerFeedback" style="margin-top:.5rem;font-weight:700;display:none;"></div>
+        <div class="trivia-box" id="triviaBox" style="display:none;">
+          <div class="trivia-title">豆知識</div>
+          <div id="triviaContent"></div>
+        </div>
+        <button class="answer-btn" id="nextBtn" style="display:none;margin-top:.6rem;" onclick="nextStep()">次へ</button>
+      </div>
+    </div>
+
+    <!-- Result Phase -->
+    <div id="resultPhase" style="display:none;">
+      <div class="phase-section result-section">
+        <div class="result-icon" id="resultIcon"></div>
+        <div class="result-title" id="resultTitle"></div>
+        <div class="result-details" id="resultDetails"></div>
+        <button class="btn btn-primary next-btn" onclick="nextRound()">もう1セット！</button>
+      </div>
+    </div>
+
+    <div class="score-section" id="scoreboard" style="display:none;">
+      <h4>Score</h4><div class="score-list" id="scoreRows"></div>
+    </div>
+    <div class="log-section" id="answerLog" style="display:none;">
+      <div class="log-header"><h4>Log</h4><button class="clear-log-btn" onclick="clearAllLogs()">消去</button></div>
+      <div id="logEntries"></div>
+    </div>
+  </div>
+  <script src="../../js/auto-ruby.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../../js/firebase-config.js"></script>
+  <script src="../../js/profile.js"></script>
+  <script src="../../js/shared.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
