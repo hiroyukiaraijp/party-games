@@ -134,16 +134,16 @@ function initSessionPlayers(playersRef, scoresRef) {
   });
 }
 
+// Global excluded set - persists across re-renders
+const _excludedPlayers = new Set();
+
 // Render session-aware player bar into a container element
-// - Shows session members as toggleable tags (active/inactive)
-// - "追加" opens name+birthday mini-form
-// - Returns {getActivePlayers()} for the game to use
 function renderSessionPlayerBar(containerId, players, scores, onChangeCallback) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
   const sessionMembers = getSessionMembers();
-  const excluded = new Set();
+  const excluded = _excludedPlayers; // use global set
 
   function render() {
     let html = '<div style="display:flex;flex-wrap:wrap;gap:.3rem;align-items:center;">';

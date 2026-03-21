@@ -402,27 +402,23 @@ function submitOrder() {
     </div>`);
   }
 
-  // Score
-  let scoreAwarded = 0;
-  const bonusPlayers = [];
-  if (correctPairs === totalPairs) {
-    scoreAwarded = 2;
-  } else if (correctPairs >= totalPairs / 2) {
-    scoreAwarded = 1;
-  }
-
-  if (scoreAwarded > 0) {
-    for (const p of players) scores[p] = (scores[p] || 0) + scoreAwarded;
-  }
-
-  // Bonus: players whose both adjacent pairs are correct
+  // Score: individual scoring based on each player's adjacent pair accuracy
+  // Each player gets points based on whether THEIR neighbors are in correct order
+  const playerScores = {};
   for (let i = 0; i < submittedOrder.length; i++) {
+    const p = submittedOrder[i];
     const leftOK = i === 0 || assignments[submittedOrder[i - 1]] <= assignments[submittedOrder[i]];
     const rightOK = i === submittedOrder.length - 1 || assignments[submittedOrder[i]] <= assignments[submittedOrder[i + 1]];
-    if (leftOK && rightOK && totalPairs > 0) {
-      bonusPlayers.push(submittedOrder[i]);
-      scores[submittedOrder[i]] = (scores[submittedOrder[i]] || 0) + 1;
-    }
+    let pts = 0;
+    if (leftOK && rightOK) pts = 3;      // both neighbors correct
+    else if (leftOK || rightOK) pts = 1;  // one neighbor correct
+    // else 0
+    playerScores[p] = pts;
+    scores[p] = (scores[p] || 0) + pts;
+  }
+  // Perfect bonus: everyone gets +2 extra if all pairs correct
+  if (correctPairs === totalPairs) {
+    for (const p of submittedOrder) scores[p] = (scores[p] || 0) + 2;
   }
 
   // Display
@@ -453,10 +449,15 @@ function submitOrder() {
   revealHTML += pairHTML.join('');
   $pairs.innerHTML = revealHTML;
 
-  let scoreText = `全員 +${scoreAwarded}pt`;
-  if (bonusPlayers.length > 0) {
-    scoreText += ` / ボーナス +1pt: ${bonusPlayers.map(p => esc(p)).join(', ')}`;
+  let scoreText = '';
+  if (correctPairs === totalPairs) {
+    scoreText = 'パーフェクトボーナス: 全員+2pt！\n';
   }
+  submittedOrder.forEach(p => {
+    const pts = playerScores[p] || 0;
+    const bonus = correctPairs === totalPairs ? '+2' : '';
+    scoreText += `${esc(p)}: +${pts}pt${bonus ? '(+2ボーナス)' : ''} `;
+  });
   $score.textContent = scoreText;
 
   // Log
