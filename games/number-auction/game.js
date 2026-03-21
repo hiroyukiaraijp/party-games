@@ -176,21 +176,23 @@ function showResult(){
   $('resultRound').textContent=`ラウンド ${round} / ${totalRounds}`;
   $('resultAnswer').textContent=currentAnswer;
 
-  // Find winner: highest bid that is <= answer
+  // Find winners: closest by absolute difference. Ties share points. All-tie = no points.
   const active=getActivePlayers(players);
-  let winner=null,winnerBid=-Infinity;
-  const entries=active.map(p=>({name:p,bid:bids[p]||0,over:bids[p]>currentAnswer}));
+  const entries=active.map(p=>({name:p,bid:bids[p]||0,diff:Math.abs((bids[p]||0)-currentAnswer)}));
+  entries.sort((a,b)=>a.diff-b.diff);
 
-  for(const e of entries){
-    if(!e.over && e.bid>winnerBid){winnerBid=e.bid;winner=e.name;}
-  }
+  const minDiff=entries[0]?.diff;
+  const winners=entries.filter(e=>e.diff===minDiff);
+  const allTied=winners.length===entries.length && entries.length>1;
 
-  // Score
-  if(winner){
-    const isPerfect=winnerBid===currentAnswer;
-    const pts=isPerfect?10:5;
-    scores[winner]=(scores[winner]||0)+pts;
-    savePlayLog('number-auction',isPerfect?10:5,10);
+  // Score: winners get points unless all tied (draw)
+  if(!allTied && winners.length>0){
+    for(const w of winners){
+      const isPerfect=w.diff===0;
+      const pts=isPerfect?10:5;
+      scores[w.name]=(scores[w.name]||0)+pts;
+    }
+    savePlayLog('number-auction',winners[0].diff===0?10:5,10);
   }
 
   // Result bar visualization
@@ -202,31 +204,32 @@ function showResult(){
 
   const colors=['#0ea5e9','#8b5cf6','#ec4899','#10b981','#f59e0b','#ef4444','#6366f1'];
   entries.forEach((e,i)=>{
-    const pct=Math.min((e.bid/maxVal)*100,100);
+    const pct=Math.min(Math.max((e.bid/maxVal)*100,2),98);
     const color=colors[i%colors.length];
-    const isWinner=e.name===winner;
+    const isWinner=!allTied&&winners.some(w=>w.name===e.name);
     barHtml+=`<div class="result-marker" style="left:${pct}%">
-      <div class="dot ${e.over?'over':''}" style="background:${color};${isWinner?'width:18px;height:18px;':''}"></div>
+      <div class="dot" style="background:${color};${isWinner?'width:18px;height:18px;':''}"></div>
       <div class="name">${isWinner?'👑':''}${esc(e.name)}</div>
-      <div class="val">${e.bid}${e.over?' <span class="over-tag">OVER!</span>':''}</div>
+      <div class="val">${e.bid}</div>
     </div>`;
   });
   bar.innerHTML=barHtml;
 
   // Details
   let details='';
-  entries.sort((a,b)=>{
-    if(a.over&&!b.over)return 1;if(!a.over&&b.over)return -1;
-    return Math.abs(a.bid-currentAnswer)-Math.abs(b.bid-currentAnswer);
-  });
+  if(allTied) details+='<div style="color:var(--text-muted);margin-bottom:.3rem;">全員同じ差 → ドロー（得点なし）</div>';
   entries.forEach(e=>{
     const diff=e.bid-currentAnswer;
-    const tag=e.name===winner?(e.bid===currentAnswer?'🎯 ピッタリ! +10pt':'👑 +5pt'):(e.over?'💥 オーバー!':'');
-    details+=`<strong>${esc(e.name)}</strong>: ${e.bid} (差${diff>=0?'+':''}${diff}) ${tag}<br>`;
+    const isWinner=!allTied&&winners.some(w=>w.name===e.name);
+    let tag='';
+    if(isWinner){
+      tag=e.diff===0?'🎯 ピッタリ! +10pt':(winners.length>1?'👑 同点! +5pt':'👑 +5pt');
+    }
+    details+=`<strong>${esc(e.name)}</strong>: ${e.bid} (差${Math.abs(diff)}) ${tag}<br>`;
   });
   $('resultDetails').innerHTML=details;
 
-  if(winner){
+  if(!allTied&&winners.length>0){
     const rect=$('resultAnswer').getBoundingClientRect();
     emitParticles(rect.left+rect.width/2,rect.top+rect.height/2);
   }

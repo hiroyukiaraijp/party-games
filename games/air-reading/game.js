@@ -130,60 +130,57 @@ function showResult(){
   const vals=Object.values(answers);
   const avg=Math.round(vals.reduce((s,v)=>s+v,0)/vals.length);
 
-  // Find closest to average
-  let minDist=Infinity,winner=null;
-  for(const [name,val] of Object.entries(answers)){
-    const dist=Math.abs(val-avg);
-    if(dist<minDist){minDist=dist;winner=name;}
-  }
+  // Find winners: closest to average. Ties share points. All-tie = draw (0pt).
+  const entries=Object.entries(answers).map(([name,val])=>({name,val,dist:Math.abs(val-avg)}));
+  entries.sort((a,b)=>a.dist-b.dist);
+  const minDist=entries[0]?.dist;
+  const winners=entries.filter(e=>e.dist===minDist);
+  const allTied=winners.length===entries.length && entries.length>1;
 
   // Award points
-  scores[winner]=(scores[winner]||0)+3;
-  // 2nd closest gets 1pt
-  let secondDist=Infinity,second=null;
-  for(const [name,val] of Object.entries(answers)){
-    if(name===winner)continue;
-    const dist=Math.abs(val-avg);
-    if(dist<secondDist){secondDist=dist;second=name;}
+  if(!allTied && winners.length>0){
+    for(const w of winners) scores[w.name]=(scores[w.name]||0)+3;
   }
-  if(second)scores[second]=(scores[second]||0)+1;
+
+  // Find most extreme
+  const extreme=entries[entries.length-1];
 
   // Render result bar
   const bar=$('resultBar');
   let html=`<div class="median-line" style="left:${avg}%"></div>`;
   html+=`<div class="median-label" style="left:${avg}%">平均値: ${avg}</div>`;
 
-  const sorted=Object.entries(answers).sort((a,b)=>a[1]-b[1]);
-  sorted.forEach(([name,val],i)=>{
-    const color=COLORS[players.indexOf(name)%COLORS.length];
-    const isWinner=name===winner;
-    html+=`<div class="result-marker" style="left:${val}%">
+  const sorted=entries.sort((a,b)=>a.val-b.val);
+  sorted.forEach((e,i)=>{
+    const color=COLORS[players.indexOf(e.name)%COLORS.length];
+    const isWinner=!allTied&&winners.some(w=>w.name===e.name);
+    html+=`<div class="result-marker" style="left:${e.val}%">
       <div class="marker-dot" style="background:${color};${isWinner?'width:18px;height:18px;':''}"></div>
-      <div class="marker-name">${isWinner?'👑':''}${esc(name)}</div>
-      <div class="marker-value">${val}</div>
+      <div class="marker-name">${isWinner?'👑':''}${esc(e.name)}</div>
+      <div class="marker-value">${e.val}</div>
     </div>`;
   });
   bar.innerHTML=html;
 
-  // Find most extreme
-  let maxDist=0,extreme=null;
-  for(const [name,val] of Object.entries(answers)){
-    const dist=Math.abs(val-avg);
-    if(dist>maxDist){maxDist=dist;extreme=name;}
-  }
-
   $('resultIcon').textContent='🎯';
-  $('resultTitle').textContent=`${winner} が空気読み名人！(+3pt)`;
+  if(allTied){
+    $('resultTitle').textContent='ドロー！全員同点（0pt）';
+  } else if(winners.length>1){
+    $('resultTitle').textContent=`${winners.map(w=>w.name).join(' & ')} が同点！(各+3pt)`;
+  } else {
+    $('resultTitle').textContent=`${winners[0].name} が空気読み名人！(+3pt)`;
+  }
   let details=`平均値: <strong>${avg}</strong><br>`;
-  sorted.forEach(([name,val])=>{
-    const dist=Math.abs(val-avg);
-    const tag=name===winner?' 👑':name===extreme?' 😱':'';
-    details+=`${esc(name)}: ${val} (差${Math.round(dist)})${tag}<br>`;
+  if(allTied) details+='<div style="color:var(--text-muted);margin-bottom:.2rem;">全員同じ差 → ドロー</div>';
+  sorted.forEach(e=>{
+    const isWinner=!allTied&&winners.some(w=>w.name===e.name);
+    const isExtreme=e.name===extreme?.name&&!isWinner;
+    const tag=isWinner?' 👑':(isExtreme?' 😱':'');
+    details+=`${esc(e.name)}: ${e.val} (差${Math.round(e.dist)})${tag}<br>`;
   });
-  if(extreme&&extreme!==winner)details+=`<br>${esc(extreme)} が一番外れてた！`;
   $('resultDetails').innerHTML=details;
 
-  if(winner){
+  if(!allTied&&winners.length>0){
     const rect=$('resultTitle').getBoundingClientRect();
     emitParticles(rect.left+rect.width/2,rect.top+rect.height/2);
   }
