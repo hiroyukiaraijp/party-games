@@ -179,22 +179,39 @@ function generateQuestion() {
     type: 'correct'
   });
 
-  // Mirror (flipped, optionally rotated)
-  const mirrorAngle = ROTATION_ANGLES[Math.floor(Math.random() * ROTATION_ANGLES.length)];
-  choices.push({
-    svg: renderSVG(target.path, `scale(-1,1) translate(-100,0) rotate(${mirrorAngle}, 50, 50)`),
-    type: 'mirror'
-  });
+  // Shapes that look the same when mirrored (symmetric)
+  var SYMMETRIC = ['cross', 'arrow', 'T', 'star5'];
+  var isSymmetric = SYMMETRIC.indexOf(target.name) >= 0;
 
-  // Two different shapes
-  const otherShapes = pool.filter((_, i) => i !== targetIdx);
-  const shuffled = otherShapes.sort(() => Math.random() - 0.5);
-  for (let i = 0; i < 2 && i < shuffled.length; i++) {
-    const otherAngle = ROTATION_ANGLES[Math.floor(Math.random() * ROTATION_ANGLES.length)];
+  var otherShapes = pool.filter(function(_, i) { return i !== targetIdx; });
+  var shuffled = otherShapes.sort(function() { return Math.random() - 0.5; });
+
+  if (!isSymmetric) {
+    // Mirror (flipped, with a DIFFERENT rotation angle to avoid looking identical)
+    var mirrorAngles = ROTATION_ANGLES.filter(function(a) { return a !== angle && a !== (360 - angle) % 360; });
+    if (mirrorAngles.length === 0) mirrorAngles = ROTATION_ANGLES;
+    var mirrorAngle = mirrorAngles[Math.floor(Math.random() * mirrorAngles.length)];
     choices.push({
-      svg: renderSVG(shuffled[i].path, `rotate(${otherAngle}, 50, 50)`),
-      type: 'other'
+      svg: renderSVG(target.path, 'scale(-1,1) translate(-100,0) rotate(' + mirrorAngle + ', 50, 50)'),
+      type: 'mirror'
     });
+    // 2 different shapes
+    for (var i = 0; i < 2 && i < shuffled.length; i++) {
+      var otherAngle = ROTATION_ANGLES[Math.floor(Math.random() * ROTATION_ANGLES.length)];
+      choices.push({
+        svg: renderSVG(shuffled[i].path, 'rotate(' + otherAngle + ', 50, 50)'),
+        type: 'other'
+      });
+    }
+  } else {
+    // Symmetric shape: skip mirror, use 3 different shapes instead
+    for (var i = 0; i < 3 && i < shuffled.length; i++) {
+      var otherAngle = ROTATION_ANGLES[Math.floor(Math.random() * ROTATION_ANGLES.length)];
+      choices.push({
+        svg: renderSVG(shuffled[i].path, 'rotate(' + otherAngle + ', 50, 50)'),
+        type: 'other'
+      });
+    }
   }
 
   // Shuffle choices
