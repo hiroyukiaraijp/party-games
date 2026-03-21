@@ -122,22 +122,40 @@ async function getPlayLogsForUser(userId) {
 // Replaces the localStorage version. Saves to Firestore for all session players.
 function savePlayLog(gameId, score, maxScore, extra) {
   const session = getSession();
-  const players = getSessionPlayers();
-  const playerNames = players.map(p => p.name);
+  const sessionPlayers = getSessionPlayers();
+  const playerNames = sessionPlayers.map(p => p.name);
 
-  // Save for each logged-in session player
-  for (const p of players) {
-    if (p.userId) {
-      savePlayLogToFirestore(p.userId, gameId, score, maxScore, playerNames).catch(e => {
-        console.warn('Firestore log failed, falling back to localStorage:', e);
+  // Try Firestore for logged-in session players
+  if (sessionPlayers.length > 0) {
+    for (const p of sessionPlayers) {
+      if (p.userId) {
+        try {
+          if (typeof initFirebase === 'function') initFirebase();
+          savePlayLogToFirestore(p.userId, gameId, score, maxScore, playerNames).catch(e => {
+            console.warn('Firestore write failed for', p.name, ':', e.message);
+          });
+        } catch (e) {
+          console.warn('Firestore init failed:', e.message);
+        }
+      }
+    }
+  } else if (session && session.userId) {
+    // No session players but have a session - save for self
+    try {
+      if (typeof initFirebase === 'function') initFirebase();
+      savePlayLogToFirestore(session.userId, gameId, score, maxScore, [session.name]).catch(e => {
+        console.warn('Firestore write failed:', e.message);
       });
+    } catch (e) {
+      console.warn('Firestore init failed:', e.message);
     }
   }
 
-  // Also save to localStorage as fallback
+  // Always save to localStorage as fallback
   try {
     const logs = JSON.parse(localStorage.getItem('asobi_playlogs') || '[]');
-    logs.push({ userId: session?.userId || 'anonymous', gameId, score, maxScore, pct: maxScore > 0 ? Math.round((score / maxScore) * 100) : 0, timestamp: new Date().toISOString() });
+    const userId = session?.userId || (sessionPlayers[0]?.userId) || 'anonymous';
+    logs.push({ userId, gameId, score, maxScore, pct: maxScore > 0 ? Math.round((score / maxScore) * 100) : 0, timestamp: new Date().toISOString() });
     if (logs.length > 500) logs.splice(0, logs.length - 500);
     localStorage.setItem('asobi_playlogs', JSON.stringify(logs));
   } catch {}

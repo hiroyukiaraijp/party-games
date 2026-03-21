@@ -128,7 +128,16 @@
 
       try {
         initFirebase();
-        const logs = await getPlayLogsForUser(session.userId);
+        let logs = await getPlayLogsForUser(session.userId);
+
+        // Fallback: merge localStorage logs if Firestore is empty
+        if (logs.length === 0) {
+          try {
+            const localLogs = JSON.parse(localStorage.getItem('asobi_playlogs') || '[]');
+            logs = localLogs.filter(l => l.userId === session.userId);
+          } catch {}
+        }
+
         const profile = calculateProfileFromLogs(logs);
         const brainInfo = getBrainType(profile);
         const advice = getAdvice(profile);
