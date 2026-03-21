@@ -156,7 +156,7 @@ function showPhase(id) {
 // --- Game Flow ---
 function startGame() {
   syncActivePlayers(players,scores);
-  if (players.length < 3) { showToast('プレイヤーを3人以上登録してください'); return; }
+  if (getActivePlayers(players).length < 3) { showToast('プレイヤーを3人以上登録してください'); return; }
   beginRound();
 }
 
@@ -277,7 +277,7 @@ function startOrderPhase() {
   document.getElementById('orderTheme').textContent = currentTheme;
 
   // Initial order: shuffled
-  submittedOrder = [...players].sort(() => Math.random() - .5);
+  submittedOrder = [...getActivePlayers(players)].sort(() => Math.random() - .5);
   renderSortList();
 }
 
@@ -386,9 +386,10 @@ document.addEventListener('click', (e) => {
 function submitOrder() {
   showPhase('resultPhase');
 
-  const correctOrder = [...players].sort((a, b) => assignments[a] - assignments[b]);
+  const activePlayers = getActivePlayers(players);
+  const correctOrder = [...activePlayers].sort((a, b) => assignments[a] - assignments[b]);
   let correctPairs = 0;
-  const totalPairs = players.length - 1;
+  const totalPairs = activePlayers.length - 1;
   const pairHTML = [];
 
   for (let i = 0; i < totalPairs; i++) {

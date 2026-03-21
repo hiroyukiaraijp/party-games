@@ -220,7 +220,7 @@ function showPhase(id) {
 // --- Game Flow ---
 function startGame() {
   syncActivePlayers(players,scores);
-  if (players.length < 2) { showToast('プレイヤーを2人以上登録してください'); return; }
+  if (getActivePlayers(players).length < 2) { showToast('プレイヤーを2人以上登録してください'); return; }
   beginRound();
 }
 

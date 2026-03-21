@@ -183,7 +183,7 @@ function showPhase(id) {
 // --- Game Flow ---
 function startGame() {
   syncActivePlayers(players,scores);
-  if (players.length < 2) { showToast('プレイヤーを2人以上登録してください'); return; }
+  if (getActivePlayers(players).length < 2) { showToast('プレイヤーを2人以上登録してください'); return; }
   beginRound();
 }
 
@@ -276,14 +276,14 @@ function renderHintList() {
 
 // --- Answer ---
 function markCorrect() {
-  if (players.length === 2) {
+  if (getActivePlayers(players).length === 2) {
     // 2 players: answerer is the other one
-    const answerer = players.find(p => p !== currentPresenter);
+    const answerer = getActivePlayers(players).find(p => p !== currentPresenter);
     finishCorrect(answerer);
   } else {
     // 3+: show answerer select
     showPhase('answererPhase');
-    document.getElementById('answererGrid').innerHTML = players
+    document.getElementById('answererGrid').innerHTML = getActivePlayers(players)
       .filter(p => p !== currentPresenter)
       .map(p => `<button class="answerer-btn" onclick="finishCorrect('${esc(p)}')">${esc(p)}</button>`)
       .join('');

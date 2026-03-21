@@ -309,7 +309,7 @@ function showPhase(phaseId) {
 // --- Game Flow ---
 function startGame() {
   syncActivePlayers(players,scores);
-  if (players.length < 3) {
+  if (getActivePlayers(players).length < 3) {
     showToast('プレイヤーを3人以上登録してください');
     return;
   }

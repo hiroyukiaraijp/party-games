@@ -41,7 +41,7 @@ function showPhase(id){[$setupPhase,$inputPhase,$revealPhase].forEach(e=>e.style
 
 function startGame(){
   syncActivePlayers(players,scores);
-  if(players.length<2){showToast('プレイヤーを2人以上登録してください');return;}
+  if(getActivePlayers(players).length<2){showToast('プレイヤーを2人以上登録してください');return;}
   beginRound();
 }
 
