@@ -2,6 +2,8 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
@@ -11,7 +13,31 @@ concurrency:
   group: pages
   cancel-in-progress: false
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install html5validator
+        run: pip3 install html5validator
+
+      - name: Validate HTML
+        run: |
+          html5validator --root . \
+            --ignore-re "Trailing slash on void elements" \
+            --log WARNING
+
+      - name: Check JS syntax
+        run: |
+          find . -name "*.js" \
+            ! -path "./.github/*" \
+            -print0 \
+          | xargs -0 -I{} node --check {}
+
   deploy:
+    needs: validate
+    # Only deploy on pushes to main (not on pull_request events)
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

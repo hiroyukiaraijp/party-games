@@ -1,0 +1,9 @@
+# Development files
+CLAUDE.md
+HANDOVER.md
+agents/
+skills/
+research/
+tasks/
+docs/
+.claude/
