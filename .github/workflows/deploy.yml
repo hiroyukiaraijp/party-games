@@ -25,7 +25,6 @@ jobs:
         run: |
           html5validator --root . \
             --ignore-re "Trailing slash on void elements" \
-            --ignore-re "scrollbar.width" \
             --ignore-re "enterkeyhint" \
             --log WARNING
 

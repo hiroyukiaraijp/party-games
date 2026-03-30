@@ -21,7 +21,7 @@
     /* Filter bar */
     .filter-bar {
       display: flex; gap: .3rem; padding: .6rem 1rem; overflow-x: auto;
-      -webkit-overflow-scrolling: touch; scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
     }
     .filter-bar::-webkit-scrollbar { display: none; }
     .filter-pill {
@@ -123,6 +123,7 @@
   <div class="toast" id="toast"></div>
 
   <script>
+    document.getElementById('filterBar').style.scrollbarWidth = 'none';
     const GAMES = [
       { id: 'word-slot', icon: '🎰', name: 'ワードスロット', min: 1, tags: ['lang'], href: 'games/word-slot/index.html' },
       { id: 'katakana-nashi', icon: '🚫', name: 'カタカナーシ', min: 2, tags: ['lang'], href: 'games/katakana-nashi/index.html' },
